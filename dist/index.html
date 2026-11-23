@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAMAYANA: The Retro Epic (2D Rust + WASM)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b090e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            color: #d4af37;
+        }
+        #glcanvas {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            display: block;
+            outline: none;
+            cursor: crosshair;
+        }
+        #loading {
+            position: absolute;
+            color: #f7ca45;
+            font-size: 20px;
+            letter-spacing: 2px;
+            text-align: center;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">⚡ INVOCATING RAMAYANA: THE RETRO EPIC...</div>
+    <canvas id="glcanvas" tabindex="1"></canvas>
+    <script src="mq_js_bundle.js"></script>
+    <script>
+        load("ramayana_rpg.wasm");
+        window.addEventListener("load", () => {
+            const el = document.getElementById("loading");
+            if (el) {
+                setTimeout(() => { el.style.opacity = "0"; }, 600);
+            }
+        });
+    </script>
+</body>
+</html>
