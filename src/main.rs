@@ -78,9 +78,9 @@ async fn main() {
                     game_state = GameState::Dialogue {
                         speaker: "Sage Vishwamitra".to_string(),
                         lines: vec![
-                            "Prince Rama, we enter the cursed forest of Yakshini Tataka.".to_string(),
-                            "Her dark sorcery veils her from sight. You cannot see her.".to_string(),
-                            "Listen closely. Use Shabdavedhi - strike her sound ripples!".to_string(),
+                            "Prince Rama, we enter the desolate wasteland of Tataka.".to_string(),
+                            "Once the thriving realms of Malada and Karusha, she laid all to ruin.".to_string(),
+                            "Her dark sorcery veils her from sight. Use Shabdavedhi to strike her ripples!".to_string(),
                             "Hurry! If dusk falls (90s), her frenzy doubles speed & malice!".to_string(),
                         ],
                         idx: 0,

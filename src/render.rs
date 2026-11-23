@@ -162,12 +162,12 @@ pub fn draw_battlefield(time: f32, sunset_timer: f32) {
     // 5. Wildflowers, Forest Herbs & Autumn Fallen Leaves
     draw_wilderness_flora(time);
 
-    // 6. Battlefield Relics & Terrain Props
-    // Yajna Altar in upper clearing
-    draw_yajna_altar(110.0, 85.0, time);
+    // 6. Battlefield Relics: Overgrown Ruins of Ancient Malada & Karusha
+    // Collapsed Sandstone Gateway of Malada in the upper clearing
+    draw_ruined_gateway(110.0, 85.0);
 
-    // Sacred Shiva Lingam Shrine & Trishul (trident) on rocky mound
-    draw_shiva_shrine(510.0, 95.0);
+    // Ruined Overgrown Plinth of Karusha on the rocky upper-right clearing
+    draw_ruined_plinth(510.0, 90.0);
 
     // Ancient Ruined Stone Pillars with Devanagari carvings
     draw_stone_pillar(190.0, 255.0);
@@ -373,36 +373,39 @@ fn draw_banyan_stump(x: f32, y: f32) {
     draw_ellipse(x - 9.0, y + 2.0, 3.5, 1.8, 0.0, fungi_col);
 }
 
-// Sacred Shiva Lingam Shrine & Trishul (Trident)
-fn draw_shiva_shrine(x: f32, y: f32) {
-    let stone_col = Color::new(0.35, 0.38, 0.40, 1.0);
-    let lingam_col = Color::new(0.20, 0.22, 0.24, 1.0);
-    let trishul_col = Color::new(0.85, 0.65, 0.20, 1.0);
+// Collapsed Ancient Sandstone Gateway of Malada
+fn draw_ruined_gateway(x: f32, y: f32) {
+    let stone_dark = Color::new(0.38, 0.35, 0.32, 1.0);
+    let stone_mid = Color::new(0.48, 0.45, 0.40, 1.0);
+    let stone_light = Color::new(0.60, 0.57, 0.50, 1.0);
+    let moss_col = Color::new(0.25, 0.35, 0.18, 0.85);
 
-    // Stone base / Yoni pitha
-    draw_ellipse(x, y + 6.0, 12.0, 5.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.35));
-    draw_rectangle(x - 8.0, y, 16.0, 6.0, stone_col);
+    // Drop shadows
+    draw_ellipse(x - 14.0, y + 8.0, 12.0, 5.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.4));
+    draw_ellipse(x + 14.0, y + 8.0, 10.0, 4.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.4));
+    draw_ellipse(x, y + 4.0, 18.0, 4.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.3));
 
-    // Sacred Lingam
-    draw_rectangle(x - 4.0, y - 9.0, 8.0, 10.0, lingam_col);
-    draw_circle(x, y - 9.0, 4.0, lingam_col);
+    // Left gate pillar (standing, weathered)
+    draw_rectangle(x - 18.0, y - 22.0, 10.0, 28.0, stone_mid);
+    draw_rectangle(x - 20.0, y - 24.0, 14.0, 4.0, stone_light); // capital
+    draw_rectangle(x - 20.0, y + 4.0, 14.0, 4.0, stone_dark);  // base
+    draw_line(x - 15.0, y - 18.0, x - 13.0, y - 6.0, 1.2, stone_dark); // stone crack
 
-    // Tripundra (sacred 3 white ash lines) & red tilaka
-    draw_line(x - 3.0, y - 9.0, x + 3.0, y - 9.0, 1.0, WHITE);
-    draw_line(x - 3.0, y - 7.0, x + 3.0, y - 7.0, 1.0, WHITE);
-    draw_circle(x, y - 8.0, 0.8, Color::new(0.9, 0.1, 0.1, 1.0));
+    // Right gate pillar (partially collapsed stump)
+    draw_rectangle(x + 10.0, y - 8.0, 10.0, 14.0, stone_mid);
+    draw_rectangle(x + 8.0, y + 4.0, 14.0, 4.0, stone_dark); // base
+    draw_triangle(vec2(x + 10.0, y - 8.0), vec2(x + 20.0, y - 8.0), vec2(x + 14.0, y - 14.0), stone_light); // jagged broken top
 
-    // Iron / Brass Trishul planted beside it
-    let tx = x + 14.0;
-    let ty = y - 18.0;
-    draw_line(tx, ty + 24.0, tx, ty, 2.0, trishul_col);
-    // Trident prongs
-    draw_line(tx - 4.0, ty + 4.0, tx - 4.0, ty - 2.0, 1.5, trishul_col);
-    draw_line(tx + 4.0, ty + 4.0, tx + 4.0, ty - 2.0, 1.5, trishul_col);
-    draw_line(tx, ty, tx, ty - 6.0, 2.0, trishul_col);
-    draw_line(tx - 4.0, ty + 4.0, tx + 4.0, ty + 4.0, 1.5, trishul_col);
-    // Red cloth flag tied to trident
-    draw_triangle(vec2(tx, ty + 6.0), vec2(tx - 6.0, ty + 9.0), vec2(tx, ty + 12.0), Color::new(0.9, 0.15, 0.15, 1.0));
+    // Fallen shattered lintel stone resting on the ground
+    draw_line(x - 10.0, y + 2.0, x + 8.0, y + 6.0, 5.0, stone_dark);
+    draw_line(x - 9.0, y + 1.0, x + 7.0, y + 5.0, 3.5, stone_mid);
+    draw_line(x - 2.0, y, x + 3.0, y + 8.0, 1.2, Color::new(0.2, 0.18, 0.15, 1.0)); // break fracture
+
+    // Creepers and moss climbing the ruins
+    draw_circle(x - 18.0, y - 12.0, 2.5, moss_col);
+    draw_circle(x - 17.0, y - 4.0, 3.0, moss_col);
+    draw_circle(x + 14.0, y - 2.0, 2.2, moss_col);
+    draw_circle(x, y + 6.0, 2.5, moss_col);
 }
 
 // Granite Boulder Clusters
@@ -424,33 +427,35 @@ fn draw_granite_boulder_cluster(x: f32, y: f32) {
     draw_circle(x + 10.0, y + 1.0, 4.0, lit_col);
 }
 
-// Vedic Yajna Altar (Vedi)
-fn draw_yajna_altar(x: f32, y: f32, time: f32) {
-    // Stepped red-brick altar
-    draw_rectangle(x - 22.0, y - 8.0, 44.0, 20.0, Color::new(0.58, 0.25, 0.15, 1.0));
-    draw_rectangle(x - 16.0, y - 12.0, 32.0, 10.0, Color::new(0.72, 0.32, 0.18, 1.0));
-    draw_rectangle(x - 10.0, y - 15.0, 20.0, 6.0, Color::new(0.85, 0.42, 0.22, 1.0));
+// Overgrown Ruined Plinth of Karusha (Devastated Pavilion Foundation)
+fn draw_ruined_plinth(x: f32, y: f32) {
+    let stone_base = Color::new(0.42, 0.40, 0.36, 1.0);
+    let stone_step = Color::new(0.52, 0.50, 0.44, 1.0);
+    let stone_top = Color::new(0.62, 0.60, 0.54, 1.0);
+    let weed_col = Color::new(0.26, 0.36, 0.18, 0.9);
 
-    // Brass Kalasha pots at altar base
-    draw_circle(x - 16.0, y + 6.0, 3.5, Color::new(0.9, 0.75, 0.2, 1.0));
-    draw_circle(x + 16.0, y + 6.0, 3.5, Color::new(0.9, 0.75, 0.2, 1.0));
+    // Shadow
+    draw_ellipse(x, y + 12.0, 26.0, 8.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.38));
 
-    // Sacred Fire (Agni)
-    let flame_flicker = (time * 14.0).sin() * 2.5;
-    let flame_h = 14.0 + (time * 16.0).cos() * 3.5;
-    draw_triangle(
-        vec2(x - 8.0, y - 14.0),
-        vec2(x + 8.0, y - 14.0),
-        vec2(x + flame_flicker, y - 14.0 - flame_h),
-        Color::new(1.0, 0.3, 0.0, 0.90),
-    );
-    draw_triangle(
-        vec2(x - 5.0, y - 14.0),
-        vec2(x + 5.0, y - 14.0),
-        vec2(x + flame_flicker * 0.5, y - 14.0 - flame_h * 0.7),
-        Color::new(1.0, 0.9, 0.2, 0.98),
-    );
-    draw_circle(x, y - 16.0, 24.0 + flame_flicker, Color::new(1.0, 0.6, 0.1, 0.16));
+    // Tier 1 (Broad ancient stone base)
+    draw_rectangle(x - 22.0, y, 44.0, 10.0, stone_base);
+    draw_rectangle_lines(x - 22.0, y, 44.0, 10.0, 1.0, Color::new(0.28, 0.26, 0.22, 1.0));
+
+    // Tier 2 (Step)
+    draw_rectangle(x - 16.0, y - 6.0, 32.0, 8.0, stone_step);
+
+    // Tier 3 (Platform top with cracked flagstones)
+    draw_rectangle(x - 10.0, y - 11.0, 20.0, 6.0, stone_top);
+    draw_line(x - 4.0, y - 11.0, x + 2.0, y - 5.0, 1.2, Color::new(0.25, 0.23, 0.20, 1.0));
+
+    // Toppled pillar segment lying on the plinth
+    draw_rectangle(x + 8.0, y - 8.0, 12.0, 5.0, stone_step);
+    draw_circle(x + 18.0, y - 5.5, 2.5, stone_base);
+
+    // Weeds and wild briars growing through the ancient cracks
+    draw_line(x - 12.0, y - 6.0, x - 14.0, y - 14.0, 1.5, weed_col);
+    draw_line(x - 10.0, y - 6.0, x - 8.0, y - 12.0, 1.2, weed_col);
+    draw_circle(x + 3.0, y - 1.0, 2.5, weed_col);
 }
 
 // Ancient Ruined Stone Pillars with Devanagari Carvings
