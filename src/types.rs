@@ -57,6 +57,14 @@ pub enum Astra {
     Brahmastra,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum AstraProjectileType {
+    Kodanda,
+    Vayavya,
+    Manava,
+    Agneya,
+}
+
 #[allow(dead_code)]
 impl Astra {
     pub fn name(&self) -> &'static str {

@@ -11,6 +11,11 @@ pub struct SoundEffects {
     pub hurt: Sound,
     pub victory: Sound,
     pub game_over: Sound,
+    // Level 2 Astras & Altar
+    pub wind: Sound,
+    pub homing: Sound,
+    pub fire: Sound,
+    pub altar_hiss: Sound,
 }
 
 impl SoundEffects {
@@ -25,6 +30,10 @@ impl SoundEffects {
         let hurt = load_sound_from_bytes(&generate_hurt_wav()).await.unwrap();
         let victory = load_sound_from_bytes(&generate_victory_wav()).await.unwrap();
         let game_over = load_sound_from_bytes(&generate_game_over_wav()).await.unwrap();
+        let wind = load_sound_from_bytes(&generate_wind_wav()).await.unwrap();
+        let homing = load_sound_from_bytes(&generate_homing_wav()).await.unwrap();
+        let fire = load_sound_from_bytes(&generate_fire_wav()).await.unwrap();
+        let altar_hiss = load_sound_from_bytes(&generate_altar_hiss_wav()).await.unwrap();
 
         Self {
             shoot,
@@ -37,6 +46,10 @@ impl SoundEffects {
             hurt,
             victory,
             game_over,
+            wind,
+            homing,
+            fire,
+            altar_hiss,
         }
     }
 
@@ -259,6 +272,85 @@ fn generate_game_over_wav() -> Vec<u8> {
         let wave = (2.0 * std::f32::consts::PI * freq * t).sin();
         let sample = wave * env * 14000.0;
         samples.push(sample as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 2: Vayavyastra (Cyclone Wind Gust)
+fn generate_wind_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.4;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    let mut rng: u32 = 45678;
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (t * std::f32::consts::PI).sin().powf(0.9);
+        rng = rng.wrapping_mul(1664525).wrapping_add(1013904223);
+        let noise = ((rng >> 16) as f32 / 32768.0) - 1.0;
+        let freq = 340.0 + (t * 4.0).sin() * 80.0;
+        let sine = (2.0 * std::f32::consts::PI * freq * (i as f32 / rate as f32)).sin();
+        let sample = (noise * 0.7 + sine * 0.3) * env * 16000.0;
+        samples.push(sample as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 2: Manavastra (Homing Celestial Strike)
+fn generate_homing_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.45;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (1.0 - t).powf(0.9);
+        let freq = 440.0 + t * 660.0; // rising pitch
+        let s1 = (2.0 * std::f32::consts::PI * freq * (i as f32 / rate as f32)).sin();
+        let s2 = (2.0 * std::f32::consts::PI * (freq * 1.5) * (i as f32 / rate as f32)).sin() * 0.4;
+        let sample = (s1 + s2) * env * 15000.0;
+        samples.push(sample as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 2: Agneyastra (Holy Fire Combustion)
+fn generate_fire_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.38;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    let mut rng: u32 = 78912;
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (1.0 - t).powf(1.6);
+        rng = rng.wrapping_mul(1664525).wrapping_add(1013904223);
+        let noise = ((rng >> 16) as f32 / 32768.0) - 1.0;
+        let low_rumble = ((i as f32 * 0.04).sin()) * 0.8;
+        let sample = (noise * 0.6 + low_rumble * 0.4) * env * 18000.0;
+        samples.push(sample as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 2: Altar Defiled Hiss
+fn generate_altar_hiss_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.35;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    let mut rng: u32 = 34567;
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (1.0 - t).powf(2.0);
+        rng = rng.wrapping_mul(1664525).wrapping_add(1013904223);
+        let noise = ((rng >> 16) as f32 / 32768.0) - 1.0;
+        let hiss = (noise * (0.8 + 0.2 * (t * 30.0).sin())) * env * 14000.0;
+        samples.push(hiss as i16);
     }
     build_wav(&samples, rate)
 }

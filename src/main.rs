@@ -2,11 +2,13 @@ use macroquad::prelude::*;
 
 mod audio;
 mod level1;
+mod level2;
 mod render;
 mod types;
 
 use audio::SoundEffects;
 use level1::{FightResult, Level1Fight};
+use level2::{FightResultL2, Level2Fight};
 use render::*;
 use types::*;
 
@@ -43,6 +45,7 @@ async fn main() {
     let mut stats = PlayerStats::default();
     let mut game_state = GameState::TitleScreen;
     let mut level1_fight = Level1Fight::new();
+    let mut level2_fight = Level2Fight::new();
     let mut global_time: f32 = 0.0;
 
     loop {
@@ -70,7 +73,9 @@ async fn main() {
                 draw_title_screen(&font, global_time);
                 draw_reticle(virtual_mouse, false);
 
-                if is_key_pressed(KeyCode::Space)
+                // Level 1 Direct Select or Start Campaign
+                if is_key_pressed(KeyCode::Key1)
+                    || is_key_pressed(KeyCode::Space)
                     || is_key_pressed(KeyCode::Enter)
                     || is_mouse_button_pressed(MouseButton::Left)
                 {
@@ -86,6 +91,21 @@ async fn main() {
                         idx: 0,
                         target: DialogueTarget::StartFight(LevelId::L1Tataka),
                     };
+                } else if is_key_pressed(KeyCode::Key2) {
+                    // Level 2 Direct Select
+                    sounds.play(&sounds.shoot, 0.7);
+                    game_state = GameState::Dialogue {
+                        speaker: "Sage Vishwamitra".to_string(),
+                        lines: vec![
+                            "Welcome to Siddhashrama, the Hermitage of Accomplishment!".to_string(),
+                            "For six days and six nights, we conduct the holy Yajna sacrifice.".to_string(),
+                            "Rakshasas Maricha and Subahu will attempt to defile the sacrificial fire with blood!".to_string(),
+                            "Protect the central Yajna Altar at all costs. Do not let its Purity fall to zero!".to_string(),
+                            "Use [1] Kodanda for free arrows, [2] Vayavyastra to scatter swarms, [3] Manavastra to fling Maricha, and [4] Agneyastra to incinerate Subahu!".to_string(),
+                        ],
+                        idx: 0,
+                        target: DialogueTarget::StartFight(LevelId::L2Siddhashrama),
+                    };
                 }
             }
 
@@ -95,8 +115,18 @@ async fn main() {
                 idx,
                 target,
             } => {
-                draw_battlefield(global_time, 90.0);
-                draw_rama(vec2(120.0, 180.0), vec2(1.0, 0.0), 0.0, 0.0, global_time);
+                // Background matches level context
+                match target {
+                    DialogueTarget::StartFight(LevelId::L2Siddhashrama)
+                    | DialogueTarget::Victory(LevelId::L2Siddhashrama) => {
+                        draw_siddhashrama_arena(global_time, 100.0);
+                        draw_rama(vec2(240.0, 180.0), vec2(1.0, 0.0), 0.0, 0.0, global_time);
+                    }
+                    _ => {
+                        draw_battlefield(global_time, 90.0);
+                        draw_rama(vec2(120.0, 180.0), vec2(1.0, 0.0), 0.0, 0.0, global_time);
+                    }
+                }
 
                 if *idx < lines.len() {
                     draw_dialogue_box(&font, speaker, &lines[*idx], global_time);
@@ -112,9 +142,31 @@ async fn main() {
                     if *idx >= lines.len() {
                         match target {
                             DialogueTarget::StartFight(level_id) => {
-                                stats = PlayerStats::default();
-                                level1_fight = Level1Fight::new();
-                                game_state = GameState::Playing(*level_id);
+                                match level_id {
+                                    LevelId::L1Tataka => {
+                                        stats = PlayerStats::default();
+                                        level1_fight = Level1Fight::new();
+                                        game_state = GameState::Playing(LevelId::L1Tataka);
+                                    }
+                                    LevelId::L2Siddhashrama => {
+                                        stats = PlayerStats {
+                                            prana: 100,
+                                            max_prana: 100,
+                                            tejas: 100,
+                                            max_tejas: 100,
+                                            unlocked_astras: vec![
+                                                Astra::KodandaBow,
+                                                Astra::Vayavyastra,
+                                                Astra::Manavastra,
+                                                Astra::Agneyastra,
+                                            ],
+                                            selected_astra: Astra::KodandaBow,
+                                        };
+                                        level2_fight = Level2Fight::new();
+                                        game_state = GameState::Playing(LevelId::L2Siddhashrama);
+                                    }
+                                    _ => {}
+                                }
                             }
                             DialogueTarget::Victory(level_id) => {
                                 game_state = GameState::LevelComplete(*level_id);
@@ -150,41 +202,136 @@ async fn main() {
                             None => {}
                         }
                     }
+                    LevelId::L2Siddhashrama => {
+                        let fight_result = level2_fight.update(dt, virtual_mouse, &mut stats, &sounds);
+                        level2_fight.draw(&stats, virtual_mouse, &font);
+
+                        match fight_result {
+                            Some(FightResultL2::Victory) => {
+                                game_state = GameState::Dialogue {
+                                    speaker: "Sage Vishwamitra".to_string(),
+                                    lines: vec![
+                                        "Sadhu! Sadhu! The sacred Yajna of Siddhashrama is preserved!".to_string(),
+                                        "With Manavastra, you flung Maricha 100 yojanas into the distant sea!".to_string(),
+                                        "With Agneyastra, Subahu and his gore cauldrons are burned to ashes!".to_string(),
+                                        "The Devas rain flowers! Now accompany me to King Janaka's court in Mithila!".to_string(),
+                                    ],
+                                    idx: 0,
+                                    target: DialogueTarget::Victory(LevelId::L2Siddhashrama),
+                                };
+                            }
+                            Some(FightResultL2::Defeat) => {
+                                game_state = GameState::GameOver(LevelId::L2Siddhashrama);
+                            }
+                            None => {}
+                        }
+                    }
                     _ => {
-                        draw_pixel_text(&font, "COMING SOON IN LEVEL 2", 180.0, 180.0, 14, WHITE);
+                        draw_pixel_text(&font, "COMING SOON IN LEVEL 3", 180.0, 180.0, 14, WHITE);
                     }
                 }
             }
 
-            GameState::LevelComplete(_level_id) => {
-                draw_victory_screen(&font, global_time);
-                draw_reticle(virtual_mouse, false);
+            GameState::LevelComplete(level_id) => {
+                match level_id {
+                    LevelId::L1Tataka => {
+                        draw_victory_screen(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
 
-                if is_key_pressed(KeyCode::Space)
-                    || is_key_pressed(KeyCode::Enter)
-                    || is_mouse_button_pressed(MouseButton::Left)
-                {
-                    sounds.play(&sounds.shoot, 0.6);
-                    game_state = GameState::TitleScreen;
-                }
-                if is_key_pressed(KeyCode::R) {
-                    stats = PlayerStats::default();
-                    level1_fight = Level1Fight::new();
-                    game_state = GameState::Playing(LevelId::L1Tataka);
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::Dialogue {
+                                speaker: "Sage Vishwamitra".to_string(),
+                                lines: vec![
+                                    "Welcome to Siddhashrama, the Hermitage of Accomplishment.".to_string(),
+                                    "For six days and six nights, we conduct the holy Yajna sacrifice.".to_string(),
+                                    "Maricha and Subahu seek to desecrate the holy altar with impure gore!".to_string(),
+                                    "Protect the sacred central Yajna fire! Do not let its Purity fall to zero!".to_string(),
+                                    "Use [1] Kodanda for free arrows, [2] Vayavyastra for wind gales, [3] Manavastra for homing strikes, and [4] Agneyastra for sacred fire!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L2Siddhashrama),
+                            };
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            stats = PlayerStats::default();
+                            level1_fight = Level1Fight::new();
+                            game_state = GameState::Playing(LevelId::L1Tataka);
+                        }
+                    }
+                    LevelId::L2Siddhashrama => {
+                        draw_victory_l2(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::TitleScreen;
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            stats = PlayerStats {
+                                prana: 100,
+                                max_prana: 100,
+                                tejas: 100,
+                                max_tejas: 100,
+                                unlocked_astras: vec![
+                                    Astra::KodandaBow,
+                                    Astra::Vayavyastra,
+                                    Astra::Manavastra,
+                                    Astra::Agneyastra,
+                                ],
+                                selected_astra: Astra::KodandaBow,
+                            };
+                            level2_fight = Level2Fight::new();
+                            game_state = GameState::Playing(LevelId::L2Siddhashrama);
+                        }
+                    }
+                    _ => {}
                 }
             }
 
             GameState::GameOver(level_id) => {
-                draw_game_over(&font, global_time);
-                draw_reticle(virtual_mouse, false);
+                match level_id {
+                    LevelId::L1Tataka => {
+                        draw_game_over(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
 
-                if is_key_pressed(KeyCode::R) || is_mouse_button_pressed(MouseButton::Left) {
-                    stats = PlayerStats::default();
-                    if *level_id == LevelId::L1Tataka {
-                        level1_fight = Level1Fight::new();
-                        game_state = GameState::Playing(LevelId::L1Tataka);
+                        if is_key_pressed(KeyCode::R) || is_mouse_button_pressed(MouseButton::Left) {
+                            stats = PlayerStats::default();
+                            level1_fight = Level1Fight::new();
+                            game_state = GameState::Playing(LevelId::L1Tataka);
+                        }
                     }
+                    LevelId::L2Siddhashrama => {
+                        draw_game_over_l2(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::R) || is_mouse_button_pressed(MouseButton::Left) {
+                            stats = PlayerStats {
+                                prana: 100,
+                                max_prana: 100,
+                                tejas: 100,
+                                max_tejas: 100,
+                                unlocked_astras: vec![
+                                    Astra::KodandaBow,
+                                    Astra::Vayavyastra,
+                                    Astra::Manavastra,
+                                    Astra::Agneyastra,
+                                ],
+                                selected_astra: Astra::KodandaBow,
+                            };
+                            level2_fight = Level2Fight::new();
+                            game_state = GameState::Playing(LevelId::L2Siddhashrama);
+                        }
+                    }
+                    _ => {}
                 }
+
                 if is_key_pressed(KeyCode::Escape) {
                     game_state = GameState::TitleScreen;
                 }

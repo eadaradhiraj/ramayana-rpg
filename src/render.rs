@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use crate::types::PlayerStats;
+use crate::types::{Astra, AstraProjectileType, PlayerStats};
 
 pub const SCREEN_W: f32 = 640.0;
 pub const SCREEN_H: f32 = 360.0;
@@ -925,36 +925,42 @@ pub fn draw_title_screen(font: &Font, time: f32) {
 
     // Epic Title in Press Start 2P font
     let title = "RAMAYANA: THE RETRO EPIC";
-    draw_pixel_text(font, title, 70.0, 75.0, 20, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, title, 70.0, 65.0, 20, COLOR_RAMA_GOLD);
 
-    let sub = "BALA KANDA — LEVEL 1: TATAKA'S FOREST";
-    draw_pixel_text(font, sub, 130.0, 105.0, 10, Color::new(0.9, 0.7, 0.3, 1.0));
+    let sub = "BALA KANDA — THE ADVENTURES OF PRINCE RAMA";
+    draw_pixel_text(font, sub, 115.0, 92.0, 10, Color::new(0.9, 0.7, 0.3, 1.0));
 
     // Decorative Bow & Arrow
-    draw_line(180.0, 130.0, 460.0, 130.0, 2.0, COLOR_RAMA_GOLD);
-    draw_circle(320.0, 130.0, 5.0, Color::new(0.9, 0.2, 0.2, 1.0));
+    draw_line(160.0, 114.0, 480.0, 114.0, 2.0, COLOR_RAMA_GOLD);
+    draw_circle(320.0, 114.0, 4.5, Color::new(0.9, 0.2, 0.2, 1.0));
 
-    // Lore preview box
-    let box_x = 70.0;
-    let box_y = 150.0;
-    let box_w = 500.0;
-    let box_h = 135.0;
-    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.12, 0.13, 0.17, 0.92));
+    // Chapter Select / Preview Box
+    let box_x = 55.0;
+    let box_y = 130.0;
+    let box_w = 530.0;
+    let box_h = 160.0;
+    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.12, 0.13, 0.17, 0.94));
     draw_rectangle_lines(box_x, box_y, box_w, box_h, 1.5, Color::new(0.6, 0.5, 0.25, 0.85));
 
-    draw_pixel_text(font, "MISSION: DEFEAT THE YAKSHINI TATAKA", box_x + 16.0, box_y + 24.0, 9, COLOR_RAMA_GOLD);
-    draw_pixel_text(font, "- Phase 1: Track unseen sound ripples with Shabdavedhi", box_x + 16.0, box_y + 48.0, 8, Color::new(0.4, 0.85, 1.0, 1.0));
-    draw_pixel_text(font, "- Phase 2: Dodge her final frenzy charge & strike her down", box_x + 16.0, box_y + 70.0, 8, Color::new(1.0, 0.6, 0.6, 1.0));
-    draw_pixel_text(font, "- Defeat her before the 90s Dusk Countdown hits zero!", box_x + 16.0, box_y + 92.0, 8, Color::new(1.0, 0.85, 0.3, 1.0));
-    draw_pixel_text(font, "- Controls: WASD to Move | Mouse to Aim & Shoot", box_x + 16.0, box_y + 114.0, 8, WHITE);
+    // Level 1 Section
+    draw_pixel_text(font, "[1] LEVEL 1: TATAKA'S FOREST (SHABDAVEDHI)", box_x + 16.0, box_y + 24.0, 9, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, "    Track unseen ripples & vanquish the cursed Yakshini before dusk", box_x + 16.0, box_y + 44.0, 8, Color::new(0.4, 0.85, 1.0, 1.0));
+
+    // Level 2 Section
+    draw_pixel_text(font, "[2] LEVEL 2: SIDDHASHRAMA (DIVINE ASTRAS)", box_x + 16.0, box_y + 74.0, 9, Color::new(1.0, 0.65, 0.25, 1.0));
+    draw_pixel_text(font, "    Defend the sacred Yajna Altar against Maricha, Subahu & Asura hordes", box_x + 16.0, box_y + 94.0, 8, Color::new(0.9, 0.85, 0.5, 1.0));
+    draw_pixel_text(font, "    Astras: [1] Kodanda  [2] Vayavya  [3] Manava  [4] Agneya", box_x + 16.0, box_y + 114.0, 8, Color::new(0.65, 0.95, 0.75, 1.0));
+
+    // Controls line
+    draw_pixel_text(font, "Controls: WASD Move | Mouse Aim & Shoot | 1-4 Switch Astras", box_x + 16.0, box_y + 142.0, 8, WHITE);
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        let prompt = "▶ PRESS SPACE OR CLICK TO BEGIN ◀";
-        draw_pixel_text(font, prompt, 135.0, 318.0, 12, COLOR_RAMA_GOLD);
+        let prompt = "▶ PRESS [1] OR [2] TO SELECT, OR [SPACE] TO START ◀";
+        draw_pixel_text(font, prompt, 80.0, 318.0, 11, COLOR_RAMA_GOLD);
     }
 
-    draw_pixel_text(font, "16:9 Widescreen | Keyboard & Mouse Archery", 150.0, 345.0, 8, Color::new(0.6, 0.6, 0.6, 1.0));
+    draw_pixel_text(font, "16:9 Widescreen | Keyboard & Mouse Archery | Rust + WASM", 90.0, 345.0, 8, Color::new(0.6, 0.6, 0.6, 1.0));
 }
 
 // Victory Screen for 16:9
@@ -1012,6 +1018,752 @@ pub fn draw_game_over(font: &Font, time: f32) {
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
         draw_pixel_text(font, "PRESS [R] OR CLICK TO RETRY LEVEL 1", 125.0, 285.0, 11, COLOR_RAMA_GOLD);
+    }
+    draw_pixel_text(font, "Press [ESC] to Return to Title", 195.0, 315.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
+}
+
+// ============================================================================
+// LEVEL 2: SIDDHASHRAMA (THE HERMITAGE OF ACCOMPLISHMENT) RENDERING
+// ============================================================================
+
+pub fn draw_siddhashrama_arena(time: f32, yajna_purity: f32) {
+    let tile_size = 32.0;
+    let cols = (SCREEN_W / tile_size) as usize; // 20
+    let rows = (SCREEN_H / tile_size) as usize; // 12
+
+    // 1. Lush Green Hermitage Lawn & Sacred Sandstone Flagstone Crossways
+    for y in 0..rows {
+        for x in 0..cols {
+            let px = x as f32 * tile_size;
+            let py = y as f32 * tile_size;
+
+            let is_road_x = py >= 160.0 && py < 192.0;
+            let is_road_y = px >= 304.0 && px < 336.0;
+
+            if is_road_x || is_road_y {
+                // Sacred terracotta sandstone walkway leading to the Yajna Altar
+                let road_hash = (x * 19 + y * 41) % 4;
+                let road_col = match road_hash {
+                    0 => Color::new(0.44, 0.28, 0.18, 1.0),
+                    1 => Color::new(0.48, 0.31, 0.20, 1.0),
+                    2 => Color::new(0.42, 0.26, 0.16, 1.0),
+                    _ => Color::new(0.46, 0.30, 0.19, 1.0),
+                };
+                draw_rectangle(px, py, tile_size, tile_size, road_col);
+                draw_rectangle_lines(px, py, tile_size, tile_size, 1.0, Color::new(0.35, 0.22, 0.14, 0.7));
+            } else {
+                // Vibrant hermitage grass with flowers and clover
+                let grass_hash = (x * 23 + y * 31) % 8;
+                let grass_col = match grass_hash {
+                    0 | 1 => Color::new(0.18, 0.38, 0.15, 1.0), // Emerald lawn
+                    2 | 3 => Color::new(0.20, 0.42, 0.17, 1.0), // Fresh meadow
+                    4 | 5 => Color::new(0.16, 0.35, 0.14, 1.0), // Deep shade grass
+                    6 => Color::new(0.22, 0.45, 0.18, 1.0),     // Sunlit patch
+                    _ => Color::new(0.19, 0.40, 0.16, 1.0),     // Standard clearing
+                };
+                draw_rectangle(px, py, tile_size, tile_size, grass_col);
+
+                // Sacred white and yellow hermit grove flowers
+                if grass_hash == 2 {
+                    draw_circle(px + 10.0, py + 12.0, 1.8, Color::new(1.0, 0.95, 0.6, 0.9));
+                    draw_circle(px + 10.0, py + 12.0, 0.8, Color::new(1.0, 0.6, 0.1, 1.0));
+                } else if grass_hash == 6 {
+                    draw_circle(px + 22.0, py + 20.0, 1.5, Color::new(1.0, 0.7, 0.85, 0.85));
+                }
+            }
+        }
+    }
+
+    // 2. Perimeter Sacred Kadamba & Ashoka Grove Trees
+    let tree_count = 14;
+    for i in 0..tree_count {
+        let tx = 40.0 + i as f32 * 43.0;
+        // Top boundary foliage
+        let sway = (time * 1.5 + i as f32).sin() * 2.0;
+        draw_circle(tx + sway, 16.0, 22.0, Color::new(0.12, 0.28, 0.10, 0.95));
+        draw_circle(tx + sway - 5.0, 14.0, 16.0, Color::new(0.16, 0.34, 0.12, 0.9));
+        // Blossom clusters
+        if i % 2 == 0 {
+            draw_circle(tx + sway + 4.0, 18.0, 2.5, Color::new(1.0, 0.6, 0.3, 0.9));
+        }
+
+        // Bottom boundary foliage
+        draw_circle(tx - sway, SCREEN_H - 10.0, 20.0, Color::new(0.12, 0.28, 0.10, 0.95));
+        draw_circle(tx - sway + 4.0, SCREEN_H - 14.0, 15.0, Color::new(0.15, 0.33, 0.12, 0.9));
+    }
+
+    // 3. Thatched Vedic Hermitages (Parnakuti) in corners
+    // Left Ashram Kutir
+    draw_rectangle(44.0, 42.0, 56.0, 38.0, Color::new(0.45, 0.32, 0.20, 1.0));
+    draw_triangle(
+        vec2(38.0, 44.0),
+        vec2(72.0, 20.0),
+        vec2(106.0, 44.0),
+        Color::new(0.72, 0.58, 0.26, 1.0),
+    );
+    draw_rectangle(64.0, 56.0, 16.0, 24.0, Color::new(0.20, 0.12, 0.08, 1.0)); // Door
+    draw_circle(52.0, 72.0, 3.5, Color::new(0.7, 0.35, 0.15, 1.0));            // Kamandalu water pot
+
+    // Right Ashram Kutir
+    draw_rectangle(540.0, 42.0, 56.0, 38.0, Color::new(0.45, 0.32, 0.20, 1.0));
+    draw_triangle(
+        vec2(534.0, 44.0),
+        vec2(568.0, 20.0),
+        vec2(602.0, 44.0),
+        Color::new(0.72, 0.58, 0.26, 1.0),
+    );
+    draw_rectangle(560.0, 56.0, 16.0, 24.0, Color::new(0.20, 0.12, 0.08, 1.0)); // Door
+    draw_circle(590.0, 72.0, 3.5, Color::new(0.7, 0.35, 0.15, 1.0));             // Kamandalu
+
+    // Saffron Pennants (Dhvaja) fluttering
+    let flag_wave = (time * 6.0).sin() * 5.0;
+    // Flag pole left
+    draw_line(150.0, 30.0, 150.0, 68.0, 2.5, Color::new(0.35, 0.25, 0.15, 1.0));
+    draw_triangle(
+        vec2(150.0, 32.0),
+        vec2(172.0 + flag_wave, 38.0),
+        vec2(150.0, 46.0),
+        Color::new(1.0, 0.55, 0.05, 1.0),
+    );
+    // Flag pole right
+    draw_line(490.0, 30.0, 490.0, 68.0, 2.5, Color::new(0.35, 0.25, 0.15, 1.0));
+    draw_triangle(
+        vec2(490.0, 32.0),
+        vec2(512.0 + flag_wave, 38.0),
+        vec2(490.0, 46.0),
+        Color::new(1.0, 0.55, 0.05, 1.0),
+    );
+
+    // 4. Central Sacred Yajna Altar (320.0, 180.0)
+    let altar_c = vec2(320.0, 180.0);
+
+    // Outer Altar Tier (Stepped Brick Platform)
+    let outer_sz = 84.0;
+    draw_rectangle(
+        altar_c.x - outer_sz * 0.5,
+        altar_c.y - outer_sz * 0.5,
+        outer_sz,
+        outer_sz,
+        Color::new(0.55, 0.22, 0.15, 1.0),
+    );
+    draw_rectangle_lines(
+        altar_c.x - outer_sz * 0.5,
+        altar_c.y - outer_sz * 0.5,
+        outer_sz,
+        outer_sz,
+        2.5,
+        Color::new(0.85, 0.75, 0.50, 1.0),
+    );
+
+    // Sacred White Lime Rangoli Geometrical Markings on Altar Edges
+    let corner_ofs = outer_sz * 0.5 - 6.0;
+    for &dx in &[-corner_ofs, corner_ofs] {
+        for &dy in &[-corner_ofs, corner_ofs] {
+            draw_circle_lines(altar_c.x + dx, altar_c.y + dy, 4.0, 1.2, Color::new(1.0, 1.0, 1.0, 0.8));
+        }
+    }
+
+    // Middle Altar Tier
+    let mid_sz = 58.0;
+    draw_rectangle(
+        altar_c.x - mid_sz * 0.5,
+        altar_c.y - mid_sz * 0.5,
+        mid_sz,
+        mid_sz,
+        Color::new(0.40, 0.15, 0.10, 1.0),
+    );
+    draw_rectangle_lines(
+        altar_c.x - mid_sz * 0.5,
+        altar_c.y - mid_sz * 0.5,
+        mid_sz,
+        mid_sz,
+        1.5,
+        COLOR_RAMA_GOLD,
+    );
+
+    // Inner Fire Kunda Pit
+    let pit_sz = 36.0;
+    draw_rectangle(
+        altar_c.x - pit_sz * 0.5,
+        altar_c.y - pit_sz * 0.5,
+        pit_sz,
+        pit_sz,
+        Color::new(0.18, 0.08, 0.06, 1.0),
+    );
+
+    // Divine Fire of Agni
+    let purity_factor = (yajna_purity / 100.0).clamp(0.05, 1.0);
+    let flame_h = 18.0 * purity_factor + ((time * 15.0).sin() * 3.0);
+    let flame_w = 14.0 * purity_factor + ((time * 20.0).cos() * 2.0);
+
+    // Sacred Fire Glow Halo
+    let glow_alpha = (0.2 + (time * 5.0).sin() * 0.08) * purity_factor;
+    draw_circle(altar_c.x, altar_c.y - 4.0, 30.0 * purity_factor, Color::new(1.0, 0.6, 0.1, glow_alpha));
+
+    // Outer Red/Orange Flame
+    draw_triangle(
+        vec2(altar_c.x - flame_w, altar_c.y + 4.0),
+        vec2(altar_c.x + flame_w, altar_c.y + 4.0),
+        vec2(altar_c.x, altar_c.y - flame_h - 4.0),
+        Color::new(0.95, 0.25, 0.05, 0.95),
+    );
+
+    // Middle Golden Flame
+    let mid_flame_h = flame_h * 0.75 + ((time * 22.0).sin() * 2.5);
+    draw_triangle(
+        vec2(altar_c.x - flame_w * 0.65, altar_c.y + 4.0),
+        vec2(altar_c.x + flame_w * 0.65, altar_c.y + 4.0),
+        vec2(altar_c.x, altar_c.y - mid_flame_h - 2.0),
+        Color::new(1.0, 0.75, 0.15, 0.98),
+    );
+
+    // Inner White-Hot Flame Core
+    let core_h = flame_h * 0.45;
+    draw_triangle(
+        vec2(altar_c.x - flame_w * 0.35, altar_c.y + 3.0),
+        vec2(altar_c.x + flame_w * 0.35, altar_c.y + 3.0),
+        vec2(altar_c.x, altar_c.y - core_h),
+        Color::new(1.0, 1.0, 0.9, 1.0),
+    );
+
+    // Rising Holy Sparks / Ash
+    for i in 0..5 {
+        let spark_t = (time * 3.0 + i as f32 * 0.6) % 1.0;
+        let sx = altar_c.x + ((i as f32 * 2.3 + time * 4.0).sin() * 12.0);
+        let sy = altar_c.y - (spark_t * 35.0);
+        let s_alpha = (1.0 - spark_t) * purity_factor;
+        draw_circle(sx, sy, 1.2, Color::new(1.0, 0.85, 0.3, s_alpha));
+    }
+
+    // Impurity smoke if purity is compromised
+    if yajna_purity < 50.0 {
+        let smoke_intensity = (1.0 - (yajna_purity / 50.0)).clamp(0.0, 1.0);
+        for i in 0..4 {
+            let smk_t = (time * 2.5 + i as f32 * 0.8) % 1.0;
+            let smk_x = altar_c.x + ((time * 3.0 + i as f32).cos() * 14.0);
+            let smk_y = altar_c.y - 10.0 - (smk_t * 40.0);
+            draw_circle(smk_x, smk_y, 4.0 + smk_t * 6.0, Color::new(0.15, 0.08, 0.10, (1.0 - smk_t) * 0.7 * smoke_intensity));
+        }
+    }
+
+    // 5. Four Meditating Vedic Rishis Chanting at the Altar
+    let rishi_positions = [
+        vec2(altar_c.x - 56.0, altar_c.y - 56.0), // NW
+        vec2(altar_c.x + 56.0, altar_c.y - 56.0), // NE
+        vec2(altar_c.x - 56.0, altar_c.y + 56.0), // SW
+        vec2(altar_c.x + 56.0, altar_c.y + 56.0), // SE
+    ];
+
+    for (idx, &rpos) in rishi_positions.iter().enumerate() {
+        let breath = (time * 2.5 + idx as f32 * 1.5).sin() * 1.0;
+
+        // Chanting holy aura
+        let aura_r = 13.0 + breath * 1.5;
+        draw_circle(rpos.x, rpos.y, aura_r, Color::new(1.0, 0.85, 0.4, 0.18));
+        draw_circle_lines(rpos.x, rpos.y, aura_r, 1.0, Color::new(1.0, 0.75, 0.3, 0.35));
+
+        // Seated Padmasana Robes (Saffron/Ochre Valkala)
+        draw_ellipse(rpos.x, rpos.y + 5.0, 8.5, 4.5, 0.0, Color::new(0.92, 0.52, 0.12, 1.0));
+        draw_rectangle(rpos.x - 4.5, rpos.y - 2.0, 9.0, 8.0, Color::new(0.88, 0.48, 0.10, 1.0));
+
+        // Rishi Head
+        draw_circle(rpos.x, rpos.y - 4.0, 4.5, Color::new(0.88, 0.72, 0.56, 1.0));
+
+        // Topknot (Jata) with rudraksha
+        draw_circle(rpos.x, rpos.y - 8.5, 2.5, Color::new(0.35, 0.22, 0.12, 1.0));
+        draw_circle(rpos.x, rpos.y - 8.5, 1.0, Color::new(0.65, 0.25, 0.10, 1.0));
+
+        // Flowing White Beard
+        draw_triangle(
+            vec2(rpos.x - 3.5, rpos.y - 2.0),
+            vec2(rpos.x + 3.5, rpos.y - 2.0),
+            vec2(rpos.x, rpos.y + 4.0),
+            Color::new(0.95, 0.95, 0.95, 0.95),
+        );
+    }
+}
+
+// Draw Rakshasa Minion Swarmer
+pub fn draw_rakshasa_minion(pos: Vec2, hit_flash: f32, time: f32) {
+    if hit_flash > 0.0 {
+        draw_rectangle(pos.x - 8.0, pos.y - 12.0, 16.0, 24.0, WHITE);
+        return;
+    }
+
+    let leg_bob = (time * 14.0).sin() * 2.5;
+
+    // Body shadow
+    draw_ellipse(pos.x, pos.y + 9.0, 7.0, 3.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.4));
+
+    // Demon Torso (Dark charcoal-violet)
+    let body_col = Color::new(0.24, 0.18, 0.28, 1.0);
+    draw_rectangle(pos.x - 5.0, pos.y - 6.0 + leg_bob, 10.0, 12.0, body_col);
+
+    // Running legs
+    draw_line(pos.x - 3.0, pos.y + 6.0 + leg_bob, pos.x - 4.0, pos.y + 11.0, 2.0, body_col);
+    draw_line(pos.x + 3.0, pos.y + 6.0 + leg_bob, pos.x + 4.0, pos.y + 11.0, 2.0, body_col);
+
+    // Demon Head
+    draw_circle(pos.x, pos.y - 9.0 + leg_bob, 5.0, body_col);
+
+    // Glowing Menacing Eyes
+    draw_circle(pos.x - 2.0, pos.y - 10.0 + leg_bob, 1.2, Color::new(1.0, 0.8, 0.1, 1.0));
+    draw_circle(pos.x + 2.0, pos.y - 10.0 + leg_bob, 1.2, Color::new(1.0, 0.8, 0.1, 1.0));
+
+    // Jagged Horns
+    draw_line(pos.x - 3.0, pos.y - 12.0 + leg_bob, pos.x - 6.0, pos.y - 17.0 + leg_bob, 1.8, Color::new(0.12, 0.08, 0.14, 1.0));
+    draw_line(pos.x + 3.0, pos.y - 12.0 + leg_bob, pos.x + 6.0, pos.y - 17.0 + leg_bob, 1.8, Color::new(0.12, 0.08, 0.14, 1.0));
+
+    // Vessel of Defiling Blood in hands
+    draw_circle(pos.x, pos.y + leg_bob, 3.5, Color::new(0.55, 0.10, 0.12, 1.0));
+    draw_circle(pos.x, pos.y - 1.0 + leg_bob, 2.2, Color::new(0.75, 0.05, 0.10, 1.0));
+}
+
+// Draw Winged Asura (Airborne Blood Bomber)
+pub fn draw_winged_asura(pos: Vec2, hit_flash: f32, time: f32) {
+    // Cast shadow on the ground
+    draw_ellipse(pos.x, pos.y + 40.0, 12.0, 5.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.35));
+
+    if hit_flash > 0.0 {
+        draw_rectangle(pos.x - 12.0, pos.y - 12.0, 24.0, 24.0, WHITE);
+        return;
+    }
+
+    let flap = (time * 12.0).sin() * 8.0;
+
+    // Bat-like Leathery Wings
+    let wing_col = Color::new(0.35, 0.08, 0.15, 0.95);
+    // Left Wing
+    draw_triangle(
+        vec2(pos.x - 4.0, pos.y - 2.0),
+        vec2(pos.x - 22.0, pos.y - 12.0 + flap),
+        vec2(pos.x - 14.0, pos.y + 4.0 + flap * 0.5),
+        wing_col,
+    );
+    // Right Wing
+    draw_triangle(
+        vec2(pos.x + 4.0, pos.y - 2.0),
+        vec2(pos.x + 22.0, pos.y - 12.0 + flap),
+        vec2(pos.x + 14.0, pos.y + 4.0 + flap * 0.5),
+        wing_col,
+    );
+
+    // Torso (Dark Crimson)
+    let body_col = Color::new(0.45, 0.10, 0.18, 1.0);
+    draw_ellipse(pos.x, pos.y, 6.0, 9.0, 0.0, body_col);
+
+    // Head with glowing green eyes
+    draw_circle(pos.x, pos.y - 8.0, 4.5, body_col);
+    draw_circle(pos.x - 1.8, pos.y - 9.0, 1.2, Color::new(0.2, 1.0, 0.4, 1.0));
+    draw_circle(pos.x + 1.8, pos.y - 9.0, 1.2, Color::new(0.2, 1.0, 0.4, 1.0));
+
+    // Blood bomb in talons
+    draw_circle(pos.x, pos.y + 8.0, 4.0, Color::new(0.70, 0.05, 0.10, 1.0));
+}
+
+// Draw Maricha Boss (Illusionist Sorcerer)
+pub fn draw_maricha(pos: Vec2, hit_flash: f32, time: f32) {
+    if hit_flash > 0.0 {
+        draw_rectangle(pos.x - 14.0, pos.y - 20.0, 28.0, 40.0, WHITE);
+        return;
+    }
+
+    // Sorcerous Cloud Base
+    let cloud_w = 20.0 + ((time * 8.0).sin() * 3.0);
+    draw_ellipse(pos.x, pos.y + 14.0, cloud_w, 6.0, 0.0, Color::new(0.25, 0.10, 0.35, 0.6));
+    draw_ellipse(pos.x, pos.y + 12.0, cloud_w * 0.7, 4.0, 0.0, Color::new(0.40, 0.15, 0.55, 0.5));
+
+    // Illusion Afterimages (Telegraphing Maya)
+    let mirage_ofs = (time * 5.0).sin() * 12.0;
+    for &dir in &[-1.0f32, 1.0f32] {
+        let mirage_x = pos.x + dir * mirage_ofs;
+        draw_rectangle(
+            mirage_x - 6.0,
+            pos.y - 12.0,
+            12.0,
+            22.0,
+            Color::new(0.5, 0.2, 0.8, 0.22),
+        );
+        draw_circle(mirage_x, pos.y - 16.0, 5.0, Color::new(0.5, 0.2, 0.8, 0.22));
+    }
+
+    // Regal Indigo Robes
+    draw_rectangle(pos.x - 7.0, pos.y - 8.0, 14.0, 20.0, Color::new(0.18, 0.12, 0.38, 1.0));
+    draw_rectangle_lines(pos.x - 7.0, pos.y - 8.0, 14.0, 20.0, 1.2, COLOR_RAMA_GOLD);
+
+    // Head
+    draw_circle(pos.x, pos.y - 14.0, 6.0, Color::new(0.20, 0.15, 0.28, 1.0));
+
+    // Golden Royal Mukuta (Crown)
+    draw_triangle(
+        vec2(pos.x - 6.0, pos.y - 17.0),
+        vec2(pos.x + 6.0, pos.y - 17.0),
+        vec2(pos.x, pos.y - 25.0),
+        COLOR_RAMA_GOLD,
+    );
+    draw_circle(pos.x, pos.y - 22.0, 1.5, Color::new(0.9, 0.1, 0.1, 1.0)); // Crown ruby
+
+    // Fierce Fiery Eyes
+    draw_circle(pos.x - 2.2, pos.y - 15.0, 1.3, Color::new(1.0, 0.2, 0.2, 1.0));
+    draw_circle(pos.x + 2.2, pos.y - 15.0, 1.3, Color::new(1.0, 0.2, 0.2, 1.0));
+
+    // Dark Sorcery Sigil rotating around hands
+    let sigil_rot = time * 3.5;
+    for i in 0..3 {
+        let a = sigil_rot + i as f32 * (std::f32::consts::TAU / 3.0);
+        let sx = pos.x + a.cos() * 16.0;
+        let sy = pos.y + a.sin() * 8.0;
+        draw_circle(sx, sy, 1.8, Color::new(0.7, 0.3, 1.0, 0.8));
+    }
+}
+
+// Draw Subahu Boss (Armored Demon Brute)
+pub fn draw_subahu(pos: Vec2, hit_flash: f32, has_shield: bool, time: f32) {
+    if hit_flash > 0.0 {
+        draw_rectangle(pos.x - 16.0, pos.y - 22.0, 32.0, 44.0, WHITE);
+        return;
+    }
+
+    // Heavy ground shadow
+    draw_ellipse(pos.x, pos.y + 18.0, 16.0, 6.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.45));
+
+    // Spiked Iron Pauldrons (Shoulders)
+    draw_rectangle(pos.x - 16.0, pos.y - 14.0, 32.0, 10.0, Color::new(0.22, 0.20, 0.24, 1.0));
+    draw_triangle(
+        vec2(pos.x - 16.0, pos.y - 14.0),
+        vec2(pos.x - 12.0, pos.y - 14.0),
+        vec2(pos.x - 18.0, pos.y - 20.0),
+        Color::new(0.4, 0.4, 0.45, 1.0),
+    );
+    draw_triangle(
+        vec2(pos.x + 12.0, pos.y - 14.0),
+        vec2(pos.x + 16.0, pos.y - 14.0),
+        vec2(pos.x + 18.0, pos.y - 20.0),
+        Color::new(0.4, 0.4, 0.45, 1.0),
+    );
+
+    // Torso (Heavy Bronze Plate)
+    draw_rectangle(pos.x - 10.0, pos.y - 6.0, 20.0, 22.0, Color::new(0.35, 0.18, 0.12, 1.0));
+    draw_rectangle_lines(pos.x - 10.0, pos.y - 6.0, 20.0, 22.0, 1.5, Color::new(0.65, 0.35, 0.20, 1.0));
+
+    // Massive Horned War Helm
+    draw_circle(pos.x, pos.y - 16.0, 7.5, Color::new(0.25, 0.22, 0.26, 1.0));
+    draw_line(pos.x - 5.0, pos.y - 20.0, pos.x - 12.0, pos.y - 27.0, 2.5, Color::new(0.5, 0.45, 0.4, 1.0));
+    draw_line(pos.x + 5.0, pos.y - 20.0, pos.x + 12.0, pos.y - 27.0, 2.5, Color::new(0.5, 0.45, 0.4, 1.0));
+
+    // Blood-Red Slit Visor
+    draw_line(pos.x - 3.5, pos.y - 16.0, pos.x + 3.5, pos.y - 16.0, 2.0, Color::new(1.0, 0.15, 0.15, 1.0));
+
+    // Massive Bronze Defilement Cauldron carried in hands
+    draw_circle(pos.x, pos.y + 6.0, 7.0, Color::new(0.38, 0.22, 0.15, 1.0));
+    draw_circle(pos.x, pos.y + 4.0, 5.0, Color::new(0.60, 0.08, 0.12, 1.0)); // Boiling gore
+
+    // Crackling Miasma Shield (Vulnerable to Agneyastra!)
+    if has_shield {
+        let shield_pulse = (time * 4.0).sin() * 2.0;
+        let shield_r = 25.0 + shield_pulse;
+        draw_circle(pos.x, pos.y, shield_r, Color::new(0.55, 0.12, 0.75, 0.22));
+        draw_circle_lines(pos.x, pos.y, shield_r, 2.0, Color::new(0.75, 0.25, 0.95, 0.75));
+
+        // Orbiting Hex Shield Sigils
+        let shield_rot = time * 2.8;
+        for i in 0..4 {
+            let a = shield_rot + i as f32 * (std::f32::consts::PI * 0.5);
+            let sx = pos.x + a.cos() * shield_r;
+            let sy = pos.y + a.sin() * shield_r;
+            draw_circle(sx, sy, 2.5, Color::new(0.85, 0.4, 1.0, 0.9));
+        }
+    }
+}
+
+// Draw Astra Projectile based on its Divine Type
+pub fn draw_astra_projectile(pos: Vec2, vel: Vec2, p_type: AstraProjectileType, time: f32) {
+    let dir = vel.normalize_or_zero();
+    let _angle = vel.y.atan2(vel.x);
+
+    match p_type {
+        AstraProjectileType::Kodanda => {
+            // Standard Golden Kodanda Arrow
+            let p1 = pos - dir * 10.0;
+            let p2 = pos + dir * 10.0;
+            draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, COLOR_RAMA_GOLD);
+            // Arrowhead
+            draw_circle(p2.x, p2.y, 2.0, WHITE);
+            // Fletchings
+            let perp = vec2(-dir.y, dir.x) * 2.5;
+            draw_line(p1.x, p1.y, p1.x + perp.x, p1.y + perp.y, 1.5, COLOR_RAMA_GOLD);
+            draw_line(p1.x, p1.y, p1.x - perp.x, p1.y - perp.y, 1.5, COLOR_RAMA_GOLD);
+        }
+        AstraProjectileType::Vayavya => {
+            // Vayavyastra: Wind Gale Vortex Arrow
+            let p1 = pos - dir * 12.0;
+            let p2 = pos + dir * 12.0;
+            draw_line(p1.x, p1.y, p2.x, p2.y, 2.5, Color::new(0.7, 0.95, 1.0, 0.9));
+
+            // Rotating Wind Rings around the shaft
+            for i in 0..3 {
+                let ring_phase = time * 24.0 + i as f32 * 2.0;
+                let offset_dist = (i as f32 - 1.0) * 6.0;
+                let ring_c = pos + dir * offset_dist;
+                let ring_h = 6.0 * ring_phase.sin();
+                let perp = vec2(-dir.y, dir.x) * ring_h;
+                draw_line(
+                    ring_c.x - perp.x,
+                    ring_c.y - perp.y,
+                    ring_c.x + perp.x,
+                    ring_c.y + perp.y,
+                    1.8,
+                    Color::new(0.8, 1.0, 1.0, 0.75),
+                );
+            }
+        }
+        AstraProjectileType::Manava => {
+            // Manavastra: Celestial Seeker of Vishnu / Manu
+            let p1 = pos - dir * 14.0;
+            let p2 = pos + dir * 14.0;
+            draw_line(p1.x, p1.y, p2.x, p2.y, 3.0, Color::new(0.3, 0.7, 1.0, 1.0));
+            draw_line(p1.x, p1.y, p2.x, p2.y, 1.2, WHITE);
+
+            // Radiant Starlight Tip
+            draw_circle(p2.x, p2.y, 3.5, Color::new(0.4, 0.85, 1.0, 0.95));
+            draw_circle(p2.x, p2.y, 1.8, WHITE);
+
+            // Trailing Diamond Glyph Cross
+            let cross_sz = 3.0;
+            draw_line(pos.x - cross_sz, pos.y, pos.x + cross_sz, pos.y, 1.2, Color::new(0.6, 0.9, 1.0, 0.8));
+            draw_line(pos.x, pos.y - cross_sz, pos.x, pos.y + cross_sz, 1.2, Color::new(0.6, 0.9, 1.0, 0.8));
+        }
+        AstraProjectileType::Agneya => {
+            // Agneyastra: Sacred Solar Fire of Agni
+            let p1 = pos - dir * 14.0;
+            let p2 = pos + dir * 14.0;
+            draw_line(p1.x, p1.y, p2.x, p2.y, 3.5, Color::new(1.0, 0.4, 0.05, 0.95));
+            draw_line(p1.x, p1.y, p2.x, p2.y, 1.5, Color::new(1.0, 0.9, 0.3, 1.0));
+
+            // Solar Flame Burst around head
+            let flame_flicker = (time * 28.0).sin() * 2.0;
+            draw_circle(p2.x, p2.y, 4.5 + flame_flicker, Color::new(1.0, 0.5, 0.1, 0.8));
+            draw_circle(p2.x, p2.y, 2.2, Color::new(1.0, 0.95, 0.6, 1.0));
+
+            // Flaming ember sparks
+            for i in 0..2 {
+                let sx = pos.x + ((time * 18.0 + i as f32).sin() * 4.0);
+                let sy = pos.y + ((time * 22.0 + i as f32).cos() * 4.0);
+                draw_circle(sx, sy, 1.5, Color::new(1.0, 0.7, 0.2, 0.8));
+            }
+        }
+    }
+}
+
+// Draw Blood Bomb thrown by Winged Asuras
+pub fn draw_blood_bomb(pos: Vec2, target_pos: Vec2, altitude: f32) {
+    // Target landing shadow on ground
+    let shadow_radius = 8.0 * (1.0 - altitude * 0.4);
+    draw_ellipse(
+        target_pos.x,
+        target_pos.y,
+        shadow_radius,
+        shadow_radius * 0.45,
+        0.0,
+        Color::new(0.5, 0.05, 0.1, 0.45),
+    );
+    draw_circle_lines(
+        target_pos.x,
+        target_pos.y,
+        shadow_radius,
+        1.0,
+        Color::new(0.8, 0.1, 0.15, 0.6),
+    );
+
+    // Flying Clay Pot of Unholy Blood (elevated by altitude)
+    let bomb_pos = pos + vec2(0.0, -altitude * 48.0);
+    draw_circle(bomb_pos.x, bomb_pos.y, 4.5, Color::new(0.35, 0.15, 0.10, 1.0));
+    draw_circle(bomb_pos.x, bomb_pos.y - 1.0, 3.0, Color::new(0.65, 0.05, 0.12, 1.0));
+
+    // Blood droplets trailing
+    draw_circle(bomb_pos.x, bomb_pos.y + 4.0, 1.5, Color::new(0.65, 0.05, 0.12, 0.7));
+}
+
+// Draw Dark Spike shot by Maricha
+pub fn draw_dark_spike(pos: Vec2, vel: Vec2) {
+    let dir = vel.normalize_or_zero();
+    let p1 = pos - dir * 8.0;
+    let p2 = pos + dir * 8.0;
+    draw_line(p1.x, p1.y, p2.x, p2.y, 2.5, Color::new(0.45, 0.15, 0.65, 0.95));
+    draw_circle(p2.x, p2.y, 2.0, Color::new(0.7, 0.3, 0.9, 1.0));
+}
+
+// Level 2 HUD for 16:9 Widescreen (Yajna Purity, Waves, Boss HP, Astra Selector)
+pub fn draw_hud_l2(
+    font: &Font,
+    stats: &PlayerStats,
+    yajna_purity: f32,
+    wave: i32,
+    maricha_hp: Option<(f32, f32)>,
+    subahu_hp: Option<(f32, f32)>,
+) {
+    // Top HUD Bar Panel
+    draw_rectangle(0.0, 0.0, SCREEN_W, 34.0, Color::new(0.06, 0.08, 0.10, 0.95));
+    draw_line(0.0, 34.0, SCREEN_W, 34.0, 2.0, Color::new(0.35, 0.30, 0.20, 1.0));
+
+    // Left: Prana (HP)
+    let hp_ratio = (stats.prana as f32 / stats.max_prana as f32).clamp(0.0, 1.0);
+    draw_pixel_text(font, "HP", 10.0, 12.0, 8, Color::new(0.9, 0.8, 0.4, 1.0));
+    draw_rectangle(32.0, 6.0, 70.0, 8.0, Color::new(0.18, 0.06, 0.06, 1.0));
+    let hp_color = if hp_ratio > 0.4 {
+        Color::new(0.2, 0.85, 0.3, 1.0)
+    } else {
+        Color::new(0.9, 0.2, 0.2, 1.0)
+    };
+    draw_rectangle(32.0, 6.0, 70.0 * hp_ratio, 8.0, hp_color);
+    draw_rectangle_lines(32.0, 6.0, 70.0, 8.0, 1.0, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, &format!("{}/{}", stats.prana, stats.max_prana), 36.0, 24.0, 8, WHITE);
+
+    // Tejas (MP / Astra Energy)
+    let mp_ratio = (stats.tejas as f32 / stats.max_tejas as f32).clamp(0.0, 1.0);
+    draw_pixel_text(font, "MP", 120.0, 12.0, 8, Color::new(0.4, 0.8, 1.0, 1.0));
+    draw_rectangle(142.0, 6.0, 65.0, 8.0, Color::new(0.06, 0.12, 0.20, 1.0));
+    draw_rectangle(142.0, 6.0, 65.0 * mp_ratio, 8.0, Color::new(0.2, 0.6, 1.0, 1.0));
+    draw_rectangle_lines(142.0, 6.0, 65.0, 8.0, 1.0, Color::new(0.5, 0.8, 1.0, 1.0));
+    draw_pixel_text(font, &format!("{}/{}", stats.tejas, stats.max_tejas), 146.0, 24.0, 8, WHITE);
+
+    // Center: Central Yajna Altar Purity Meter
+    let purity_w = 140.0;
+    let purity_x = (SCREEN_W - purity_w) * 0.5;
+    let purity_pct = (yajna_purity as i32).clamp(0, 100);
+
+    let (purity_col, label_text) = if yajna_purity >= 60.0 {
+        (COLOR_RAMA_GOLD, "YAJNA PURITY")
+    } else if yajna_purity >= 30.0 {
+        (Color::new(1.0, 0.6, 0.1, 1.0), "PURITY DEFILING!")
+    } else {
+        (Color::new(1.0, 0.15, 0.15, 1.0), "CRITICAL DEFILEMENT!")
+    };
+
+    draw_pixel_text(font, label_text, purity_x + 8.0, 12.0, 8, purity_col);
+    draw_rectangle(purity_x, 16.0, purity_w, 10.0, Color::new(0.12, 0.10, 0.14, 1.0));
+    let p_ratio = (yajna_purity / 100.0).clamp(0.0, 1.0);
+    draw_rectangle(purity_x, 16.0, purity_w * p_ratio, 10.0, purity_col);
+    draw_rectangle_lines(purity_x, 16.0, purity_w, 10.0, 1.5, COLOR_RAMA_GOLD);
+
+    // Flame icon before bar
+    draw_circle(purity_x - 9.0, 21.0, 4.0, Color::new(1.0, 0.5, 0.1, 1.0));
+    draw_pixel_text(font, &format!("{}%", purity_pct), purity_x + purity_w + 6.0, 24.0, 8, WHITE);
+
+    // Right: Wave Counter
+    let wave_str = match wave {
+        1 => "WAVE 1/3 (HORDE)",
+        2 => "WAVE 2/3 (AIR)",
+        _ => "WAVE 3/3 (BOSSES)",
+    };
+    draw_pixel_text(font, wave_str, 480.0, 16.0, 9, Color::new(0.9, 0.85, 0.6, 1.0));
+
+    // Boss Bars if active (Rendered right beneath top bar)
+    if let Some((m_hp, m_max)) = maricha_hp {
+        let bar_x = 40.0;
+        let bar_y = 38.0;
+        let bar_w = 160.0;
+        draw_rectangle(bar_x, bar_y, bar_w, 8.0, Color::new(0.12, 0.08, 0.18, 0.95));
+        let m_ratio = (m_hp / m_max).clamp(0.0, 1.0);
+        draw_rectangle(bar_x, bar_y, bar_w * m_ratio, 8.0, Color::new(0.3, 0.7, 1.0, 1.0));
+        draw_rectangle_lines(bar_x, bar_y, bar_w, 8.0, 1.0, Color::new(0.5, 0.85, 1.0, 1.0));
+        draw_pixel_text(font, "MARICHA (MANAVA COUNTERS)", bar_x, bar_y + 16.0, 7, Color::new(0.4, 0.85, 1.0, 1.0));
+    }
+
+    if let Some((s_hp, s_max)) = subahu_hp {
+        let bar_x = SCREEN_W - 200.0;
+        let bar_y = 38.0;
+        let bar_w = 160.0;
+        draw_rectangle(bar_x, bar_y, bar_w, 8.0, Color::new(0.20, 0.08, 0.08, 0.95));
+        let s_ratio = (s_hp / s_max).clamp(0.0, 1.0);
+        draw_rectangle(bar_x, bar_y, bar_w * s_ratio, 8.0, Color::new(0.9, 0.25, 0.1, 1.0));
+        draw_rectangle_lines(bar_x, bar_y, bar_w, 8.0, 1.0, Color::new(1.0, 0.5, 0.2, 1.0));
+        draw_pixel_text(font, "SUBAHU (AGNEYA COUNTERS)", bar_x, bar_y + 16.0, 7, Color::new(1.0, 0.6, 0.2, 1.0));
+    }
+
+    // Bottom Toolbar & Astra Weapon Selector
+    draw_rectangle(0.0, SCREEN_H - 22.0, SCREEN_W, 22.0, Color::new(0.05, 0.06, 0.08, 0.95));
+    draw_line(0.0, SCREEN_H - 22.0, SCREEN_W, SCREEN_H - 22.0, 1.0, Color::new(0.25, 0.22, 0.16, 1.0));
+
+    // Astra Slots with clean 110px spacing
+    let astra_slots = [
+        (Astra::KodandaBow, "[1] KODANDA (0)", 8.0),
+        (Astra::Vayavyastra, "[2] VAYAVYA (20)", 122.0),
+        (Astra::Manavastra, "[3] MANAVA (25)", 236.0),
+        (Astra::Agneyastra, "[4] AGNEYA (25)", 350.0),
+    ];
+
+    for &(astra_type, label, slot_x) in &astra_slots {
+        let is_selected = stats.selected_astra == astra_type;
+        if is_selected {
+            draw_rectangle(slot_x - 3.0, SCREEN_H - 20.0, 110.0, 18.0, Color::new(0.22, 0.18, 0.08, 0.9));
+            draw_rectangle_lines(slot_x - 3.0, SCREEN_H - 20.0, 110.0, 18.0, 1.5, COLOR_RAMA_GOLD);
+            draw_pixel_text(font, label, slot_x + 2.0, SCREEN_H - 8.0, 7, COLOR_RAMA_GOLD);
+        } else {
+            draw_pixel_text(font, label, slot_x + 2.0, SCREEN_H - 8.0, 7, Color::new(0.65, 0.65, 0.65, 1.0));
+        }
+    }
+
+    draw_pixel_text(font, "WASD:Move | Mouse:Aim/Fire", 466.0, SCREEN_H - 8.0, 7, Color::new(0.85, 0.85, 0.9, 1.0));
+}
+
+// Victory Screen for Level 2 (Siddhashrama)
+pub fn draw_victory_l2(font: &Font, time: f32) {
+    draw_rectangle(0.0, 0.0, SCREEN_W, SCREEN_H, Color::new(0.04, 0.07, 0.09, 0.95));
+
+    let sway = (time * 5.0).sin() * 3.0;
+    draw_pixel_text(font, "VICTORY AT SIDDHASHRAMA!", 130.0, 60.0 + sway, 20, COLOR_RAMA_GOLD);
+
+    let sub = "THE SACRED YAJNA IS DEFENDED AND SANCTIFIED";
+    draw_pixel_text(font, sub, 125.0, 88.0, 9, Color::new(0.4, 0.9, 0.6, 1.0));
+
+    let rw_x = 55.0;
+    let rw_y = 110.0;
+    let rw_w = 530.0;
+    let rw_h = 160.0;
+    draw_rectangle(rw_x, rw_y, rw_w, rw_h, Color::new(0.09, 0.13, 0.16, 0.95));
+    draw_rectangle_lines(rw_x, rw_y, rw_w, rw_h, 1.5, COLOR_RAMA_GOLD);
+
+    draw_pixel_text(font, "VALMIKI RAMAYANA - BALA KANDA ACHIEVEMENTS:", rw_x + 16.0, rw_y + 22.0, 9, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, "✓ Manavastra struck Maricha, flinging him 100 yojanas into the ocean!", rw_x + 16.0, rw_y + 46.0, 8, WHITE);
+    draw_pixel_text(font, "✓ Agneyastra incinerated Subahu and his unholy gore cauldrons to ash!", rw_x + 16.0, rw_y + 68.0, 8, WHITE);
+    draw_pixel_text(font, "✓ Vayavyastra scattered the Rakshasa horde across the horizon!", rw_x + 16.0, rw_y + 90.0, 8, WHITE);
+    draw_pixel_text(font, "✓ Sage Vishwamitra concludes the 6-day Yajna in blissful peace!", rw_x + 16.0, rw_y + 112.0, 8, Color::new(1.0, 0.85, 0.3, 1.0));
+    draw_pixel_text(font, "✓ Next Destination: Chapter 3 - Mithila & Shiva Dhanush!", rw_x + 16.0, rw_y + 136.0, 9, Color::new(0.4, 0.85, 1.0, 1.0));
+
+    let blink = (time * 4.0).sin() > 0.0;
+    if blink {
+        draw_pixel_text(font, "PRESS SPACE OR CLICK TO PROCEED TO TITLE", 120.0, 298.0, 10, COLOR_RAMA_GOLD);
+    }
+    draw_pixel_text(font, "Press [R] to Replay Level 2 (Siddhashrama)", 165.0, 324.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
+}
+
+// Defeat Screen for Level 2 (Siddhashrama)
+pub fn draw_game_over_l2(font: &Font, time: f32) {
+    draw_rectangle(0.0, 0.0, SCREEN_W, SCREEN_H, Color::new(0.12, 0.03, 0.04, 0.95));
+
+    let sway = (time * 2.0).sin() * 2.5;
+    draw_pixel_text(font, "THE YAJNA IS DEFILED", 180.0, 70.0 + sway, 20, Color::new(0.95, 0.2, 0.2, 1.0));
+
+    let quote = "\"The holy fire is extinguished under a deluge of darkness.\"";
+    draw_pixel_text(font, quote, 90.0, 100.0, 9, Color::new(0.8, 0.6, 0.6, 1.0));
+
+    let tip_x = 60.0;
+    let tip_y = 125.0;
+    let tip_w = 520.0;
+    let tip_h = 130.0;
+    draw_rectangle(tip_x, tip_y, tip_w, tip_h, Color::new(0.18, 0.05, 0.08, 0.92));
+    draw_rectangle_lines(tip_x, tip_y, tip_w, tip_h, 1.5, Color::new(0.6, 0.2, 0.2, 0.85));
+
+    draw_pixel_text(font, "TACTICAL ASTRA STRATEGY:", tip_x + 16.0, tip_y + 22.0, 9, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, "- [2] Vayavyastra: Sweeps minion swarms far away from the altar!", tip_x + 16.0, tip_y + 44.0, 8, Color::new(0.6, 0.9, 1.0, 1.0));
+    draw_pixel_text(font, "- [3] Manavastra: Homes in on Maricha & knocks him 180px away!", tip_x + 16.0, tip_y + 66.0, 8, Color::new(0.4, 0.8, 1.0, 1.0));
+    draw_pixel_text(font, "- [4] Agneyastra: Shatters Subahu's miasma shield & burns him!", tip_x + 16.0, tip_y + 88.0, 8, Color::new(1.0, 0.6, 0.2, 1.0));
+    draw_pixel_text(font, "- Shoot down Winged Asuras before their blood bombs land!", tip_x + 16.0, tip_y + 110.0, 8, WHITE);
+
+    let blink = (time * 4.0).sin() > 0.0;
+    if blink {
+        draw_pixel_text(font, "PRESS [R] OR CLICK TO RETRY LEVEL 2", 140.0, 285.0, 11, COLOR_RAMA_GOLD);
     }
     draw_pixel_text(font, "Press [ESC] to Return to Title", 195.0, 315.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
 }
