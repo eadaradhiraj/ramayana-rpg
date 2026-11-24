@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use macroquad::prelude::*;
-use crate::types::{Astra, AstraProjectileType, PlayerStats};
+use crate::types::{Astra, AstraProjectileType, CutsceneType, PlayerStats};
 
 pub const SCREEN_W: f32 = 640.0;
 pub const SCREEN_H: f32 = 360.0;
@@ -2353,6 +2353,37 @@ pub fn draw_victory_l2(font: &Font, time: f32) {
     draw_pixel_text(font, "Press [R] to Replay Level 2 (Siddhashrama)", 165.0, 324.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
 }
 
+// Victory Screen for Level 3 (Mithila & Bala Kanda Finale)
+pub fn draw_victory_l3(font: &Font, time: f32) {
+    draw_rectangle(0.0, 0.0, SCREEN_W, SCREEN_H, Color::new(0.06, 0.05, 0.10, 0.96));
+
+    let sway = (time * 5.0).sin() * 3.0;
+    draw_pixel_text(font, "BALA KANDA CONCLUDED!", 145.0, 56.0 + sway, 20, PAL_GOLD_0);
+
+    let sub = "SITA KALYANAM CELEBRATED & PARASHURAMA RECONCILED";
+    draw_pixel_text(font, sub, 105.0, 84.0, 9, PAL_TURMERIC_1);
+
+    let rw_x = 55.0;
+    let rw_y = 104.0;
+    let rw_w = 530.0;
+    let rw_h = 168.0;
+    draw_rectangle(rw_x, rw_y, rw_w, rw_h, Color::new(0.10, 0.09, 0.16, 0.95));
+    draw_rectangle_lines(rw_x, rw_y, rw_w, rw_h, 1.5, PAL_GOLD_1);
+
+    draw_pixel_text(font, "EPIC BALA KANDA MILESTONES COMPLETED:", rw_x + 16.0, rw_y + 22.0, 9, PAL_GOLD_0);
+    draw_pixel_text(font, "✓ Pinaka Shattered : Cosmic bow broken in King Janaka's court!", rw_x + 16.0, rw_y + 44.0, 8, WHITE);
+    draw_pixel_text(font, "✓ Lineages Honored : Divine births of Rama and Sita revealed in media res!", rw_x + 16.0, rw_y + 66.0, 8, WHITE);
+    draw_pixel_text(font, "✓ Sita Kalyanam    : Sacred wedding solemnized amidst celestial flower shower!", rw_x + 16.0, rw_y + 88.0, 8, PAL_GOLD_1);
+    draw_pixel_text(font, "✓ Sharanga Strung  : Rama strings Vaishnava bow, pacifying Sage Parashurama!", rw_x + 16.0, rw_y + 110.0, 8, WHITE);
+    draw_pixel_text(font, "★ BALA KANDA COMPLETE — ONWARD TO AYODHYA KANDA! ★", rw_x + 16.0, rw_y + 138.0, 9, PAL_FIRE_1);
+
+    let blink = (time * 4.0).sin() > 0.0;
+    if blink {
+        draw_pixel_text(font, "PRESS SPACE OR CLICK TO RETURN TO TITLE", 130.0, 298.0, 10, PAL_GOLD_0);
+    }
+    draw_pixel_text(font, "Press [R] to Replay Level 3 (Mithila Swayamvara)", 140.0, 324.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
+}
+
 // Defeat Screen for Level 2 (Siddhashrama)
 pub fn draw_game_over_l2(font: &Font, time: f32) {
     draw_rectangle(0.0, 0.0, SCREEN_W, SCREEN_H, Color::new(0.12, 0.03, 0.04, 0.95));
@@ -2381,4 +2412,469 @@ pub fn draw_game_over_l2(font: &Font, time: f32) {
         draw_pixel_text(font, "PRESS [R] OR CLICK TO RETRY LEVEL 2", 140.0, 285.0, 11, COLOR_RAMA_GOLD);
     }
     draw_pixel_text(font, "Press [ESC] to Return to Title", 195.0, 315.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
+}
+
+// ============================================================================
+// 16-BIT RETRO CUTSCENE SCREEN (IN MEDIA RES LINEAGE FLASHBACKS)
+// ============================================================================
+pub fn draw_cutscene_screen(
+    font: &Font,
+    cutscene: CutsceneType,
+    slide_idx: usize,
+    time: f32,
+    virtual_mouse: Vec2,
+) {
+    clear_background(Color::new(0.05, 0.04, 0.08, 1.0));
+
+    // Top Story Title & Decorative Trim
+    let (chapter_tag, story_title) = match cutscene {
+        CutsceneType::RamaBirth => ("BALA KANDA: LINEAGE RECITAL (PART I)", "THE BIRTH OF PRINCE RAMA"),
+        CutsceneType::SitaBirth => ("BALA KANDA: LINEAGE RECITAL (PART II)", "THE MIRACULOUS BIRTH OF SITA"),
+        CutsceneType::SitaKalyanam => ("BALA KANDA: THE SACRED UNION", "SITA KALYANAM — THE ROYAL WEDDING"),
+        CutsceneType::ParashuramaEncounter => ("BALA KANDA: THE FINALE", "STANDOFF WITH SAGE PARASHURAMA"),
+    };
+
+    draw_pixel_text(font, chapter_tag, 40.0, 20.0, 7, PAL_GOLD_2);
+    draw_pixel_text(font, story_title, 40.0, 34.0, 10, PAL_GOLD_0);
+    draw_line(40.0, 42.0, 600.0, 42.0, 1.5, PAL_GOLD_3);
+
+    // 16-Bit Pixel Art Vignette Window (560 x 175)
+    let vig_x = 40.0;
+    let vig_y = 50.0;
+    let vig_w = 560.0;
+    let vig_h = 180.0;
+
+    draw_rectangle(vig_x, vig_y, vig_w, vig_h, Color::new(0.08, 0.07, 0.12, 1.0));
+
+    match cutscene {
+        CutsceneType::RamaBirth => draw_vignette_rama_birth(vig_x, vig_y, vig_w, vig_h, time),
+        CutsceneType::SitaBirth => draw_vignette_sita_birth(vig_x, vig_y, vig_w, vig_h, time),
+        CutsceneType::SitaKalyanam => draw_vignette_sita_kalyanam(vig_x, vig_y, vig_w, vig_h, time),
+        CutsceneType::ParashuramaEncounter => draw_vignette_parashurama(vig_x, vig_y, vig_w, vig_h, slide_idx, time),
+    }
+
+    draw_rectangle_lines(vig_x, vig_y, vig_w, vig_h, 2.0, PAL_GOLD_1);
+    // Ornamental corners
+    let c = 6.0;
+    draw_rectangle(vig_x, vig_y, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(vig_x, vig_y, 2.0, c, PAL_GOLD_0);
+    draw_rectangle(vig_x + vig_w - c, vig_y, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(vig_x + vig_w - 2.0, vig_y, 2.0, c, PAL_GOLD_0);
+    draw_rectangle(vig_x, vig_y + vig_h - 2.0, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(vig_x, vig_y + vig_h - c, 2.0, c, PAL_GOLD_0);
+    draw_rectangle(vig_x + vig_w - c, vig_y + vig_h - 2.0, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(vig_x + vig_w - 2.0, vig_y + vig_h - c, 2.0, c, PAL_GOLD_0);
+
+    // Narrative Box below (560 x 95)
+    let nar_x = 40.0;
+    let nar_y = 238.0;
+    let nar_w = 560.0;
+    let nar_h = 96.0;
+
+    draw_rectangle(nar_x, nar_y, nar_w, nar_h, Color::new(0.09, 0.08, 0.14, 0.95));
+    draw_rectangle_lines(nar_x, nar_y, nar_w, nar_h, 1.2, Color::new(0.4, 0.35, 0.45, 0.9));
+
+    let (text_lines, total_slides) = get_cutscene_lines(cutscene, slide_idx);
+
+    let mut ty = nar_y + 18.0;
+    for line in text_lines {
+        draw_pixel_text(font, line, nar_x + 16.0, ty, 8, WHITE);
+        ty += 15.0;
+    }
+
+    // Bottom Navigation Indicator
+    let slide_tag = format!("PAGE {} / {}", slide_idx + 1, total_slides);
+    draw_pixel_text(font, &slide_tag, nar_x + 16.0, nar_y + nar_h - 8.0, 7, PAL_GOLD_2);
+
+    let prompt = if slide_idx + 1 < total_slides {
+        "PRESS [SPACE / CLICK] TO CONTINUE ▶"
+    } else {
+        match cutscene {
+            CutsceneType::RamaBirth => "PROCEED TO SITA'S BIRTH FLASHBACK ▶",
+            CutsceneType::SitaBirth => "PROCEED TO THE ROYAL WEDDING ▶",
+            CutsceneType::SitaKalyanam => "BEGIN THE JOURNEY BACK TO AYODHYA ▶",
+            CutsceneType::ParashuramaEncounter => "COMPLETE BALA KANDA ★",
+        }
+    };
+    let blink = (time * 4.0).sin() > 0.0;
+    let prompt_col = if blink { PAL_GOLD_0 } else { PAL_GOLD_1 };
+    draw_pixel_text(font, prompt, nar_x + nar_w - 250.0, nar_y + nar_h - 8.0, 7, prompt_col);
+
+    draw_reticle(virtual_mouse, false);
+}
+
+pub fn get_cutscene_total_slides(cutscene: CutsceneType) -> usize {
+    match cutscene {
+        CutsceneType::RamaBirth => 4,
+        CutsceneType::SitaBirth => 4,
+        CutsceneType::SitaKalyanam => 3,
+        CutsceneType::ParashuramaEncounter => 4,
+    }
+}
+
+fn get_cutscene_lines(cutscene: CutsceneType, slide: usize) -> (Vec<&'static str>, usize) {
+    match cutscene {
+        CutsceneType::RamaBirth => {
+            let total = 4;
+            let lines = match slide {
+                0 => vec![
+                    "Before the wedding rites begin in Mithila, both royal families recite",
+                    "their ancient lineages as was customary in Vedic tradition.",
+                    "Sage Vasishtha proudly recounts the lineage of the solar dynasty.",
+                ],
+                1 => vec![
+                    "In the great city of Ayodhya, King Dasharatha ruled with justice and grace.",
+                    "Yet despite all his glory, his heart remained heavy with sorrow,",
+                    "for he had no sons to continue the sacred line of Ikshvaku.",
+                ],
+                2 => vec![
+                    "Under Sage Rishyashringa, the king held the Putrakameshti sacrifice.",
+                    "From the blazing flames, a radiant divine being stepped forth,",
+                    "holding a golden bowl of sweet celestial nectar (Payasam).",
+                ],
+                _ => vec![
+                    "Dasharatha offered the holy nectar to his three queens.",
+                    "In time, Queen Kausalya gave birth to the divine Prince Rama,",
+                    "while Kaikeyi gave birth to Bharata, and Sumitra to Lakshmana & Shatrughna.",
+                ],
+            };
+            (lines, total)
+        }
+        CutsceneType::SitaBirth => {
+            let total = 4;
+            let lines = match slide {
+                0 => vec![
+                    "King Janaka now speaks, reciting the wondrous arrival of his daughter,",
+                    "Princess Sita, whose birth was not of mortal womb, but of Mother Earth.",
+                    "The court listens in quiet reverence.",
+                ],
+                1 => vec![
+                    "Years ago, a great drought troubled the kingdom of Mithila.",
+                    "To purify the sacred grounds for a yajna, King Janaka took hold",
+                    "of a golden plow and began furrowing the sacred earth himself.",
+                ],
+                2 => vec![
+                    "Suddenly, the tip of the golden plow struck an ornate chest.",
+                    "Buried beneath the fertile soil, the casket was encrusted with jewels.",
+                    "When Janaka lifted the lid, he found a glowing baby girl, smiling like the sun.",
+                ],
+                _ => vec![
+                    "Because she had emerged from the furrow of the plow, he named her 'Sita'.",
+                    "King Janaka raised her as his most beloved princess,",
+                    "vowing she would wed only the warrior who could string Shiva's divine Pinaka bow.",
+                ],
+            };
+            (lines, total)
+        }
+        CutsceneType::SitaKalyanam => {
+            let total = 3;
+            let lines = match slide {
+                0 => vec![
+                    "With their divine lineages honored, the wedding ceremony commences.",
+                    "The royal houses of Ayodhya and Mithila gather in the grand pavilion,",
+                    "adorned with flower garlands, Vedic lamps, and auspicious songs.",
+                ],
+                1 => vec![
+                    "Rama and Sita take their sacred vows, walking seven steps around Agni.",
+                    "King Janaka places Sita's hand into Rama's: 'This is Sita, my daughter;'",
+                    "'she shall walk beside you in dharma as your devoted companion.'",
+                ],
+                _ => vec![
+                    "The prince and princess exchange fragrant garlands of lotus and jasmine.",
+                    "Celestial drums thunder from the skies as the Devas rain sweet blossoms,",
+                    "blessing the sacred union of Rama and Sita.",
+                ],
+            };
+            (lines, total)
+        }
+        CutsceneType::ParashuramaEncounter => {
+            let total = 4;
+            let lines = match slide {
+                0 => vec![
+                    "As the joyful wedding procession departs Mithila toward Ayodhya,",
+                    "dark storm clouds suddenly blot out the sun, and the earth shudders.",
+                    "The furious warrior-sage Parashurama appears, blocking their path!",
+                ],
+                1 => vec![
+                    "Enraged by the snap of his guru Shiva's bow, Parashurama roars:",
+                    "'Who dared break Pinaka? If you possess true divine blood, Prince Rama,'",
+                    "'lift and string this bow of Lord Vishnu—the great Sharanga!'",
+                ],
+                2 => vec![
+                    "While King Dasharatha trembles in fear for his son, Rama steps forward.",
+                    "With gentle calm and immense grace, Rama takes the Vaishnava bow.",
+                    "With one effortless motion, he notches the bowstring and draws it taut!",
+                ],
+                _ => vec![
+                    "Blinding golden light fills the sky. Parashurama bows in reverent humility,",
+                    "recognizing Rama as the supreme protector of dharma.",
+                    "With blessings bestowed, the sage departs, and Bala Kanda is triumphantly complete!",
+                ],
+            };
+            (lines, total)
+        }
+    }
+}
+
+// ============================================================================
+// 16-BIT VIGNETTES
+// ============================================================================
+fn draw_vignette_rama_birth(x: f32, y: f32, w: f32, h: f32, time: f32) {
+    // Palace Courtyard & Night Sky in Ayodhya
+    draw_rectangle(x, y, w, h * 0.45, Color::new(0.08, 0.08, 0.16, 1.0));
+    // Punarvasu Nakshatra stars twinkling
+    for i in 0..12 {
+        let sx = x + 30.0 + i as f32 * 45.0;
+        let sy = y + 15.0 + (i as f32 * 17.0) % 45.0;
+        let blink = ((time * 3.0 + i as f32).sin() * 0.3 + 0.7).clamp(0.0, 1.0);
+        draw_circle(sx, sy, 1.5, Color::new(1.0, 1.0, 1.0, blink));
+    }
+    // Ayodhya Palace Domes in background
+    draw_circle(x + 120.0, y + 60.0, 35.0, Color::new(0.20, 0.15, 0.28, 1.0));
+    draw_circle(x + 440.0, y + 60.0, 35.0, Color::new(0.20, 0.15, 0.28, 1.0));
+
+    // Marble Terrace Floor
+    draw_rectangle(x, y + h * 0.45, w, h * 0.55, Color::new(0.22, 0.18, 0.24, 1.0));
+    draw_line(x, y + h * 0.45, x + w, y + h * 0.45, 1.5, PAL_GOLD_3);
+
+    // Sacred Yajna Fire Altar in center (x + 280.0, y + 140.0)
+    let fire_x = x + 280.0;
+    let fire_y = y + 140.0;
+    draw_rectangle(fire_x - 30.0, fire_y, 60.0, 16.0, PAL_SAND_4);
+    draw_rectangle(fire_x - 22.0, fire_y - 8.0, 44.0, 10.0, PAL_SAND_2);
+
+    // Radiant Yajna Fire
+    let f_h = 24.0 + (time * 12.0).sin() * 4.0;
+    draw_triangle(
+        vec2(fire_x - 18.0, fire_y - 6.0),
+        vec2(fire_x + 18.0, fire_y - 6.0),
+        vec2(fire_x, fire_y - 6.0 - f_h),
+        PAL_FIRE_3,
+    );
+    draw_triangle(
+        vec2(fire_x - 10.0, fire_y - 6.0),
+        vec2(fire_x + 10.0, fire_y - 6.0),
+        vec2(fire_x, fire_y - 6.0 - f_h * 0.75),
+        PAL_FIRE_1,
+    );
+    draw_circle(fire_x, fire_y - 12.0, 6.0, PAL_FIRE_0);
+
+    // Divine Yajnapurusha Messenger emerging from flames holding Golden Payasam Vessel
+    let m_y = fire_y - f_h - 12.0;
+    draw_circle(fire_x, m_y - 8.0, 8.0, PAL_GOLD_0);
+    draw_triangle(
+        vec2(fire_x - 12.0, m_y),
+        vec2(fire_x + 12.0, m_y),
+        vec2(fire_x, m_y + 16.0),
+        PAL_GOLD_1,
+    );
+    // Golden bowl of Payasam
+    draw_circle(fire_x, m_y - 14.0, 5.0, PAL_GOLD_1);
+    draw_circle(fire_x, m_y - 15.0, 3.0, WHITE);
+
+    // King Dasharatha (Left) bowing in reverence
+    let d_x = x + 180.0;
+    let d_y = y + 130.0;
+    draw_circle(d_x, d_y - 12.0, 6.5, Color::new(0.92, 0.78, 0.62, 1.0));
+    draw_triangle(vec2(d_x - 5.0, d_y - 17.0), vec2(d_x + 5.0, d_y - 17.0), vec2(d_x, d_y - 25.0), PAL_GOLD_0);
+    draw_rectangle(d_x - 7.0, d_y - 4.0, 14.0, 18.0, PAL_TURMERIC_1);
+    // Folded hands (Anjali Mudra)
+    draw_circle(d_x + 7.0, d_y, 2.5, PAL_GOLD_1);
+
+    // Sage Rishyashringa (Right) with sacrificial ladle
+    let r_x = x + 380.0;
+    let r_y = y + 130.0;
+    draw_circle(r_x, r_y - 12.0, 6.0, Color::new(0.85, 0.70, 0.55, 1.0));
+    draw_circle(r_x, r_y - 16.0, 4.0, Color::new(0.2, 0.15, 0.1, 1.0)); // Topknot
+    draw_rectangle(r_x - 6.0, r_y - 4.0, 12.0, 18.0, PAL_RED_1); // Saffron robe
+    draw_line(r_x - 5.0, r_y, fire_x + 15.0, fire_y - 4.0, 1.5, PAL_SAND_3); // Sacrificial ladle
+
+    // Infant Rama Halo in upper right
+    let b_x = x + 490.0;
+    let b_y = y + 60.0;
+    let glow = (time * 4.0).sin() * 2.0;
+    draw_circle(b_x, b_y, 20.0 + glow, Color::new(1.0, 0.85, 0.3, 0.35));
+    draw_circle(b_x, b_y, 14.0, PAL_RAMA_1); // Shyamavarna baby
+    draw_circle(b_x, b_y - 4.0, 4.0, Color::new(0.1, 0.1, 0.15, 1.0)); // Hair
+    draw_circle(b_x, b_y + 1.0, 1.0, PAL_RED_0); // Tilaka
+}
+
+fn draw_vignette_sita_birth(x: f32, y: f32, w: f32, h: f32, time: f32) {
+    // Golden Dawn Sky & Mithila Farmland
+    draw_rectangle(x, y, w, h * 0.40, Color::new(0.95, 0.70, 0.45, 1.0)); // Dawn orange
+    draw_circle(x + 100.0, y + 45.0, 26.0, PAL_FIRE_1); // Morning sun
+
+    // Rich Brown Soil & Furrow Field
+    draw_rectangle(x, y + h * 0.40, w, h * 0.60, Color::new(0.35, 0.22, 0.15, 1.0));
+    // Ploughed furrow lines
+    for i in 0..6 {
+        let fy = y + h * 0.45 + i as f32 * 16.0;
+        draw_line(x, fy, x + w, fy, 2.0, Color::new(0.25, 0.15, 0.10, 1.0));
+    }
+
+    // King Janaka with Golden Plow (Suvarna Hala)
+    let j_x = x + 210.0;
+    let j_y = y + 115.0;
+    // Janaka
+    draw_circle(j_x, j_y - 14.0, 7.0, Color::new(0.92, 0.78, 0.62, 1.0));
+    draw_rectangle(j_x - 3.0, j_y - 10.0, 6.0, 5.0, WHITE); // White beard
+    draw_triangle(vec2(j_x - 5.0, j_y - 19.0), vec2(j_x + 5.0, j_y - 19.0), vec2(j_x, j_y - 27.0), PAL_GOLD_0);
+    draw_rectangle(j_x - 8.0, j_y - 5.0, 16.0, 22.0, PAL_TURMERIC_1); // Yellow dhoti
+
+    // Golden Plow held in hands
+    draw_line(j_x + 4.0, j_y + 2.0, j_x + 35.0, j_y + 35.0, 3.5, PAL_GOLD_1);
+    draw_triangle(
+        vec2(j_x + 35.0, j_y + 35.0),
+        vec2(j_x + 50.0, j_y + 38.0),
+        vec2(j_x + 38.0, j_y + 44.0),
+        PAL_GOLD_0,
+    );
+
+    // Deep Furrow Opening in Earth (Center Right)
+    let f_x = x + 350.0;
+    let f_y = y + 130.0;
+    draw_ellipse(f_x, f_y + 10.0, 48.0, 16.0, 0.0, Color::new(0.18, 0.10, 0.06, 1.0));
+
+    // Golden Casket in Furrow
+    draw_rectangle(f_x - 26.0, f_y - 4.0, 52.0, 20.0, PAL_GOLD_2);
+    draw_rectangle_lines(f_x - 26.0, f_y - 4.0, 52.0, 20.0, 1.5, PAL_GOLD_0);
+    // Open Lid leaning back
+    draw_line(f_x - 26.0, f_y - 4.0, f_x - 20.0, f_y - 18.0, 3.0, PAL_GOLD_1);
+    draw_line(f_x + 26.0, f_y - 4.0, f_x + 32.0, f_y - 18.0, 3.0, PAL_GOLD_1);
+    draw_line(f_x - 20.0, f_y - 18.0, f_x + 32.0, f_y - 18.0, 3.0, PAL_GOLD_0);
+
+    // Radiant Infant Baby Sita inside the casket
+    let glow = (time * 5.0).sin() * 2.5;
+    draw_circle(f_x, f_y + 4.0, 14.0 + glow, Color::new(1.0, 0.9, 0.4, 0.4));
+    draw_circle(f_x, f_y + 2.0, 6.0, Color::new(0.98, 0.86, 0.72, 1.0)); // Face
+    draw_circle(f_x, f_y - 2.0, 4.0, Color::new(0.1, 0.08, 0.12, 1.0)); // Hair
+    draw_circle(f_x, f_y - 3.0, 1.2, PAL_GOLD_0); // Tilaka
+    draw_rectangle(f_x - 5.0, f_y + 6.0, 10.0, 7.0, PAL_RED_1); // Red silk wrapping
+}
+
+fn draw_vignette_sita_kalyanam(x: f32, y: f32, w: f32, h: f32, time: f32) {
+    // Royal Wedding Mandapa Pavilion
+    draw_rectangle(x, y, w, h * 0.35, Color::new(0.20, 0.08, 0.14, 1.0));
+    // Saffron and Floral Draperies
+    for i in 0..9 {
+        let dx = x + 20.0 + i as f32 * 60.0;
+        draw_triangle(
+            vec2(dx, y + 20.0),
+            vec2(dx + 35.0, y + 20.0),
+            vec2(dx + 17.5, y + 45.0),
+            PAL_RED_1,
+        );
+        draw_circle(dx + 17.5, y + 45.0, 2.5, PAL_GOLD_0);
+    }
+
+    // Marble Platform
+    draw_rectangle(x, y + h * 0.35, w, h * 0.65, Color::new(0.90, 0.85, 0.80, 1.0));
+    draw_line(x, y + h * 0.35, x + w, y + h * 0.35, 2.0, PAL_GOLD_2);
+
+    // Sacred Marriage Agni Fire Kunda in Center
+    let agni_x = x + 280.0;
+    let agni_y = y + 135.0;
+    draw_rectangle(agni_x - 22.0, agni_y, 44.0, 14.0, PAL_SAND_4);
+    draw_rectangle_lines(agni_x - 22.0, agni_y, 44.0, 14.0, 1.0, PAL_GOLD_1);
+    let f_h = 16.0 + (time * 10.0).sin() * 3.0;
+    draw_triangle(vec2(agni_x - 12.0, agni_y), vec2(agni_x + 12.0, agni_y), vec2(agni_x, agni_y - f_h), PAL_FIRE_3);
+    draw_circle(agni_x, agni_y - 6.0, 4.0, PAL_FIRE_0);
+
+    // Prince Rama (Left of Agni) in Wedding Attire
+    let r_x = agni_x - 55.0;
+    let r_y = agni_y - 5.0;
+    draw_circle(r_x, r_y - 14.0, 6.5, PAL_RAMA_1);
+    draw_triangle(vec2(r_x - 5.0, r_y - 19.0), vec2(r_x + 5.0, r_y - 19.0), vec2(r_x, r_y - 27.0), PAL_GOLD_0);
+    draw_rectangle(r_x - 8.0, r_y - 6.0, 16.0, 22.0, PAL_TURMERIC_1); // Golden silk
+    draw_circle(r_x, r_y - 1.0, 1.5, PAL_RED_0);
+
+    // Princess Sita (Right of Agni) in Bridal Silk
+    let s_x = agni_x + 55.0;
+    let s_y = agni_y - 5.0;
+    draw_circle(s_x, s_y - 14.0, 6.0, Color::new(0.96, 0.82, 0.68, 1.0));
+    draw_circle(s_x, s_y - 18.0, 4.0, Color::new(0.1, 0.08, 0.12, 1.0));
+    draw_circle(s_x, s_y - 19.0, 1.5, PAL_GOLD_0);
+    draw_rectangle(s_x - 8.0, s_y - 6.0, 16.0, 22.0, PAL_RED_1); // Bridal crimson silk
+    draw_rectangle_lines(s_x - 8.0, s_y - 6.0, 16.0, 22.0, 1.0, PAL_GOLD_0);
+
+    // Garland Exchange (Jaimala)
+    draw_line(r_x + 6.0, r_y, s_x - 6.0, s_y, 2.5, PAL_GOLD_1);
+    draw_circle(agni_x, agni_y - 18.0, 3.0, Color::new(1.0, 0.7, 0.8, 1.0));
+
+    // King Dasharatha & King Janaka standing behind blessing
+    let jd_x = x + 110.0;
+    draw_circle(jd_x, y + 85.0, 6.0, Color::new(0.92, 0.78, 0.62, 1.0));
+    draw_rectangle(jd_x - 6.0, y + 92.0, 12.0, 18.0, PAL_TURMERIC_2);
+    let jj_x = x + 450.0;
+    draw_circle(jj_x, y + 85.0, 6.0, Color::new(0.92, 0.78, 0.62, 1.0));
+    draw_rectangle(jj_x - 6.0, y + 92.0, 12.0, 18.0, PAL_SAND_2);
+
+    // Falling Flower Shower (Pushpa-Vrishti)
+    for i in 0..25 {
+        let px = x + 40.0 + (i as f32 * 21.0) % (w - 80.0);
+        let py = y + 15.0 + ((i as f32 * 37.0 + time * 35.0) % (h - 30.0));
+        let col = if i % 2 == 0 { Color::new(1.0, 0.75, 0.85, 0.9) } else { PAL_GOLD_0 };
+        draw_circle(px, py, 2.0, col);
+    }
+}
+
+fn draw_vignette_parashurama(x: f32, y: f32, w: f32, h: f32, slide: usize, time: f32) {
+    // Stormy Thunder Skies & Forest Mountain Road
+    draw_rectangle(x, y, w, h * 0.50, Color::new(0.12, 0.10, 0.18, 1.0));
+    // Jagged Lightning bolt flashing
+    if (time * 8.0) as i32 % 7 == 0 {
+        draw_line(x + 180.0, y + 10.0, x + 210.0, y + 45.0, 2.0, Color::new(0.9, 0.9, 1.0, 0.95));
+        draw_line(x + 210.0, y + 45.0, x + 200.0, y + 65.0, 2.0, Color::new(0.9, 0.9, 1.0, 0.95));
+        draw_line(x + 200.0, y + 65.0, x + 230.0, y + 90.0, 2.5, WHITE);
+    }
+
+    // Rocky Mountain Path
+    draw_rectangle(x, y + h * 0.50, w, h * 0.50, Color::new(0.28, 0.24, 0.22, 1.0));
+    draw_line(x, y + h * 0.50, x + w, y + h * 0.50, 1.5, PAL_SAND_4);
+
+    // Sage Parashurama (Left) - Fierce Warrior Sage with Battle Axe
+    let p_x = x + 160.0;
+    let p_y = y + 125.0;
+    draw_circle(p_x, p_y - 16.0, 7.5, Color::new(0.85, 0.70, 0.55, 1.0));
+    draw_circle(p_x, p_y - 23.0, 6.0, Color::new(0.18, 0.12, 0.10, 1.0)); // Wild Jata dreadlocks
+    draw_line(p_x - 3.0, p_y - 18.0, p_x + 3.0, p_y - 18.0, 1.2, WHITE); // Bhasma tripundra
+    draw_rectangle(p_x - 9.0, p_y - 8.0, 18.0, 24.0, Color::new(0.55, 0.35, 0.18, 1.0)); // Tiger skin
+
+    // Parashu (Battle Axe on shoulder)
+    draw_line(p_x - 12.0, p_y + 12.0, p_x - 22.0, p_y - 22.0, 3.0, Color::new(0.4, 0.3, 0.2, 1.0));
+    draw_triangle(
+        vec2(p_x - 22.0, p_y - 22.0),
+        vec2(p_x - 34.0, p_y - 30.0),
+        vec2(p_x - 28.0, p_y - 14.0),
+        Color::new(0.75, 0.78, 0.82, 1.0),
+    );
+
+    // Prince Rama (Right)
+    let r_x = x + 380.0;
+    let r_y = y + 125.0;
+    draw_circle(r_x, r_y - 16.0, 7.0, PAL_RAMA_1);
+    draw_triangle(vec2(r_x - 5.0, r_y - 21.0), vec2(r_x + 5.0, r_y - 21.0), vec2(r_x, r_y - 29.0), PAL_GOLD_0);
+    draw_rectangle(r_x - 8.0, r_y - 8.0, 16.0, 24.0, PAL_TURMERIC_1);
+
+    // The Vaishnava Bow (Sharanga)
+    let bow_x = if slide >= 2 { r_x - 8.0 } else { p_x + 18.0 };
+    let bow_y = y + 115.0;
+
+    // Glowing Vaishnava Bow (Double curved solar gold)
+    let bow_glow = (time * 6.0).sin() * 0.2 + 0.8;
+    draw_ellipse(bow_x, bow_y, 14.0, 34.0, 0.0, Color::new(1.0, 0.85, 0.2, 0.3 * bow_glow));
+
+    draw_line(bow_x, bow_y - 28.0, bow_x + 6.0, bow_y, 4.0, PAL_GOLD_3);
+    draw_line(bow_x, bow_y - 28.0, bow_x + 6.0, bow_y, 2.5, PAL_GOLD_0);
+    draw_line(bow_x + 6.0, bow_y, bow_x, bow_y + 28.0, 4.0, PAL_GOLD_3);
+    draw_line(bow_x + 6.0, bow_y, bow_x, bow_y + 28.0, 2.5, PAL_GOLD_0);
+
+    // Taut glowing string when Rama strings it
+    if slide >= 2 {
+        draw_line(bow_x, bow_y - 28.0, bow_x - 4.0, bow_y, 2.0, WHITE);
+        draw_line(bow_x - 4.0, bow_y, bow_x, bow_y + 28.0, 2.0, WHITE);
+        draw_circle(bow_x - 4.0, bow_y, 3.0, PAL_FIRE_0); // Solar arrowhead
+    } else {
+        draw_line(bow_x, bow_y - 28.0, bow_x, bow_y + 28.0, 1.2, Color::new(0.9, 0.9, 1.0, 0.5));
+    }
 }

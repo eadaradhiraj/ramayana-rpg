@@ -3,12 +3,14 @@ use macroquad::prelude::*;
 mod audio;
 mod level1;
 mod level2;
+mod level3;
 mod render;
 mod types;
 
 use audio::SoundEffects;
 use level1::{FightResult, Level1Fight};
 use level2::{FightResultL2, Level2Fight};
+use level3::{FightResultL3, Level3Fight};
 use render::*;
 use types::*;
 
@@ -46,6 +48,7 @@ async fn main() {
     let mut game_state = GameState::TitleScreen;
     let mut level1_fight = Level1Fight::new();
     let mut level2_fight = Level2Fight::new();
+    let mut level3_fight = Level3Fight::new();
     let mut global_time: f32 = 0.0;
 
     loop {
@@ -107,13 +110,13 @@ async fn main() {
                 } else if is_key_pressed(KeyCode::Key3) {
                     sounds.play(&sounds.shoot, 0.7);
                     game_state = GameState::Dialogue {
-                        speaker: "Sage Vishwamitra".to_string(),
+                        speaker: "King Janaka".to_string(),
                         lines: vec![
-                            "Prince Rama, behold the majestic kingdom of Mithila!".to_string(),
-                            "King Janaka has proclaimed the holy Swayamvara for Princess Sita.".to_string(),
-                            "The sacred trial: string the cosmic bow of Lord Shiva—the great Pinaka!".to_string(),
-                            "Countless kings and warriors could not even budge it. Destiny awaits!".to_string(),
-                            "[Mithila Chapter: In Development — Preview Test Arena]".to_string(),
+                            "Prince Rama, welcome to the ancient court of Mithila!".to_string(),
+                            "I have proclaimed the holy Swayamvara for Princess Sita.".to_string(),
+                            "Before you lies the cosmic bow of Lord Shiva—the great Pinaka, resting on an eight-wheeled iron cart.".to_string(),
+                            "Hundreds of mighty kings could not even move it. If you can lift and string it, Sita is yours!".to_string(),
+                            "Approach the carriage with [WASD], lift Pinaka with [SPACE], and draw the celestial string!".to_string(),
                         ],
                         idx: 0,
                         target: DialogueTarget::StartFight(LevelId::L3Mithila),
@@ -191,13 +194,13 @@ async fn main() {
                         }
                         _ => {
                             game_state = GameState::Dialogue {
-                                speaker: "Sage Vishwamitra".to_string(),
+                                speaker: "King Janaka".to_string(),
                                 lines: vec![
-                                    "Prince Rama, behold the majestic kingdom of Mithila!".to_string(),
-                                    "King Janaka has proclaimed the holy Swayamvara for Princess Sita.".to_string(),
-                                    "The sacred trial: string the cosmic bow of Lord Shiva—the great Pinaka!".to_string(),
-                                    "Countless kings and warriors could not even budge it. Destiny awaits!".to_string(),
-                                    "[Mithila Chapter: In Development — Preview Test Arena]".to_string(),
+                                    "Prince Rama, welcome to the ancient court of Mithila!".to_string(),
+                                    "I have proclaimed the holy Swayamvara for Princess Sita.".to_string(),
+                                    "Before you lies the cosmic bow of Lord Shiva—the great Pinaka, resting on an eight-wheeled iron cart.".to_string(),
+                                    "Hundreds of mighty kings could not even move it. If you can lift and string it, Sita is yours!".to_string(),
+                                    "Approach the carriage with [WASD], lift Pinaka with [SPACE], and draw the celestial string!".to_string(),
                                 ],
                                 idx: 0,
                                 target: DialogueTarget::StartFight(LevelId::L3Mithila),
@@ -219,6 +222,10 @@ async fn main() {
             } => {
                 // Background matches level context
                 match target {
+                    DialogueTarget::StartFight(LevelId::L3Mithila)
+                    | DialogueTarget::Victory(LevelId::L3Mithila) => {
+                        level3_fight.draw(&font, virtual_mouse, global_time);
+                    }
                     DialogueTarget::StartFight(LevelId::L2Siddhashrama)
                     | DialogueTarget::Victory(LevelId::L2Siddhashrama) => {
                         draw_siddhashrama_arena(global_time, 100.0);
@@ -268,13 +275,20 @@ async fn main() {
                                         game_state = GameState::Playing(LevelId::L2Siddhashrama);
                                     }
                                     LevelId::L3Mithila => {
-                                        game_state = GameState::LevelSelect { selected: 2 };
+                                        level3_fight = Level3Fight::new();
+                                        game_state = GameState::Playing(LevelId::L3Mithila);
                                     }
                                     _ => {}
                                 }
                             }
                             DialogueTarget::Victory(level_id) => {
                                 game_state = GameState::LevelComplete(*level_id);
+                            }
+                            DialogueTarget::StartCutscene(cutscene) => {
+                                game_state = GameState::Cutscene {
+                                    cutscene_type: *cutscene,
+                                    slide_idx: 0,
+                                };
                             }
                         }
                     }
@@ -339,8 +353,28 @@ async fn main() {
                                 None => {}
                             }
                         }
+                        LevelId::L3Mithila => {
+                            let fight_result = level3_fight.update(dt, virtual_mouse, &mut stats, &sounds);
+                            level3_fight.draw(&font, virtual_mouse, global_time);
+
+                            match fight_result {
+                                Some(FightResultL3::Victory) => {
+                                    game_state = GameState::Dialogue {
+                                        speaker: "King Janaka".to_string(),
+                                        lines: vec![
+                                            "Sadhu! Sadhu! The cosmic Pinaka of Lord Shiva has broken in two!".to_string(),
+                                            "None in heaven or on earth could even budge it. Prince Rama, your divine strength has fulfilled my vow!".to_string(),
+                                            "Princess Sita is yours! Let both royal families assemble in the sacred pavilion to recite their lineages!".to_string(),
+                                        ],
+                                        idx: 0,
+                                        target: DialogueTarget::StartCutscene(CutsceneType::RamaBirth),
+                                    };
+                                }
+                                None => {}
+                            }
+                        }
                         _ => {
-                            draw_pixel_text(&font, "COMING SOON IN LEVEL 3", 180.0, 180.0, 14, WHITE);
+                            draw_pixel_text(&font, "COMING SOON IN LEVEL 4", 180.0, 180.0, 14, WHITE);
                         }
                     }
                 }
@@ -354,6 +388,9 @@ async fn main() {
                     }
                     LevelId::L2Siddhashrama => {
                         level2_fight.draw(&stats, virtual_mouse, &font);
+                    }
+                    LevelId::L3Mithila => {
+                        level3_fight.draw(&font, virtual_mouse, global_time);
                     }
                     _ => {}
                 }
@@ -424,6 +461,10 @@ async fn main() {
                                     level2_fight = Level2Fight::new();
                                     game_state = GameState::Playing(LevelId::L2Siddhashrama);
                                 }
+                                LevelId::L3Mithila => {
+                                    level3_fight = Level3Fight::new();
+                                    game_state = GameState::Playing(LevelId::L3Mithila);
+                                }
                                 _ => {}
                             }
                         }
@@ -441,6 +482,50 @@ async fn main() {
                             game_state = GameState::TitleScreen;
                         }
                     }
+                }
+            }
+
+            GameState::Cutscene { cutscene_type, slide_idx } => {
+                draw_cutscene_screen(&font, *cutscene_type, *slide_idx, global_time, virtual_mouse);
+
+                if is_key_pressed(KeyCode::Space)
+                    || is_key_pressed(KeyCode::Enter)
+                    || is_mouse_button_pressed(MouseButton::Left)
+                {
+                    sounds.play(&sounds.bell, 0.6);
+                    let total = get_cutscene_total_slides(*cutscene_type);
+                    if *slide_idx + 1 < total {
+                        *slide_idx += 1;
+                    } else {
+                        match cutscene_type {
+                            CutsceneType::RamaBirth => {
+                                game_state = GameState::Cutscene {
+                                    cutscene_type: CutsceneType::SitaBirth,
+                                    slide_idx: 0,
+                                };
+                            }
+                            CutsceneType::SitaBirth => {
+                                game_state = GameState::Cutscene {
+                                    cutscene_type: CutsceneType::SitaKalyanam,
+                                    slide_idx: 0,
+                                };
+                            }
+                            CutsceneType::SitaKalyanam => {
+                                game_state = GameState::Cutscene {
+                                    cutscene_type: CutsceneType::ParashuramaEncounter,
+                                    slide_idx: 0,
+                                };
+                            }
+                            CutsceneType::ParashuramaEncounter => {
+                                sounds.play(&sounds.victory, 0.8);
+                                game_state = GameState::LevelComplete(LevelId::L3Mithila);
+                            }
+                        }
+                    }
+                }
+
+                if is_key_pressed(KeyCode::Escape) {
+                    game_state = GameState::TitleScreen;
                 }
             }
 
@@ -483,7 +568,18 @@ async fn main() {
                             || is_mouse_button_pressed(MouseButton::Left)
                         {
                             sounds.play(&sounds.shoot, 0.6);
-                            game_state = GameState::TitleScreen;
+                            game_state = GameState::Dialogue {
+                                speaker: "King Janaka".to_string(),
+                                lines: vec![
+                                    "Prince Rama, welcome to the ancient court of Mithila!".to_string(),
+                                    "I have proclaimed the holy Swayamvara for Princess Sita.".to_string(),
+                                    "Before you lies the cosmic bow of Lord Shiva—the great Pinaka, resting on an eight-wheeled iron cart.".to_string(),
+                                    "Hundreds of mighty kings could not even move it. If you can lift and string it, Sita is yours!".to_string(),
+                                    "Approach the carriage with [WASD], lift Pinaka with [SPACE], and draw the celestial string!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L3Mithila),
+                            };
                         }
                         if is_key_pressed(KeyCode::R) {
                             stats = PlayerStats {
@@ -501,6 +597,22 @@ async fn main() {
                             };
                             level2_fight = Level2Fight::new();
                             game_state = GameState::Playing(LevelId::L2Siddhashrama);
+                        }
+                    }
+                    LevelId::L3Mithila => {
+                        draw_victory_l3(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::LevelSelect { selected: 0 };
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            level3_fight = Level3Fight::new();
+                            game_state = GameState::Playing(LevelId::L3Mithila);
                         }
                     }
                     _ => {}

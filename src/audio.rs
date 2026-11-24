@@ -16,6 +16,10 @@ pub struct SoundEffects {
     pub homing: Sound,
     pub fire: Sound,
     pub altar_hiss: Sound,
+    // Level 3 & Cutscenes
+    pub snap: Sound,
+    pub thunder: Sound,
+    pub bell: Sound,
 }
 
 impl SoundEffects {
@@ -34,6 +38,9 @@ impl SoundEffects {
         let homing = load_sound_from_bytes(&generate_homing_wav()).await.unwrap();
         let fire = load_sound_from_bytes(&generate_fire_wav()).await.unwrap();
         let altar_hiss = load_sound_from_bytes(&generate_altar_hiss_wav()).await.unwrap();
+        let snap = load_sound_from_bytes(&generate_snap_wav()).await.unwrap();
+        let thunder = load_sound_from_bytes(&generate_thunder_wav()).await.unwrap();
+        let bell = load_sound_from_bytes(&generate_bell_wav()).await.unwrap();
 
         Self {
             shoot,
@@ -50,6 +57,9 @@ impl SoundEffects {
             homing,
             fire,
             altar_hiss,
+            snap,
+            thunder,
+            bell,
         }
     }
 
@@ -351,6 +361,75 @@ fn generate_altar_hiss_wav() -> Vec<u8> {
         let noise = ((rng >> 16) as f32 / 32768.0) - 1.0;
         let hiss = (noise * (0.8 + 0.2 * (t * 30.0).sin())) * env * 14000.0;
         samples.push(hiss as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 3: Cosmic Dhanurbhanga Bow Snap
+fn generate_snap_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.55;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    let mut rng: u32 = 91827;
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (1.0 - t).powf(2.4);
+        rng = rng.wrapping_mul(1664525).wrapping_add(1013904223);
+        let noise = ((rng >> 16) as f32 / 32768.0) - 1.0;
+
+        let snap_freq = 620.0 * (1.0 - t * 0.7);
+        let snap_tone = (2.0 * std::f32::consts::PI * snap_freq * (i as f32 / rate as f32)).sin();
+        let crack = if t < 0.08 { noise * 1.5 } else { noise * 0.3 };
+
+        let sample = (crack * 0.7 + snap_tone * 0.5) * env * 26000.0;
+        samples.push(sample.clamp(-32767.0, 32767.0) as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 3: Rolling Divine Thunder
+fn generate_thunder_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.95;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    let mut rng: u32 = 54321;
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (1.0 - t).powf(1.1);
+        rng = rng.wrapping_mul(1664525).wrapping_add(1013904223);
+        let noise = ((rng >> 16) as f32 / 32768.0) - 1.0;
+
+        let rumble_freq = 55.0 + ((t * 8.0).sin() * 12.0);
+        let sub_bass = (2.0 * std::f32::consts::PI * rumble_freq * (i as f32 / rate as f32)).sin();
+
+        let sample = (noise * 0.55 + sub_bass * 0.7) * env * 24000.0;
+        samples.push(sample.clamp(-32767.0, 32767.0) as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 3 & Cutscenes: Celestial Temple Chime / Bell
+fn generate_bell_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 0.85;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let t = i as f32 / n as f32;
+        let env = (1.0 - t).powf(1.8);
+        let base_freq = 587.33; // D5 tone (harmonious celestial key)
+
+        let h1 = (2.0 * std::f32::consts::PI * base_freq * (i as f32 / rate as f32)).sin();
+        let h2 = (2.0 * std::f32::consts::PI * (base_freq * 2.0) * (i as f32 / rate as f32)).sin() * 0.5;
+        let h3 = (2.0 * std::f32::consts::PI * (base_freq * 3.01) * (i as f32 / rate as f32)).sin() * 0.25;
+
+        let sample = (h1 + h2 + h3) * env * 19000.0;
+        samples.push(sample.clamp(-32767.0, 32767.0) as i16);
     }
     build_wav(&samples, rate)
 }

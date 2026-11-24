@@ -112,10 +112,19 @@ impl Default for PlayerStats {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum CutsceneType {
+    RamaBirth,
+    SitaBirth,
+    SitaKalyanam,
+    ParashuramaEncounter,
+}
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum DialogueTarget {
     StartFight(LevelId),
     Victory(LevelId),
+    StartCutscene(CutsceneType),
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -133,6 +142,10 @@ pub enum GameState {
         lines: Vec<String>,
         idx: usize,
         target: DialogueTarget,
+    },
+    Cutscene {
+        cutscene_type: CutsceneType,
+        slide_idx: usize,
     },
     Playing(LevelId),
     LevelComplete(LevelId),
