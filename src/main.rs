@@ -6,6 +6,7 @@ mod level2;
 mod level3;
 mod level4;
 mod level5;
+mod level6;
 mod render;
 mod types;
 
@@ -15,6 +16,7 @@ use level2::{FightResultL2, Level2Fight};
 use level3::{FightResultL3, Level3Fight};
 use level4::{draw_victory_l4, FightResultL4, Level4Fight};
 use level5::{draw_victory_l5, FightResultL5, Level5Fight};
+use level6::{draw_victory_l6, FightResultL6, Level6Fight};
 use render::*;
 use types::*;
 
@@ -55,6 +57,7 @@ async fn main() {
     let mut level3_fight = Level3Fight::new();
     let mut level4_fight = Level4Fight::new();
     let mut level5_fight = Level5Fight::new();
+    let mut level6_fight = Level6Fight::new();
     let mut global_time: f32 = 0.0;
 
     loop {
@@ -146,6 +149,19 @@ async fn main() {
                         cutscene_type: CutsceneType::AyodhyaExile,
                         slide_idx: 0,
                     };
+                } else if is_key_pressed(KeyCode::Key6) {
+                    sounds.play(&sounds.victory, 0.8);
+                    game_state = GameState::Dialogue {
+                        speaker: "Prince Rama".to_string(),
+                        lines: vec![
+                            "Having granted our sacred sandals to Bharata, we leave Chitrakuta.".to_string(),
+                            "The holy hermits have departed, warning us of the terrifying Rakshasa Viradha.".to_string(),
+                            "We enter the deep, primeval forest of Dandakaranya!".to_string(),
+                            "Beware! Viradha possesses Brahma's boon—no weapon can pierce his flesh!".to_string(),
+                        ],
+                        idx: 0,
+                        target: DialogueTarget::StartFight(LevelId::L6Viradha),
+                    };
                 } else if is_mouse_button_pressed(MouseButton::Left) {
                     sounds.play(&sounds.shoot, 0.7);
                     match get_title_screen_action_at(virtual_mouse) {
@@ -210,6 +226,20 @@ async fn main() {
                                 slide_idx: 0,
                             };
                         }
+                        Some(5) => {
+                            sounds.play(&sounds.victory, 0.8);
+                            game_state = GameState::Dialogue {
+                                speaker: "Prince Rama".to_string(),
+                                lines: vec![
+                                    "Having granted our sacred sandals to Bharata, we leave Chitrakuta.".to_string(),
+                                    "The holy hermits have departed, warning us of the terrifying Rakshasa Viradha.".to_string(),
+                                    "We enter the deep, primeval forest of Dandakaranya!".to_string(),
+                                    "Beware! Viradha possesses Brahma's boon—no weapon can pierce his flesh!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L6Viradha),
+                            };
+                        }
                         _ => {
                             game_state = GameState::LevelSelect { selected: 0 };
                         }
@@ -231,10 +261,10 @@ async fn main() {
 
                 // Keyboard card cycling
                 if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
-                    *selected = (*selected + 4) % 5;
+                    *selected = (*selected + 5) % 6;
                     sounds.play(&sounds.shoot, 0.3);
                 } else if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
-                    *selected = (*selected + 1) % 5;
+                    *selected = (*selected + 1) % 6;
                     sounds.play(&sounds.shoot, 0.3);
                 }
 
@@ -249,6 +279,8 @@ async fn main() {
                     *selected = 3;
                 } else if is_key_pressed(KeyCode::Key5) {
                     *selected = 4;
+                } else if is_key_pressed(KeyCode::Key6) {
+                    *selected = 5;
                 }
 
                 // Launch selected level
@@ -313,11 +345,25 @@ async fn main() {
                                 target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
                             };
                         }
-                        _ => {
+                        4 => {
                             sounds.play(&sounds.victory, 0.8);
                             game_state = GameState::Cutscene {
                                 cutscene_type: CutsceneType::AyodhyaExile,
                                 slide_idx: 0,
+                            };
+                        }
+                        _ => {
+                            sounds.play(&sounds.victory, 0.8);
+                            game_state = GameState::Dialogue {
+                                speaker: "Prince Rama".to_string(),
+                                lines: vec![
+                                    "Having granted our sacred sandals to Bharata, we leave Chitrakuta.".to_string(),
+                                    "The holy hermits have departed, warning us of the terrifying Rakshasa Viradha.".to_string(),
+                                    "We enter the deep, primeval forest of Dandakaranya!".to_string(),
+                                    "Beware! Viradha possesses Brahma's boon—no weapon can pierce his flesh!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L6Viradha),
                             };
                         }
                     }
@@ -336,6 +382,10 @@ async fn main() {
             } => {
                 // Background matches level context
                 match target {
+                    DialogueTarget::StartFight(LevelId::L6Viradha)
+                    | DialogueTarget::Victory(LevelId::L6Viradha) => {
+                        level6_fight.draw(&font, global_time, &stats, virtual_mouse);
+                    }
                     DialogueTarget::StartFight(LevelId::L5Chitrakuta)
                     | DialogueTarget::Victory(LevelId::L5Chitrakuta) => {
                         level5_fight.draw(&font, virtual_mouse, global_time);
@@ -416,6 +466,23 @@ async fn main() {
                                     LevelId::L5Chitrakuta => {
                                         level5_fight = Level5Fight::new();
                                         game_state = GameState::Playing(LevelId::L5Chitrakuta);
+                                    }
+                                    LevelId::L6Viradha => {
+                                        stats = PlayerStats {
+                                            prana: 100,
+                                            max_prana: 100,
+                                            tejas: 100,
+                                            max_tejas: 100,
+                                            unlocked_astras: vec![
+                                                Astra::KodandaBow,
+                                                Astra::Vayavyastra,
+                                                Astra::Manavastra,
+                                                Astra::Agneyastra,
+                                            ],
+                                            selected_astra: Astra::KodandaBow,
+                                        };
+                                        level6_fight = Level6Fight::new();
+                                        game_state = GameState::Playing(LevelId::L6Viradha);
                                     }
                                     _ => {}
                                 }
@@ -534,8 +601,25 @@ async fn main() {
                                 None => {}
                             }
                         }
+                        LevelId::L6Viradha => {
+                            let interact = is_key_pressed(KeyCode::Space)
+                                || is_key_pressed(KeyCode::Enter)
+                                || is_mouse_button_pressed(MouseButton::Left);
+                            let fight_result = level6_fight.update(dt, &sounds, &mut stats, virtual_mouse, interact);
+                            level6_fight.draw(&font, global_time, &stats, virtual_mouse);
+
+                            match fight_result {
+                                FightResultL6::Victory => {
+                                    game_state = GameState::LevelComplete(LevelId::L6Viradha);
+                                }
+                                FightResultL6::Defeat => {
+                                    game_state = GameState::GameOver(LevelId::L6Viradha);
+                                }
+                                FightResultL6::Continue => {}
+                            }
+                        }
                         _ => {
-                            draw_pixel_text(&font, "COMING SOON IN ARANYA KANDA (VIRADHA)", 120.0, 180.0, 11, WHITE);
+                            draw_pixel_text(&font, "COMING SOON IN ARANYA KANDA (JANASTHANA)", 100.0, 180.0, 11, WHITE);
                         }
                     }
                 }
@@ -558,6 +642,9 @@ async fn main() {
                     }
                     LevelId::L5Chitrakuta => {
                         level5_fight.draw(&font, virtual_mouse, global_time);
+                    }
+                    LevelId::L6Viradha => {
+                        level6_fight.draw(&font, global_time, &stats, virtual_mouse);
                     }
                     _ => {}
                 }
@@ -640,6 +727,10 @@ async fn main() {
                                     level5_fight = Level5Fight::new();
                                     game_state = GameState::Playing(LevelId::L5Chitrakuta);
                                 }
+                                LevelId::L6Viradha => {
+                                    level6_fight = Level6Fight::new();
+                                    game_state = GameState::Playing(LevelId::L6Viradha);
+                                }
                                 _ => {}
                             }
                         }
@@ -650,7 +741,8 @@ async fn main() {
                                 LevelId::L2Siddhashrama => 1,
                                 LevelId::L3Mithila => 2,
                                 LevelId::L4Ayodhya => 3,
-                                _ => 4,
+                                LevelId::L5Chitrakuta => 4,
+                                _ => 5,
                             };
                             game_state = GameState::LevelSelect { selected: card_sel };
                         }
@@ -843,11 +935,37 @@ async fn main() {
                             || is_mouse_button_pressed(MouseButton::Left)
                         {
                             sounds.play(&sounds.shoot, 0.6);
-                            game_state = GameState::LevelSelect { selected: 4 };
+                            game_state = GameState::Dialogue {
+                                speaker: "Prince Rama".to_string(),
+                                lines: vec![
+                                    "Having granted our sacred sandals to Bharata, we leave Chitrakuta.".to_string(),
+                                    "The holy hermits have departed, warning us of the terrifying Rakshasa Viradha.".to_string(),
+                                    "We enter the deep, primeval forest of Dandakaranya!".to_string(),
+                                    "Beware! Viradha possesses Brahma's boon—no weapon can pierce his flesh!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L6Viradha),
+                            };
                         }
                         if is_key_pressed(KeyCode::R) {
                             level5_fight = Level5Fight::new();
                             game_state = GameState::Playing(LevelId::L5Chitrakuta);
+                        }
+                    }
+                    LevelId::L6Viradha => {
+                        draw_victory_l6(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::LevelSelect { selected: 5 };
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            level6_fight = Level6Fight::new();
+                            game_state = GameState::Playing(LevelId::L6Viradha);
                         }
                     }
                     _ => {}
@@ -886,6 +1004,28 @@ async fn main() {
                             };
                             level2_fight = Level2Fight::new();
                             game_state = GameState::Playing(LevelId::L2Siddhashrama);
+                        }
+                    }
+                    LevelId::L6Viradha => {
+                        draw_game_over(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::R) || is_mouse_button_pressed(MouseButton::Left) {
+                            stats = PlayerStats {
+                                prana: 100,
+                                max_prana: 100,
+                                tejas: 100,
+                                max_tejas: 100,
+                                unlocked_astras: vec![
+                                    Astra::KodandaBow,
+                                    Astra::Vayavyastra,
+                                    Astra::Manavastra,
+                                    Astra::Agneyastra,
+                                ],
+                                selected_astra: Astra::KodandaBow,
+                            };
+                            level6_fight = Level6Fight::new();
+                            game_state = GameState::Playing(LevelId::L6Viradha);
                         }
                     }
                     _ => {}
