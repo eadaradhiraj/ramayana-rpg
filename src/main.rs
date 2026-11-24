@@ -73,7 +73,7 @@ async fn main() {
         // Main State Machine
         match &mut game_state {
             GameState::TitleScreen => {
-                draw_title_screen(&font, global_time);
+                draw_title_screen(&font, global_time, virtual_mouse);
                 draw_reticle(virtual_mouse, false);
 
                 // Open Interactive Level Select
@@ -121,10 +121,55 @@ async fn main() {
                         idx: 0,
                         target: DialogueTarget::StartFight(LevelId::L3Mithila),
                     };
-                } else if is_key_pressed(KeyCode::Space)
-                    || is_key_pressed(KeyCode::Enter)
-                    || is_mouse_button_pressed(MouseButton::Left)
-                {
+                } else if is_mouse_button_pressed(MouseButton::Left) {
+                    sounds.play(&sounds.shoot, 0.7);
+                    match get_title_screen_action_at(virtual_mouse) {
+                        Some(0) => {
+                            game_state = GameState::Dialogue {
+                                speaker: "Sage Vishwamitra".to_string(),
+                                lines: vec![
+                                    "Prince Rama, we enter the desolate wasteland of Tataka.".to_string(),
+                                    "Once the thriving realms of Malada and Karusha, she laid all to ruin.".to_string(),
+                                    "Her dark sorcery veils her from sight. Use Shabdavedhi to strike her ripples!".to_string(),
+                                    "Hurry! If dusk falls (90s), her frenzy doubles speed & malice!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L1Tataka),
+                            };
+                        }
+                        Some(1) => {
+                            game_state = GameState::Dialogue {
+                                speaker: "Sage Vishwamitra".to_string(),
+                                lines: vec![
+                                    "Welcome to Siddhashrama, the Hermitage of Accomplishment!".to_string(),
+                                    "For six days and six nights, we conduct the holy Yajna sacrifice.".to_string(),
+                                    "Rakshasas Maricha and Subahu will attempt to defile the sacrificial fire with blood!".to_string(),
+                                    "Protect the central Yajna Altar at all costs. Do not let its Purity fall to zero!".to_string(),
+                                    "Use [1] Kodanda for free arrows, [2] Vayavyastra to scatter swarms, [3] Manavastra to fling Maricha, and [4] Agneyastra to incinerate Subahu!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L2Siddhashrama),
+                            };
+                        }
+                        Some(2) => {
+                            game_state = GameState::Dialogue {
+                                speaker: "King Janaka".to_string(),
+                                lines: vec![
+                                    "Prince Rama, welcome to the ancient court of Mithila!".to_string(),
+                                    "I have proclaimed the holy Swayamvara for Princess Sita.".to_string(),
+                                    "Before you lies the cosmic bow of Lord Shiva—the great Pinaka, resting on an eight-wheeled iron cart.".to_string(),
+                                    "Hundreds of mighty kings could not even move it. If you can lift and string it, Sita is yours!".to_string(),
+                                    "Approach the carriage with [WASD], lift Pinaka with [SPACE], and draw the celestial string!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L3Mithila),
+                            };
+                        }
+                        _ => {
+                            game_state = GameState::LevelSelect { selected: 0 };
+                        }
+                    }
+                } else if is_key_pressed(KeyCode::Space) || is_key_pressed(KeyCode::Enter) {
                     sounds.play(&sounds.shoot, 0.7);
                     game_state = GameState::LevelSelect { selected: 0 };
                 }

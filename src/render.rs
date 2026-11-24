@@ -1152,7 +1152,7 @@ pub fn draw_dialogue_box(font: &Font, speaker: &str, line: &str, time: f32) {
 // ============================================================================
 // 16-BIT RETRO TITLE SCREEN
 // ============================================================================
-pub fn draw_title_screen(font: &Font, time: f32) {
+pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
     clear_background(Color::new(0.06, 0.05, 0.09, 1.0));
 
     // Dynamic forest tree silhouettes swaying
@@ -1165,48 +1165,90 @@ pub fn draw_title_screen(font: &Font, time: f32) {
 
     // Epic Title in Press Start 2P font
     let title = "RAMAYANA: THE RETRO EPIC";
-    draw_pixel_text(font, title, 70.0, 58.0, 20, PAL_GOLD_1);
+    draw_pixel_text(font, title, 70.0, 48.0, 20, PAL_GOLD_1);
 
     let sub = "BALA KANDA — THE ADVENTURES OF PRINCE RAMA";
-    draw_pixel_text(font, sub, 115.0, 84.0, 10, PAL_TURMERIC_1);
+    draw_pixel_text(font, sub, 115.0, 72.0, 10, PAL_TURMERIC_1);
 
     // Decorative Bow & Arrow Divider
-    draw_line(150.0, 102.0, 490.0, 102.0, 2.0, PAL_GOLD_2);
-    draw_circle(320.0, 102.0, 5.0, PAL_RED_1);
-    draw_circle(320.0, 102.0, 2.5, PAL_GOLD_0);
+    draw_line(150.0, 86.0, 490.0, 86.0, 2.0, PAL_GOLD_2);
+    draw_circle(320.0, 86.0, 5.0, PAL_RED_1);
+    draw_circle(320.0, 86.0, 2.5, PAL_GOLD_0);
 
     // Chapter Select / Preview Box
-    let box_x = 45.0;
-    let box_y = 118.0;
-    let box_w = 550.0;
-    let box_h = 175.0;
+    let box_x = 35.0;
+    let box_y = 96.0;
+    let box_w = 570.0;
+    let box_h = 212.0;
     draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.10, 0.09, 0.15, 0.95));
     draw_rectangle_lines(box_x, box_y, box_w, box_h, 1.5, PAL_GOLD_3);
 
-    // Level 1 Section
-    draw_pixel_text(font, "[1] LEVEL 1: TATAKA'S FOREST (SHABDAVEDHI)", box_x + 16.0, box_y + 22.0, 9, PAL_GOLD_1);
-    draw_pixel_text(font, "    Track sound ripples & strike unseen Yakshini before dusk (90s)", box_x + 16.0, box_y + 40.0, 8, Color::new(0.4, 0.85, 1.0, 1.0));
+    let hovered_action = get_title_screen_action_at(virtual_mouse);
 
-    // Level 2 Section
-    draw_pixel_text(font, "[2] LEVEL 2: SIDDHASHRAMA (DIVINE ASTRAS)", box_x + 16.0, box_y + 68.0, 9, Color::new(1.0, 0.65, 0.25, 1.0));
-    draw_pixel_text(font, "    Defend Yajna Altar against Maricha, Subahu & Defilement hordes", box_x + 16.0, box_y + 86.0, 8, Color::new(1.0, 0.85, 0.40, 1.0));
-    draw_pixel_text(font, "    Astras: [1] Kodanda  [2] Vayavya  [3] Manava  [4] Agneya", box_x + 16.0, box_y + 104.0, 8, Color::new(0.65, 0.95, 0.75, 1.0));
+    // Level 1 Row
+    let r0_bg = if hovered_action == Some(0) {
+        Color::new(0.18, 0.16, 0.26, 0.95)
+    } else {
+        Color::new(0.12, 0.11, 0.18, 0.5)
+    };
+    draw_rectangle(box_x + 8.0, box_y + 8.0, box_w - 16.0, 34.0, r0_bg);
+    if hovered_action == Some(0) {
+        draw_rectangle_lines(box_x + 8.0, box_y + 8.0, box_w - 16.0, 34.0, 1.0, PAL_GOLD_1);
+        draw_pixel_text(font, "▶ PLAY [1]", box_x + box_w - 110.0, box_y + 22.0, 8, PAL_GOLD_0);
+    }
+    draw_pixel_text(font, "[1] LEVEL 1: TATAKA'S FOREST (SHABDAVEDHI)", box_x + 16.0, box_y + 21.0, 9, PAL_GOLD_1);
+    draw_pixel_text(font, "    Track sound ripples & strike unseen Yakshini before dusk (90s)", box_x + 16.0, box_y + 34.0, 8, Color::new(0.4, 0.85, 1.0, 1.0));
+
+    // Level 2 Row
+    let r1_bg = if hovered_action == Some(1) {
+        Color::new(0.22, 0.16, 0.18, 0.95)
+    } else {
+        Color::new(0.14, 0.11, 0.15, 0.5)
+    };
+    draw_rectangle(box_x + 8.0, box_y + 44.0, box_w - 16.0, 34.0, r1_bg);
+    if hovered_action == Some(1) {
+        draw_rectangle_lines(box_x + 8.0, box_y + 44.0, box_w - 16.0, 34.0, 1.0, PAL_GOLD_1);
+        draw_pixel_text(font, "▶ PLAY [2]", box_x + box_w - 110.0, box_y + 58.0, 8, PAL_GOLD_0);
+    }
+    draw_pixel_text(font, "[2] LEVEL 2: SIDDHASHRAMA (SACRED YAJNA DEFENSE)", box_x + 16.0, box_y + 57.0, 9, Color::new(1.0, 0.65, 0.25, 1.0));
+    draw_pixel_text(font, "    Defend holy Altar with Astras: Kodanda, Vayavya, Manava & Agneya", box_x + 16.0, box_y + 70.0, 8, Color::new(1.0, 0.85, 0.40, 1.0));
+
+    // Level 3 Row
+    let r2_bg = if hovered_action == Some(2) {
+        Color::new(0.20, 0.14, 0.26, 0.95)
+    } else {
+        Color::new(0.13, 0.10, 0.18, 0.5)
+    };
+    draw_rectangle(box_x + 8.0, box_y + 80.0, box_w - 16.0, 34.0, r2_bg);
+    if hovered_action == Some(2) {
+        draw_rectangle_lines(box_x + 8.0, box_y + 80.0, box_w - 16.0, 34.0, 1.0, PAL_GOLD_1);
+        draw_pixel_text(font, "▶ PLAY [3]", box_x + box_w - 110.0, box_y + 94.0, 8, PAL_GOLD_0);
+    }
+    draw_pixel_text(font, "[3] LEVEL 3: MITHILA (THE TRIAL OF SHIVA DHANUSH)", box_x + 16.0, box_y + 93.0, 9, Color::new(0.85, 0.65, 1.0, 1.0));
+    draw_pixel_text(font, "    Lift Pinaka bow, Dhanurbhanga, lineage recitals & Parashurama", box_x + 16.0, box_y + 106.0, 8, Color::new(0.75, 0.85, 1.0, 1.0));
 
     // Level Select Button Highlight
-    draw_rectangle(box_x + 16.0, box_y + 124.0, box_w - 32.0, 24.0, Color::new(0.18, 0.14, 0.26, 1.0));
-    draw_rectangle_lines(box_x + 16.0, box_y + 124.0, box_w - 32.0, 24.0, 1.0, PAL_GOLD_2);
-    draw_pixel_text(font, "▶ PRESS [L] OR [TAB] TO OPEN INTERACTIVE LEVEL SELECT ◀", box_x + 36.0, box_y + 140.0, 8, PAL_GOLD_0);
+    let r3_bg = if hovered_action == Some(3) {
+        Color::new(0.24, 0.18, 0.34, 1.0)
+    } else {
+        Color::new(0.16, 0.13, 0.24, 1.0)
+    };
+    draw_rectangle(box_x + 8.0, box_y + 118.0, box_w - 16.0, 24.0, r3_bg);
+    let border_btn = if hovered_action == Some(3) { PAL_GOLD_0 } else { PAL_GOLD_2 };
+    draw_rectangle_lines(box_x + 8.0, box_y + 118.0, box_w - 16.0, 24.0, 1.0, border_btn);
+    draw_pixel_text(font, "▶ PRESS [L], [TAB] OR CLICK FOR FULL CHAPTER SELECT SCREEN ◀", box_x + 32.0, box_y + 134.0, 8, PAL_GOLD_0);
 
-    // Controls line
-    draw_pixel_text(font, "Controls: WASD Move | Mouse Aim & Shoot | 1-4 Astras | ESC Pause", box_x + 16.0, box_y + 164.0, 8, WHITE);
+    // Controls & Instructions line
+    draw_pixel_text(font, "Controls: WASD Move | Mouse Aim & Tension | 1-4 Astras | ESC Pause", box_x + 16.0, box_y + 162.0, 8, WHITE);
+    draw_pixel_text(font, "Click any chapter row above or press [1], [2], or [3] to launch immediately!", box_x + 16.0, box_y + 180.0, 8, Color::new(0.8, 0.9, 0.7, 1.0));
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        let prompt = "▶ PRESS [1] OR [2] TO PLAY, [L] FOR LEVEL SELECT, OR [SPACE] ◀";
-        draw_pixel_text(font, prompt, 38.0, 316.0, 10, PAL_GOLD_1);
+        let prompt = "▶ PRESS [1], [2], OR [3] TO PLAY, [L] FOR LEVEL SELECT, OR [SPACE] ◀";
+        draw_pixel_text(font, prompt, 32.0, 324.0, 9, PAL_GOLD_1);
     }
 
-    draw_pixel_text(font, "16:9 Widescreen | 16-Bit Vedic Retro RPG | Rust + WASM", 100.0, 342.0, 8, Color::new(0.65, 0.65, 0.65, 1.0));
+    draw_pixel_text(font, "16:9 Widescreen | 16-Bit Vedic Retro RPG | Rust + WASM", 100.0, 345.0, 8, Color::new(0.65, 0.65, 0.65, 1.0));
 }
 
 // ============================================================================
@@ -1276,19 +1318,19 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
             2,
             432.0,
             "LEVEL 3",
-            "MITHILA PREVIEW",
-            "Shiva Dhanush Swayamvar",
+            "MITHILA",
+            "Trial of Shiva Dhanush",
             Color::new(0.85, 0.65, 1.0, 1.0),
             Color::new(0.75, 0.55, 0.95, 1.0),
             vec![
                 "• King Janaka's Court",
-                "• Cosmic Pinaka Bow",
-                "• Princess Sita Swayamvar",
-                "• Chapter in Dev",
+                "• 8-Wheeled Bow Cart",
+                "• Lift & Snap Pinaka",
+                "• Lineage Cutscenes",
             ],
             "Pinaka Bow",
-            "[ PREVIEW ]",
-            PAL_GOLD_1,
+            "▶ READY ◀",
+            Color::new(0.35, 0.85, 0.45, 1.0),
         ),
     ];
 
@@ -1435,6 +1477,28 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
         7,
         Color::new(0.7, 0.7, 0.7, 1.0),
     );
+}
+
+pub fn get_title_screen_action_at(mouse: Vec2) -> Option<usize> {
+    let box_x = 35.0;
+    let box_y = 96.0;
+    let box_w = 570.0;
+
+    if mouse.x >= box_x + 8.0 && mouse.x <= box_x + box_w - 8.0 {
+        if mouse.y >= box_y + 8.0 && mouse.y < box_y + 42.0 {
+            return Some(0); // Level 1
+        }
+        if mouse.y >= box_y + 44.0 && mouse.y < box_y + 78.0 {
+            return Some(1); // Level 2
+        }
+        if mouse.y >= box_y + 80.0 && mouse.y < box_y + 114.0 {
+            return Some(2); // Level 3
+        }
+        if mouse.y >= box_y + 118.0 && mouse.y < box_y + 144.0 {
+            return Some(3); // Chapter Select
+        }
+    }
+    None
 }
 
 pub fn get_level_select_card_at(mouse: Vec2) -> Option<usize> {
