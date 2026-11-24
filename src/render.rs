@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use macroquad::prelude::*;
 use crate::types::{Astra, AstraProjectileType, PlayerStats};
 
@@ -10,12 +11,81 @@ pub const ARENA_MAX_X: f32 = 596.0;
 pub const ARENA_MIN_Y: f32 = 38.0;
 pub const ARENA_MAX_Y: f32 = 324.0;
 
-// Palette constants inspired by Indian miniature painting and 16-bit retro RPGs
-pub const COLOR_RAMA_SKIN: Color = Color::new(0.28, 0.48, 0.72, 1.0); // Shyamavarna
-pub const COLOR_RAMA_DHOTI: Color = Color::new(0.95, 0.76, 0.15, 1.0); // Pitambara
-pub const COLOR_RAMA_GOLD: Color = Color::new(1.0, 0.85, 0.25, 1.0);
-pub const COLOR_TATAKA_SKIN: Color = Color::new(0.18, 0.12, 0.16, 1.0);
-pub const COLOR_TATAKA_EYES: Color = Color::new(1.0, 0.15, 0.15, 1.0);
+// ============================================================================
+// AUTHENTIC 16-BIT VEDIC RPG PALETTE (FROM RAMAYANA YATRA)
+// ============================================================================
+
+// Prince Rama (Shyamavarna - Divine Blue)
+pub const PAL_RAMA_0: Color = Color::new(0.54, 0.71, 0.86, 1.0); // #8ab4dc highlight
+pub const PAL_RAMA_1: Color = Color::new(0.37, 0.53, 0.75, 1.0); // #5e86c0 midtone
+pub const PAL_RAMA_2: Color = Color::new(0.24, 0.37, 0.61, 1.0); // #3e5e9c shadow
+pub const PAL_RAMA_3: Color = Color::new(0.16, 0.24, 0.42, 1.0); // #283c6c contour
+
+// Gold & Celestial Ornaments
+pub const PAL_GOLD_0: Color = Color::new(1.00, 0.96, 0.69, 1.0); // #fff6b0 highlight
+pub const PAL_GOLD_1: Color = Color::new(1.00, 0.85, 0.38, 1.0); // #ffd860 gold
+pub const PAL_GOLD_2: Color = Color::new(0.94, 0.66, 0.19, 1.0); // #f0a830 deep gold
+pub const PAL_GOLD_3: Color = Color::new(0.72, 0.45, 0.13, 1.0); // #b87420 dark contour
+
+// Pitambara / Turmeric Dhoti (Sacred Yellow)
+pub const PAL_TURMERIC_0: Color = Color::new(1.00, 0.94, 0.54, 1.0); // #fff08a
+pub const PAL_TURMERIC_1: Color = Color::new(0.97, 0.82, 0.25, 1.0); // #f8d040
+pub const PAL_TURMERIC_2: Color = Color::new(0.88, 0.64, 0.16, 1.0); // #e0a428
+pub const PAL_TURMERIC_3: Color = Color::new(0.66, 0.45, 0.11, 1.0); // #a8741c
+
+// Tataka (Rakshasa Purple)
+pub const PAL_PURPLE_0: Color = Color::new(0.75, 0.55, 0.82, 1.0); // #c08cd0 highlight
+pub const PAL_PURPLE_1: Color = Color::new(0.56, 0.38, 0.67, 1.0); // #9060ac midtone
+pub const PAL_PURPLE_2: Color = Color::new(0.41, 0.24, 0.53, 1.0); // #683e88 body
+pub const PAL_PURPLE_3: Color = Color::new(0.27, 0.14, 0.38, 1.0); // #442462 shadow
+pub const PAL_PURPLE_4: Color = Color::new(0.16, 0.08, 0.25, 1.0); // #2a1440 contour
+
+// Subahu (Rakshasa Red / Iron armor)
+pub const PAL_RED_0: Color = Color::new(0.91, 0.55, 0.45, 1.0); // #e88c74
+pub const PAL_RED_1: Color = Color::new(0.75, 0.36, 0.31, 1.0); // #c05c50
+pub const PAL_RED_2: Color = Color::new(0.55, 0.23, 0.24, 1.0); // #8c3a3c
+pub const PAL_RED_3: Color = Color::new(0.36, 0.14, 0.19, 1.0); // #5c2430
+
+// Maricha (Rakshasa Blue / Illusionist Indigo)
+pub const PAL_BLUE_0: Color = Color::new(0.55, 0.61, 0.80, 1.0); // #8c9ccc
+pub const PAL_BLUE_1: Color = Color::new(0.37, 0.42, 0.66, 1.0); // #5e6ca8
+pub const PAL_BLUE_2: Color = Color::new(0.25, 0.29, 0.50, 1.0); // #404a80
+pub const PAL_BLUE_3: Color = Color::new(0.16, 0.19, 0.35, 1.0); // #2a3058
+
+// Sandstone, Mud & Ancient Vedic Ruins (Malada & Karusha)
+pub const PAL_SAND_0: Color = Color::new(0.99, 0.88, 0.75, 1.0); // #fce0c0
+pub const PAL_SAND_1: Color = Color::new(0.94, 0.74, 0.55, 1.0); // #f0bc8c
+pub const PAL_SAND_2: Color = Color::new(0.85, 0.58, 0.42, 1.0); // #d8946a
+pub const PAL_SAND_3: Color = Color::new(0.69, 0.41, 0.30, 1.0); // #b0684c
+pub const PAL_SAND_4: Color = Color::new(0.48, 0.27, 0.20, 1.0); // #7a4434
+
+// Sacred Agni Fire (6-stop divine gradient)
+pub const PAL_FIRE_0: Color = Color::new(1.00, 0.98, 0.88, 1.0); // #fffbe0 white core
+pub const PAL_FIRE_1: Color = Color::new(1.00, 0.94, 0.50, 1.0); // #fff080 radiant yellow
+pub const PAL_FIRE_2: Color = Color::new(1.00, 0.75, 0.19, 1.0); // #ffc030 gold
+pub const PAL_FIRE_3: Color = Color::new(1.00, 0.48, 0.13, 1.0); // #ff7a20 flame orange
+pub const PAL_FIRE_4: Color = Color::new(0.85, 0.25, 0.11, 1.0); // #d8401c crimson
+pub const PAL_FIRE_5: Color = Color::new(0.55, 0.13, 0.09, 1.0); // #8c2018 deep ember
+
+// Saffron Valkala (Sage Robes & Dhvaja Flags)
+pub const PAL_SAFFRON_0: Color = Color::new(1.00, 0.82, 0.48, 1.0); // #ffd27a
+pub const PAL_SAFFRON_1: Color = Color::new(1.00, 0.66, 0.24, 1.0); // #ffa83c
+pub const PAL_SAFFRON_2: Color = Color::new(0.91, 0.48, 0.14, 1.0); // #e87a24
+pub const PAL_SAFFRON_3: Color = Color::new(0.69, 0.32, 0.11, 1.0); // #b0521c
+
+// Verdant Foliage & Vedic Earth
+pub const PAL_GRASS_0: Color = Color::new(0.71, 0.88, 0.44, 1.0); // #b4e070 sunlit blade
+pub const PAL_GRASS_1: Color = Color::new(0.53, 0.78, 0.33, 1.0); // #86c654 meadow
+pub const PAL_GRASS_2: Color = Color::new(0.37, 0.65, 0.27, 1.0); // #5ea544 forest moss
+pub const PAL_GRASS_3: Color = Color::new(0.24, 0.49, 0.23, 1.0); // #3d7d3a shade
+pub const PAL_GRASS_4: Color = Color::new(0.16, 0.35, 0.19, 1.0); // #285a30 deep undergrowth
+
+// Legacy Aliases
+pub const COLOR_RAMA_SKIN: Color = PAL_RAMA_1;
+pub const COLOR_RAMA_DHOTI: Color = PAL_TURMERIC_1;
+pub const COLOR_RAMA_GOLD: Color = PAL_GOLD_1;
+pub const COLOR_TATAKA_SKIN: Color = PAL_PURPLE_2;
+pub const COLOR_TATAKA_EYES: Color = Color::new(1.0, 0.25, 0.25, 1.0);
 
 // Helper for crisp pixel text rendering with drop shadow
 pub fn draw_pixel_text(font: &Font, text: &str, x: f32, y: f32, size: u16, color: Color) {
@@ -538,79 +608,169 @@ fn draw_twilight_mist(time: f32, dusk_factor: f32) {
     }
 }
 
-// Draw Prince Rama with animated Kodanda bow
-pub fn draw_rama(pos: Vec2, aim_dir: Vec2, invuln_timer: f32, bow_cooldown: f32, _time: f32) {
+// ============================================================================
+// 16-BIT RETRO SPRITES: PRINCE RAMA (SHYAMAVARNA)
+// ============================================================================
+pub fn draw_rama(pos: Vec2, aim_dir: Vec2, invuln_timer: f32, bow_cooldown: f32, time: f32) {
     if invuln_timer > 0.0 && ((invuln_timer * 18.0) as i32 % 2 == 0) {
-        return;
+        return; // Flash effect during damage invulnerability
     }
 
     let x = pos.x;
     let y = pos.y;
 
-    // Drop shadow
-    draw_ellipse(x, y + 12.0, 11.0, 4.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.4));
+    // 1. Ground Drop Shadow (16-bit semi-translucent ellipse)
+    draw_ellipse(x, y + 14.0, 13.0, 5.0, 0.0, Color::new(0.04, 0.08, 0.06, 0.45));
 
-    // Feet
-    draw_rectangle(x - 6.0, y + 8.0, 4.0, 4.0, Color::new(0.4, 0.25, 0.1, 1.0));
-    draw_rectangle(x + 2.0, y + 8.0, 4.0, 4.0, Color::new(0.4, 0.25, 0.1, 1.0));
+    // 2. Leather Paduka Sandals & Anklets
+    draw_rectangle(x - 7.0, y + 9.0, 5.0, 5.0, PAL_SAND_4);
+    draw_rectangle(x + 2.0, y + 9.0, 5.0, 5.0, PAL_SAND_4);
+    draw_rectangle(x - 7.0, y + 8.0, 5.0, 2.0, PAL_GOLD_1); // Golden ankle bands (nupura)
+    draw_rectangle(x + 2.0, y + 8.0, 5.0, 2.0, PAL_GOLD_1);
 
-    // Dhoti (Pitambara)
-    draw_rectangle(x - 7.0, y + 1.0, 14.0, 9.0, COLOR_RAMA_DHOTI);
-    draw_rectangle(x - 7.0, y + 8.0, 14.0, 2.0, Color::new(0.8, 0.15, 0.15, 1.0));
-    draw_line(x, y + 1.0, x, y + 9.0, 1.5, Color::new(0.85, 0.65, 0.1, 1.0));
-
-    // Torso (Shyamavarna)
-    draw_rectangle(x - 6.0, y - 9.0, 12.0, 11.0, COLOR_RAMA_SKIN);
-    draw_line(x - 4.0, y - 9.0, x + 5.0, y + 1.0, 1.5, COLOR_RAMA_GOLD); // Yajnopavita
-    draw_circle(x, y - 6.0, 2.0, COLOR_RAMA_GOLD);
-
-    // Head
-    draw_circle(x, y - 14.0, 6.0, COLOR_RAMA_SKIN);
-    draw_circle(x - 3.5, y - 17.0, 3.0, Color::new(0.1, 0.1, 0.12, 1.0));
-    draw_circle(x + 3.5, y - 17.0, 3.0, Color::new(0.1, 0.1, 0.12, 1.0));
-    draw_circle(x, y - 19.0, 3.5, Color::new(0.1, 0.1, 0.12, 1.0));
-
-    // Golden Crown & Tilaka
+    // 3. Pitambara Dhoti (4-tone turmeric yellow with authentic Vedic pleats)
+    // Dark base/underdrape
+    draw_rectangle(x - 8.0, y + 1.0, 16.0, 9.0, PAL_TURMERIC_3);
+    // Midtone cloth body
+    draw_rectangle(x - 7.0, y + 2.0, 14.0, 7.0, PAL_TURMERIC_2);
+    // Highlight pleats (Kachha folds)
+    draw_rectangle(x - 5.0, y + 2.0, 3.0, 6.0, PAL_TURMERIC_1);
+    draw_rectangle(x + 2.0, y + 2.0, 3.0, 6.0, PAL_TURMERIC_0);
+    // Vertical pleat separation lines
+    draw_line(x - 2.0, y + 2.0, x - 2.0, y + 9.0, 1.0, PAL_TURMERIC_3);
+    draw_line(x + 2.0, y + 2.0, x + 2.0, y + 9.0, 1.0, PAL_TURMERIC_3);
+    // Crimson Waist Sash (Uttariya sash waistband)
+    draw_rectangle(x - 8.0, y, 16.0, 3.0, PAL_RED_2);
+    draw_rectangle(x - 8.0, y + 1.0, 16.0, 1.0, PAL_RED_1);
+    // Fluttering sash side ends
+    let sash_sway = (time * 4.0).sin() * 2.0;
     draw_triangle(
-        vec2(x - 4.5, y - 18.0),
-        vec2(x + 4.5, y - 18.0),
-        vec2(x, y - 25.0),
-        COLOR_RAMA_GOLD,
+        vec2(x - 8.0, y + 1.0),
+        vec2(x - 12.0 + sash_sway, y + 7.0),
+        vec2(x - 6.0, y + 4.0),
+        PAL_RED_2,
     );
-    draw_circle(x, y - 21.0, 1.5, Color::new(0.9, 0.1, 0.1, 1.0));
-    draw_line(x, y - 15.0, x, y - 13.0, 1.2, Color::new(0.9, 0.1, 0.1, 1.0));
 
-    // Quiver on Rama's back
-    let qx = x - 7.0;
+    // 4. Shyamavarna Torso (Divine lotus-blue 4-tone musculature)
+    // Dark outline / shadow base
+    draw_rectangle(x - 7.0, y - 10.0, 14.0, 11.0, PAL_RAMA_3);
+    // Midtone divine blue
+    draw_rectangle(x - 6.0, y - 9.0, 12.0, 9.0, PAL_RAMA_1);
+    // Sunlit chest highlight
+    draw_rectangle(x - 4.0, y - 8.0, 4.0, 4.0, PAL_RAMA_0);
+    draw_rectangle(x + 1.0, y - 8.0, 4.0, 4.0, PAL_RAMA_0);
+
+    // Golden Armbands (Keyura) & Wrist Bracelets (Kankana)
+    draw_rectangle(x - 8.0, y - 6.0, 2.0, 3.0, PAL_GOLD_1);
+    draw_rectangle(x + 6.0, y - 6.0, 2.0, 3.0, PAL_GOLD_1);
+
+    // Sacred Triple Cord (Yajnopavita) crossing diagonally from left shoulder
+    draw_line(x - 5.0, y - 10.0, x + 6.0, y + 1.0, 1.5, Color::new(0.98, 0.98, 0.98, 0.95));
+    draw_circle(x + 5.0, y, 1.5, PAL_GOLD_0); // Golden Yajnopavita knot
+
+    // Golden Pearl Choker / Haras
+    draw_circle(x, y - 9.0, 2.5, PAL_GOLD_1);
+    draw_circle(x, y - 9.0, 1.2, PAL_GOLD_0);
+
+    // 5. Quiver slung over back (Sandstone leather & celestial fletching)
+    let qx = x - 9.0;
     let qy = y - 10.0;
-    draw_line(qx - 2.0, qy - 5.0, qx + 2.0, qy + 6.0, 3.5, Color::new(0.5, 0.28, 0.12, 1.0));
-    draw_line(qx - 3.0, qy - 6.0, qx - 5.0, qy - 10.0, 1.5, WHITE);
-    draw_line(qx, qy - 6.0, qx - 1.0, qy - 11.0, 1.5, WHITE);
+    draw_line(qx - 2.0, qy - 6.0, qx + 3.0, qy + 8.0, 4.0, PAL_SAND_4);
+    draw_line(qx - 1.0, qy - 5.0, qx + 2.0, qy + 7.0, 2.0, PAL_GOLD_2);
+    // Arrow fletching feathers (white & red goose feathers)
+    draw_line(qx - 4.0, qy - 7.0, qx - 7.0, qy - 13.0, 1.5, WHITE);
+    draw_line(qx - 1.0, qy - 7.0, qx - 3.0, qy - 14.0, 1.5, PAL_RED_1);
+    draw_line(qx + 2.0, qy - 7.0, qx + 1.0, qy - 13.0, 1.5, WHITE);
 
-    // Kodanda Bow
-    let bow_center = pos + vec2(aim_dir.x * 9.0, aim_dir.y * 9.0 - 3.0);
-    let bow_len = 14.0;
+    // 6. Divine Visage (Head, ascetic Jata topknot, Mukuta crown & Tilaka)
+    // Head base (Shyamavarna)
+    draw_circle(x, y - 15.0, 6.5, PAL_RAMA_3);
+    draw_circle(x, y - 15.0, 5.5, PAL_RAMA_1);
+    draw_circle(x + 1.5, y - 16.0, 3.0, PAL_RAMA_0); // Face highlight
+
+    // Ascetic Jata (Dark flowing hair locks tied in ascetic knot)
+    draw_circle(x - 4.0, y - 18.0, 3.5, Color::new(0.08, 0.08, 0.12, 1.0));
+    draw_circle(x + 4.0, y - 18.0, 3.5, Color::new(0.08, 0.08, 0.12, 1.0));
+    draw_circle(x, y - 21.0, 4.0, Color::new(0.08, 0.08, 0.12, 1.0));
+    draw_circle(x, y - 22.0, 1.5, PAL_SAND_3); // Sacred Rudraksha bead in topknot
+
+    // Golden Celestial Mukuta Crown
+    draw_triangle(
+        vec2(x - 5.5, y - 19.0),
+        vec2(x + 5.5, y - 19.0),
+        vec2(x, y - 28.0),
+        PAL_GOLD_2,
+    );
+    draw_triangle(
+        vec2(x - 3.5, y - 19.0),
+        vec2(x + 3.5, y - 19.0),
+        vec2(x, y - 27.0),
+        PAL_GOLD_0,
+    );
+    // Ruby jewel in center of Mukuta
+    draw_circle(x, y - 23.0, 1.8, PAL_RED_1);
+    draw_circle(x, y - 23.0, 0.8, PAL_RED_0);
+
+    // Kundala (Golden earrings)
+    draw_circle(x - 5.5, y - 14.0, 1.5, PAL_GOLD_1);
+    draw_circle(x + 5.5, y - 14.0, 1.5, PAL_GOLD_1);
+
+    // Sandalwood & Kumkum Tilaka on forehead
+    draw_line(x, y - 18.0, x, y - 14.0, 1.4, PAL_RED_1);
+    draw_circle(x, y - 15.0, 1.0, PAL_GOLD_0);
+
+    // Expressive Eyes facing aim direction
+    let eye_dx = (aim_dir.x * 2.0).clamp(-1.8, 1.8);
+    let eye_dy = (aim_dir.y * 1.5).clamp(-1.2, 1.2);
+    draw_circle(x - 2.0 + eye_dx * 0.4, y - 15.0 + eye_dy * 0.4, 1.2, WHITE);
+    draw_circle(x + 2.0 + eye_dx * 0.4, y - 15.0 + eye_dy * 0.4, 1.2, WHITE);
+    draw_circle(x - 2.0 + eye_dx * 0.6, y - 15.0 + eye_dy * 0.6, 0.7, Color::new(0.05, 0.05, 0.08, 1.0));
+    draw_circle(x + 2.0 + eye_dx * 0.6, y - 15.0 + eye_dy * 0.6, 0.7, Color::new(0.05, 0.05, 0.08, 1.0));
+
+    // 7. Celestial Kodanda Bow (Animated draw tension & arrow fletching)
+    let bow_center = pos + vec2(aim_dir.x * 10.0, aim_dir.y * 10.0 - 2.0);
+    let bow_len = 16.0;
     let perp = vec2(-aim_dir.y, aim_dir.x);
     let bow_top = bow_center + perp * bow_len;
     let bow_bot = bow_center - perp * bow_len;
-    let bow_grip = bow_center + aim_dir * 3.5;
+    let bow_grip = bow_center + aim_dir * 4.0;
 
-    draw_line(bow_bot.x, bow_bot.y, bow_grip.x, bow_grip.y, 2.5, COLOR_RAMA_GOLD);
-    draw_line(bow_grip.x, bow_grip.y, bow_top.x, bow_top.y, 2.5, COLOR_RAMA_GOLD);
+    // Recurve tips
+    let tip_top = bow_top + aim_dir * 2.0;
+    let tip_bot = bow_bot + aim_dir * 2.0;
 
-    let string_pull = if bow_cooldown > 0.0 { -aim_dir * 4.0 } else { Vec2::ZERO };
+    // Bow limbs in 3-shade polished gold
+    draw_line(tip_bot.x, tip_bot.y, bow_grip.x, bow_grip.y, 3.2, PAL_GOLD_3);
+    draw_line(tip_bot.x, tip_bot.y, bow_grip.x, bow_grip.y, 2.0, PAL_GOLD_1);
+    draw_line(bow_grip.x, bow_grip.y, tip_top.x, tip_top.y, 3.2, PAL_GOLD_3);
+    draw_line(bow_grip.x, bow_grip.y, tip_top.x, tip_top.y, 2.0, PAL_GOLD_1);
+    draw_circle(bow_grip.x, bow_grip.y, 2.5, PAL_GOLD_0); // Bow handle grip jewel
+
+    // Bowstring pulled dynamically on reload / fire
+    let string_pull = if bow_cooldown > 0.0 { -aim_dir * 5.0 } else { Vec2::ZERO };
     let nock_point = bow_center + string_pull;
-    draw_line(bow_bot.x, bow_bot.y, nock_point.x, nock_point.y, 1.0, Color::new(0.9, 0.9, 0.95, 0.8));
-    draw_line(bow_top.x, bow_top.y, nock_point.x, nock_point.y, 1.0, Color::new(0.9, 0.9, 0.95, 0.8));
+    draw_line(tip_bot.x, tip_bot.y, nock_point.x, nock_point.y, 1.2, Color::new(0.95, 0.95, 1.0, 0.9));
+    draw_line(tip_top.x, tip_top.y, nock_point.x, nock_point.y, 1.2, Color::new(0.95, 0.95, 1.0, 0.9));
 
+    // Notched Arrow ready to fire
     if bow_cooldown <= 0.0 {
-        let arrow_tip = nock_point + aim_dir * 16.0;
-        draw_line(nock_point.x, nock_point.y, arrow_tip.x, arrow_tip.y, 2.0, COLOR_RAMA_GOLD);
-        draw_circle(arrow_tip.x, arrow_tip.y, 1.8, WHITE);
+        let arrow_tip = nock_point + aim_dir * 18.0;
+        // Shaft in gold
+        draw_line(nock_point.x, nock_point.y, arrow_tip.x, arrow_tip.y, 2.0, PAL_GOLD_1);
+        // Razor-sharp arrowhead (diamond shape)
+        draw_circle(arrow_tip.x, arrow_tip.y, 2.2, PAL_GOLD_0);
+        draw_circle(arrow_tip.x + aim_dir.x * 2.0, arrow_tip.y + aim_dir.y * 2.0, 1.0, WHITE);
+        // Feather fletching at nock
+        let fletch_p1 = nock_point + perp * 2.5;
+        let fletch_p2 = nock_point - perp * 2.5;
+        draw_line(nock_point.x, nock_point.y, fletch_p1.x, fletch_p1.y, 1.5, WHITE);
+        draw_line(nock_point.x, nock_point.y, fletch_p2.x, fletch_p2.y, 1.5, WHITE);
     }
 }
 
-// Draw Tataka Boss
+// ============================================================================
+// 16-BIT RETRO SPRITES: TATAKA (YAKSHINI OF THE CURSED FOREST)
+// ============================================================================
 pub fn draw_tataka(
     pos: Vec2,
     is_visible: bool,
@@ -624,79 +784,155 @@ pub fn draw_tataka(
 
     if !is_visible {
         if shimmer_timer > 0.0 {
-            let alpha = (shimmer_timer / 0.35).clamp(0.0, 1.0) * 0.75;
+            let alpha = (shimmer_timer / 0.35).clamp(0.0, 1.0) * 0.85;
             let aura_col = if is_frenzy {
-                Color::new(1.0, 0.1, 0.1, alpha)
+                Color::new(0.95, 0.15, 0.20, alpha)
             } else {
-                Color::new(0.7, 0.15, 0.45, alpha)
+                Color::new(0.65, 0.25, 0.75, alpha)
             };
-            draw_circle(x, y - 6.0, 24.0, aura_col);
-            draw_circle(x, y - 22.0, 14.0, aura_col);
-            draw_circle(x - 5.0, y - 22.0, 3.0, Color::new(1.0, 0.1, 0.1, alpha));
-            draw_circle(x + 5.0, y - 22.0, 3.0, Color::new(1.0, 0.1, 0.1, alpha));
+            draw_circle(x, y - 6.0, 26.0, aura_col);
+            draw_circle(x, y - 24.0, 16.0, aura_col);
+            // Glinting demonic eyes in the darkness
+            draw_circle(x - 6.0, y - 24.0, 3.5, Color::new(1.0, 0.15, 0.15, alpha));
+            draw_circle(x + 6.0, y - 24.0, 3.5, Color::new(1.0, 0.15, 0.15, alpha));
         }
         return;
     }
 
-    let main_col = if hit_flash > 0.0 {
+    // Ground Shadow
+    draw_ellipse(x, y + 18.0, 22.0, 7.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.55));
+
+    // Swirling Sorcery Miasma Aura
+    let pulse = (time * 5.0).sin() * 4.0;
+    let aura_col = if is_frenzy {
+        Color::new(0.85, 0.10, 0.15, 0.32)
+    } else {
+        Color::new(0.45, 0.15, 0.55, 0.25)
+    };
+    draw_circle(x, y - 8.0, 34.0 + pulse, aura_col);
+
+    // Miasma Orbiting Ember Specks
+    for i in 0..4 {
+        let a = time * 3.0 + i as f32 * 1.57;
+        let ox = x + a.cos() * 28.0;
+        let oy = y - 8.0 + a.sin() * 18.0;
+        let ember_c = if is_frenzy { PAL_RED_0 } else { PAL_PURPLE_0 };
+        draw_circle(ox, oy, 2.0, ember_c);
+    }
+
+    let col_body = if hit_flash > 0.0 {
         WHITE
     } else if is_frenzy {
-        Color::new(0.35, 0.08, 0.12, 1.0)
+        Color::new(0.42, 0.10, 0.16, 1.0)
     } else {
-        COLOR_TATAKA_SKIN
+        PAL_PURPLE_2
     };
 
-    let pulse = (time * 6.0).sin() * 4.0;
-    let aura_col = if is_frenzy {
-        Color::new(0.9, 0.05, 0.1, 0.35)
+    let col_shadow = if hit_flash > 0.0 {
+        Color::new(0.9, 0.9, 0.9, 1.0)
     } else {
-        Color::new(0.6, 0.1, 0.4, 0.25)
+        PAL_PURPLE_4
     };
-    draw_circle(x, y - 8.0, 30.0 + pulse, aura_col);
-    draw_ellipse(x, y + 15.0, 18.0, 6.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.5));
 
-    // Talons / Feet
-    draw_rectangle(x - 13.0, y + 7.0, 8.0, 8.0, main_col);
-    draw_rectangle(x + 5.0, y + 7.0, 8.0, 8.0, main_col);
-    draw_triangle(vec2(x - 13.0, y + 15.0), vec2(x - 5.0, y + 15.0), vec2(x - 9.0, y + 19.0), Color::new(0.1, 0.1, 0.1, 1.0));
-    draw_triangle(vec2(x + 5.0, y + 15.0), vec2(x + 13.0, y + 15.0), vec2(x + 9.0, y + 19.0), Color::new(0.1, 0.1, 0.1, 1.0));
+    let col_highlight = if hit_flash > 0.0 {
+        WHITE
+    } else {
+        PAL_PURPLE_0
+    };
 
-    // Torso
-    draw_rectangle(x - 15.0, y - 13.0, 30.0, 22.0, main_col);
+    // 1. Demonic Talons & Digging Feet
+    draw_rectangle(x - 14.0, y + 8.0, 9.0, 9.0, col_shadow);
+    draw_rectangle(x + 5.0, y + 8.0, 9.0, 9.0, col_shadow);
+    draw_triangle(
+        vec2(x - 14.0, y + 17.0),
+        vec2(x - 5.0, y + 17.0),
+        vec2(x - 10.0, y + 22.0),
+        Color::new(0.1, 0.1, 0.12, 1.0),
+    );
+    draw_triangle(
+        vec2(x + 5.0, y + 17.0),
+        vec2(x + 14.0, y + 17.0),
+        vec2(x + 10.0, y + 22.0),
+        Color::new(0.1, 0.1, 0.12, 1.0),
+    );
 
-    // Bone necklace
-    for i in -2..=2 {
-        let bx = x + i as f32 * 5.5;
-        let by = y - 9.0 + (i as f32).abs() * 1.8;
-        draw_circle(bx, by, 2.2, Color::new(0.9, 0.88, 0.8, 1.0));
+    // 2. Billowing Tattered Demon Mantle (Ragged dark skirt)
+    draw_rectangle(x - 18.0, y - 4.0, 36.0, 16.0, PAL_PURPLE_4);
+    let skirt_flutter = (time * 6.0).sin() * 3.0;
+    for i in 0..5 {
+        let sx = x - 16.0 + i as f32 * 7.5;
+        draw_triangle(
+            vec2(sx, y + 12.0),
+            vec2(sx + 7.0, y + 12.0),
+            vec2(sx + 3.5 + skirt_flutter, y + 17.0),
+            PAL_PURPLE_3,
+        );
     }
 
-    // Arms & Claws
-    let arm_swing = (time * 8.0).sin() * 4.5;
-    draw_rectangle(x - 22.0, y - 11.0 + arm_swing, 8.0, 18.0, main_col);
-    draw_triangle(vec2(x - 22.0, y + 7.0 + arm_swing), vec2(x - 14.0, y + 7.0 + arm_swing), vec2(x - 20.0, y + 14.0 + arm_swing), Color::new(0.15, 0.15, 0.15, 1.0));
-    draw_rectangle(x + 14.0, y - 11.0 - arm_swing, 8.0, 18.0, main_col);
-    draw_triangle(vec2(x + 14.0, y + 7.0 - arm_swing), vec2(x + 22.0, y + 7.0 - arm_swing), vec2(x + 20.0, y + 14.0 - arm_swing), Color::new(0.15, 0.15, 0.15, 1.0));
+    // 3. Bulky Demonic Torso (Contoured Rakshasi musculature)
+    draw_rectangle(x - 16.0, y - 16.0, 32.0, 22.0, col_shadow);
+    draw_rectangle(x - 14.0, y - 15.0, 28.0, 19.0, col_body);
+    draw_rectangle(x - 10.0, y - 13.0, 20.0, 7.0, col_highlight);
 
-    // Head
-    draw_circle(x, y - 22.0, 13.0, main_col);
-
-    // Wild Hair
+    // Bone Mala Garland (Bleached skull & bone necklace)
     for i in -3..=3 {
-        let hx = x + i as f32 * 4.5;
-        let hy = y - 29.0 - (time * 6.0 + i as f32).sin() * 2.5;
-        draw_circle(hx, hy, 4.5, Color::new(0.08, 0.05, 0.08, 1.0));
+        let bx = x + i as f32 * 5.0;
+        let by = y - 11.0 + (i as f32).abs() * 2.2;
+        draw_circle(bx, by, 2.6, Color::new(0.92, 0.90, 0.82, 1.0));
+        draw_circle(bx, by, 1.2, Color::new(0.2, 0.18, 0.15, 1.0));
     }
 
-    // Eyes
-    draw_circle(x - 4.5, y - 23.0, 3.0, COLOR_TATAKA_EYES);
-    draw_circle(x + 4.5, y - 23.0, 3.0, COLOR_TATAKA_EYES);
-    draw_circle(x - 4.5, y - 23.0, 1.0, Color::new(1.0, 0.9, 0.4, 1.0));
-    draw_circle(x + 4.5, y - 23.0, 1.0, Color::new(1.0, 0.9, 0.4, 1.0));
+    // 4. Heavy Clawed Arms & Obsidian Gauntlets
+    let arm_swing = (time * 8.0).sin() * 5.0;
+    // Left arm
+    draw_rectangle(x - 24.0, y - 13.0 + arm_swing, 9.0, 20.0, col_shadow);
+    draw_rectangle(x - 23.0, y - 12.0 + arm_swing, 7.0, 17.0, col_body);
+    draw_triangle(
+        vec2(x - 24.0, y + 7.0 + arm_swing),
+        vec2(x - 15.0, y + 7.0 + arm_swing),
+        vec2(x - 22.0, y + 16.0 + arm_swing),
+        Color::new(0.12, 0.12, 0.15, 1.0),
+    );
+    // Right arm
+    draw_rectangle(x + 15.0, y - 13.0 - arm_swing, 9.0, 20.0, col_shadow);
+    draw_rectangle(x + 16.0, y - 12.0 - arm_swing, 7.0, 17.0, col_body);
+    draw_triangle(
+        vec2(x + 15.0, y + 7.0 - arm_swing),
+        vec2(x + 24.0, y + 7.0 - arm_swing),
+        vec2(x + 22.0, y + 16.0 - arm_swing),
+        Color::new(0.12, 0.12, 0.15, 1.0),
+    );
 
-    // Fangs
-    draw_line(x - 6.0, y - 17.0, x - 4.5, y - 13.0, 2.2, WHITE);
-    draw_line(x + 6.0, y - 17.0, x + 4.5, y - 13.0, 2.2, WHITE);
+    // 5. Demonic Visage (Head, wild windswept hair locks, horns, fangs & glowing eyes)
+    // Head silhouette
+    draw_circle(x, y - 24.0, 14.5, col_shadow);
+    draw_circle(x, y - 24.0, 13.0, col_body);
+    draw_circle(x - 3.0, y - 25.0, 8.0, col_highlight);
+
+    // Curved Demonic Obsidian Horns
+    draw_line(x - 7.0, y - 30.0, x - 17.0, y - 40.0, 3.5, Color::new(0.15, 0.10, 0.18, 1.0));
+    draw_line(x - 17.0, y - 40.0, x - 13.0, y - 44.0, 2.5, PAL_PURPLE_0);
+    draw_line(x + 7.0, y - 30.0, x + 17.0, y - 40.0, 3.5, Color::new(0.15, 0.10, 0.18, 1.0));
+    draw_line(x + 17.0, y - 40.0, x + 13.0, y - 44.0, 2.5, PAL_PURPLE_0);
+
+    // Wild Demonic Mane (Billowing hair strands swayed by dark sorcery)
+    for i in -4..=4 {
+        let hx = x + i as f32 * 4.8;
+        let hy = y - 32.0 - (time * 7.0 + i as f32 * 1.2).sin() * 3.5;
+        draw_circle(hx, hy, 5.0, Color::new(0.08, 0.05, 0.10, 1.0));
+    }
+
+    // Piercing Crimson Blazing Eyes
+    let eye_glow = (time * 10.0).sin() * 0.8;
+    draw_circle(x - 5.5, y - 24.0, 3.0 + eye_glow, PAL_RED_0);
+    draw_circle(x + 5.5, y - 24.0, 3.0 + eye_glow, PAL_RED_0);
+    draw_circle(x - 5.5, y - 24.0, 1.5, WHITE);
+    draw_circle(x + 5.5, y - 24.0, 1.5, WHITE);
+
+    // Bared Sharp Ivory Fangs & Gaping Maw
+    draw_rectangle(x - 6.0, y - 18.0, 12.0, 4.0, Color::new(0.1, 0.05, 0.05, 1.0));
+    draw_triangle(vec2(x - 5.0, y - 18.0), vec2(x - 2.0, y - 18.0), vec2(x - 3.5, y - 14.0), WHITE);
+    draw_triangle(vec2(x + 2.0, y - 18.0), vec2(x + 5.0, y - 18.0), vec2(x + 3.5, y - 14.0), WHITE);
 }
 
 // Draw Rama's golden arrow
@@ -913,54 +1149,405 @@ pub fn draw_dialogue_box(font: &Font, speaker: &str, line: &str, time: f32) {
 }
 
 // Retro Title Screen for 16:9
+// ============================================================================
+// 16-BIT RETRO TITLE SCREEN
+// ============================================================================
 pub fn draw_title_screen(font: &Font, time: f32) {
-    clear_background(Color::new(0.07, 0.06, 0.10, 1.0));
+    clear_background(Color::new(0.06, 0.05, 0.09, 1.0));
 
-    // Background silhouettes
+    // Dynamic forest tree silhouettes swaying
     let sway = (time * 0.8).sin() * 4.0;
-    for i in 0..10 {
-        let x = i as f32 * 70.0 + sway;
-        draw_circle(x, 190.0, 42.0, Color::new(0.12, 0.15, 0.11, 1.0));
+    for i in 0..11 {
+        let x = i as f32 * 65.0 + sway;
+        draw_circle(x, 190.0, 44.0, Color::new(0.10, 0.14, 0.10, 1.0));
+        draw_circle(x - 6.0, 185.0, 32.0, Color::new(0.13, 0.18, 0.12, 1.0));
     }
 
     // Epic Title in Press Start 2P font
     let title = "RAMAYANA: THE RETRO EPIC";
-    draw_pixel_text(font, title, 70.0, 65.0, 20, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, title, 70.0, 58.0, 20, PAL_GOLD_1);
 
     let sub = "BALA KANDA — THE ADVENTURES OF PRINCE RAMA";
-    draw_pixel_text(font, sub, 115.0, 92.0, 10, Color::new(0.9, 0.7, 0.3, 1.0));
+    draw_pixel_text(font, sub, 115.0, 84.0, 10, PAL_TURMERIC_1);
 
-    // Decorative Bow & Arrow
-    draw_line(160.0, 114.0, 480.0, 114.0, 2.0, COLOR_RAMA_GOLD);
-    draw_circle(320.0, 114.0, 4.5, Color::new(0.9, 0.2, 0.2, 1.0));
+    // Decorative Bow & Arrow Divider
+    draw_line(150.0, 102.0, 490.0, 102.0, 2.0, PAL_GOLD_2);
+    draw_circle(320.0, 102.0, 5.0, PAL_RED_1);
+    draw_circle(320.0, 102.0, 2.5, PAL_GOLD_0);
 
     // Chapter Select / Preview Box
-    let box_x = 55.0;
-    let box_y = 130.0;
-    let box_w = 530.0;
-    let box_h = 160.0;
-    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.12, 0.13, 0.17, 0.94));
-    draw_rectangle_lines(box_x, box_y, box_w, box_h, 1.5, Color::new(0.6, 0.5, 0.25, 0.85));
+    let box_x = 45.0;
+    let box_y = 118.0;
+    let box_w = 550.0;
+    let box_h = 175.0;
+    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.10, 0.09, 0.15, 0.95));
+    draw_rectangle_lines(box_x, box_y, box_w, box_h, 1.5, PAL_GOLD_3);
 
     // Level 1 Section
-    draw_pixel_text(font, "[1] LEVEL 1: TATAKA'S FOREST (SHABDAVEDHI)", box_x + 16.0, box_y + 24.0, 9, COLOR_RAMA_GOLD);
-    draw_pixel_text(font, "    Track unseen ripples & vanquish the cursed Yakshini before dusk", box_x + 16.0, box_y + 44.0, 8, Color::new(0.4, 0.85, 1.0, 1.0));
+    draw_pixel_text(font, "[1] LEVEL 1: TATAKA'S FOREST (SHABDAVEDHI)", box_x + 16.0, box_y + 22.0, 9, PAL_GOLD_1);
+    draw_pixel_text(font, "    Track sound ripples & strike unseen Yakshini before dusk (90s)", box_x + 16.0, box_y + 40.0, 8, Color::new(0.4, 0.85, 1.0, 1.0));
 
     // Level 2 Section
-    draw_pixel_text(font, "[2] LEVEL 2: SIDDHASHRAMA (DIVINE ASTRAS)", box_x + 16.0, box_y + 74.0, 9, Color::new(1.0, 0.65, 0.25, 1.0));
-    draw_pixel_text(font, "    Defend the sacred Yajna Altar against Maricha, Subahu & Asura hordes", box_x + 16.0, box_y + 94.0, 8, Color::new(0.9, 0.85, 0.5, 1.0));
-    draw_pixel_text(font, "    Astras: [1] Kodanda  [2] Vayavya  [3] Manava  [4] Agneya", box_x + 16.0, box_y + 114.0, 8, Color::new(0.65, 0.95, 0.75, 1.0));
+    draw_pixel_text(font, "[2] LEVEL 2: SIDDHASHRAMA (DIVINE ASTRAS)", box_x + 16.0, box_y + 68.0, 9, Color::new(1.0, 0.65, 0.25, 1.0));
+    draw_pixel_text(font, "    Defend Yajna Altar against Maricha, Subahu & Defilement hordes", box_x + 16.0, box_y + 86.0, 8, Color::new(1.0, 0.85, 0.40, 1.0));
+    draw_pixel_text(font, "    Astras: [1] Kodanda  [2] Vayavya  [3] Manava  [4] Agneya", box_x + 16.0, box_y + 104.0, 8, Color::new(0.65, 0.95, 0.75, 1.0));
+
+    // Level Select Button Highlight
+    draw_rectangle(box_x + 16.0, box_y + 124.0, box_w - 32.0, 24.0, Color::new(0.18, 0.14, 0.26, 1.0));
+    draw_rectangle_lines(box_x + 16.0, box_y + 124.0, box_w - 32.0, 24.0, 1.0, PAL_GOLD_2);
+    draw_pixel_text(font, "▶ PRESS [L] OR [TAB] TO OPEN INTERACTIVE LEVEL SELECT ◀", box_x + 36.0, box_y + 140.0, 8, PAL_GOLD_0);
 
     // Controls line
-    draw_pixel_text(font, "Controls: WASD Move | Mouse Aim & Shoot | 1-4 Switch Astras", box_x + 16.0, box_y + 142.0, 8, WHITE);
+    draw_pixel_text(font, "Controls: WASD Move | Mouse Aim & Shoot | 1-4 Astras | ESC Pause", box_x + 16.0, box_y + 164.0, 8, WHITE);
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        let prompt = "▶ PRESS [1] OR [2] TO SELECT, OR [SPACE] TO START ◀";
-        draw_pixel_text(font, prompt, 80.0, 318.0, 11, COLOR_RAMA_GOLD);
+        let prompt = "▶ PRESS [1] OR [2] TO PLAY, [L] FOR LEVEL SELECT, OR [SPACE] ◀";
+        draw_pixel_text(font, prompt, 38.0, 316.0, 10, PAL_GOLD_1);
     }
 
-    draw_pixel_text(font, "16:9 Widescreen | Keyboard & Mouse Archery | Rust + WASM", 90.0, 345.0, 8, Color::new(0.6, 0.6, 0.6, 1.0));
+    draw_pixel_text(font, "16:9 Widescreen | 16-Bit Vedic Retro RPG | Rust + WASM", 100.0, 342.0, 8, Color::new(0.65, 0.65, 0.65, 1.0));
+}
+
+// ============================================================================
+// 16-BIT LEVEL SELECT SCREEN (INTERACTIVE TEST HARNESS)
+// ============================================================================
+pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse: Vec2) {
+    clear_background(Color::new(0.06, 0.05, 0.09, 1.0));
+
+    // Decorative background Vedic pattern
+    for i in 0..16 {
+        let x = i as f32 * 42.0;
+        draw_line(x, 0.0, x, SCREEN_H, 1.0, Color::new(0.12, 0.10, 0.18, 0.4));
+    }
+
+    // Top Header Banner
+    let title = "BALA KANDA — SELECT BATTLE CHAPTER";
+    draw_pixel_text(font, title, 100.0, 32.0, 13, PAL_GOLD_1);
+
+    // Decorative bow divider line
+    draw_line(80.0, 44.0, 560.0, 44.0, 2.0, PAL_GOLD_2);
+    draw_circle(320.0, 44.0, 4.0, PAL_RED_1);
+    draw_circle(320.0, 44.0, 2.0, PAL_GOLD_0);
+
+    // 3 Level Cards
+    let card_w = 188.0;
+    let card_h = 244.0;
+    let card_y = 56.0;
+
+    let cards = [
+        (
+            0,
+            20.0,
+            "LEVEL 1",
+            "TATAKA'S FOREST",
+            "Shabdavedhi Archery",
+            PAL_GOLD_1,
+            Color::new(0.40, 0.85, 1.0, 1.0),
+            vec![
+                "• Dark cursed forest",
+                "• Track sound ripples",
+                "• Pin invisible demon",
+                "• 90s Dusk Countdown",
+            ],
+            "[1] Kodanda Bow",
+            "▶ READY ◀",
+            Color::new(0.35, 0.85, 0.45, 1.0),
+        ),
+        (
+            1,
+            226.0,
+            "LEVEL 2",
+            "SIDDHASHRAMA",
+            "Sacred Yajna Defense",
+            Color::new(1.0, 0.65, 0.25, 1.0),
+            Color::new(1.0, 0.85, 0.40, 1.0),
+            vec![
+                "• Defend holy Altar",
+                "• Maricha & Subahu",
+                "• Asura horde swarms",
+                "• 4 Divine Astras",
+            ],
+            "All 4 Astras",
+            "▶ READY ◀",
+            Color::new(0.35, 0.85, 0.45, 1.0),
+        ),
+        (
+            2,
+            432.0,
+            "LEVEL 3",
+            "MITHILA PREVIEW",
+            "Shiva Dhanush Swayamvar",
+            Color::new(0.85, 0.65, 1.0, 1.0),
+            Color::new(0.75, 0.55, 0.95, 1.0),
+            vec![
+                "• King Janaka's Court",
+                "• Cosmic Pinaka Bow",
+                "• Princess Sita Swayamvar",
+                "• Chapter in Dev",
+            ],
+            "Pinaka Bow",
+            "[ PREVIEW ]",
+            PAL_GOLD_1,
+        ),
+    ];
+
+    let hovered_idx = get_level_select_card_at(virtual_mouse);
+
+    for (idx, cx, badge, ch_name, sub, title_col, sub_col, bullets, astras, status, status_col) in cards {
+        let is_sel = selected == idx;
+        let is_hov = hovered_idx == Some(idx);
+        let active = is_sel || is_hov;
+
+        // Card Base
+        let bg_col = if active {
+            Color::new(0.14, 0.12, 0.20, 0.98)
+        } else {
+            Color::new(0.09, 0.08, 0.13, 0.92)
+        };
+        draw_rectangle(cx, card_y, card_w, card_h, bg_col);
+
+        // Border
+        let border_col = if active {
+            let glow = ((time * 6.0).sin() * 0.2 + 0.8).clamp(0.0, 1.0);
+            Color::new(PAL_GOLD_1.r * glow, PAL_GOLD_1.g * glow, PAL_GOLD_1.b * glow, 1.0)
+        } else {
+            Color::new(0.35, 0.30, 0.42, 0.8)
+        };
+        draw_rectangle_lines(cx, card_y, card_w, card_h, if active { 2.0 } else { 1.2 }, border_col);
+
+        // Ornamental Corners
+        let c_sz = 6.0;
+        let corner_col = if active { PAL_GOLD_0 } else { PAL_SAND_3 };
+        draw_rectangle(cx, card_y, c_sz, 2.0, corner_col);
+        draw_rectangle(cx, card_y, 2.0, c_sz, corner_col);
+        draw_rectangle(cx + card_w - c_sz, card_y, c_sz, 2.0, corner_col);
+        draw_rectangle(cx + card_w - 2.0, card_y, 2.0, c_sz, corner_col);
+        draw_rectangle(cx, card_y + card_h - 2.0, c_sz, 2.0, corner_col);
+        draw_rectangle(cx, card_y + card_h - c_sz, 2.0, c_sz, corner_col);
+        draw_rectangle(cx + card_w - c_sz, card_y + card_h - 2.0, c_sz, 2.0, corner_col);
+        draw_rectangle(cx + card_w - 2.0, card_y + card_h - c_sz, 2.0, c_sz, corner_col);
+
+        // Card Header Badge
+        draw_rectangle(cx + 8.0, card_y + 8.0, 72.0, 16.0, Color::new(0.18, 0.15, 0.25, 1.0));
+        draw_rectangle_lines(cx + 8.0, card_y + 8.0, 72.0, 16.0, 1.0, border_col);
+        draw_pixel_text(font, badge, cx + 13.0, card_y + 20.0, 8, PAL_GOLD_1);
+
+        // Chapter Name & Subtitle
+        draw_pixel_text(font, ch_name, cx + 8.0, card_y + 42.0, 8, title_col);
+        draw_pixel_text(font, sub, cx + 8.0, card_y + 55.0, 7, sub_col);
+
+        // Mini Diorama / Visual Box
+        let box_y = card_y + 64.0;
+        let box_h = 58.0;
+        draw_rectangle(cx + 8.0, box_y, card_w - 16.0, box_h, Color::new(0.06, 0.05, 0.09, 1.0));
+        draw_rectangle_lines(cx + 8.0, box_y, card_w - 16.0, box_h, 1.0, Color::new(0.25, 0.22, 0.30, 1.0));
+
+        // Draw thematic mini diorama inside
+        match idx {
+            0 => {
+                // Tataka forest mini-silhouette
+                draw_rectangle(cx + 8.0, box_y + box_h - 16.0, card_w - 16.0, 16.0, PAL_GRASS_4);
+                draw_circle(cx + 36.0, box_y + 26.0, 14.0, PAL_GRASS_3);
+                draw_circle(cx + 148.0, box_y + 28.0, 16.0, PAL_GRASS_3);
+                // Sound ripple
+                let rip_r = (time * 18.0) % 24.0;
+                draw_circle_lines(cx + 94.0, box_y + 28.0, rip_r, 1.0, Color::new(0.4, 0.9, 1.0, 0.7));
+                draw_circle(cx + 94.0, box_y + 28.0, 3.0, PAL_RED_0);
+            }
+            1 => {
+                // Siddhashrama Yajna altar mini
+                draw_rectangle(cx + 8.0, box_y + box_h - 16.0, card_w - 16.0, 16.0, Color::new(0.25, 0.40, 0.20, 1.0));
+                // Stepped altar
+                draw_rectangle(cx + 70.0, box_y + 30.0, 48.0, 20.0, PAL_SAND_4);
+                draw_rectangle(cx + 80.0, box_y + 22.0, 28.0, 12.0, PAL_SAND_2);
+                // Mini Agni flame
+                let f_h = 10.0 + (time * 8.0).sin() * 3.0;
+                draw_triangle(
+                    vec2(cx + 86.0, box_y + 22.0),
+                    vec2(cx + 102.0, box_y + 22.0),
+                    vec2(cx + 94.0, box_y + 22.0 - f_h),
+                    PAL_FIRE_2,
+                );
+                draw_circle(cx + 94.0, box_y + 20.0, 2.5, PAL_FIRE_0);
+            }
+            _ => {
+                // Mithila Pinaka Bow mini
+                draw_rectangle(cx + 8.0, box_y + box_h - 14.0, card_w - 16.0, 14.0, PAL_SAND_3);
+                // Wheeled carriage
+                draw_rectangle(cx + 60.0, box_y + 36.0, 68.0, 8.0, Color::new(0.3, 0.28, 0.32, 1.0));
+                draw_circle(cx + 72.0, box_y + 44.0, 4.0, PAL_GOLD_2);
+                draw_circle(cx + 116.0, box_y + 44.0, 4.0, PAL_GOLD_2);
+                // Golden curved Pinaka bow on carriage
+                draw_line(cx + 62.0, box_y + 34.0, cx + 94.0, box_y + 16.0, 2.5, PAL_GOLD_1);
+                draw_line(cx + 94.0, box_y + 16.0, cx + 126.0, box_y + 34.0, 2.5, PAL_GOLD_1);
+                draw_circle(cx + 94.0, box_y + 16.0, 3.0, PAL_GOLD_0);
+            }
+        }
+
+        // Bullets
+        let mut by = box_y + box_h + 12.0;
+        for line in &bullets {
+            draw_pixel_text(font, line, cx + 8.0, by, 7, Color::new(0.85, 0.85, 0.88, 1.0));
+            by += 12.0;
+        }
+
+        // Astras line
+        draw_pixel_text(font, "ASTRAS:", cx + 8.0, card_y + 196.0, 7, PAL_GOLD_2);
+        draw_pixel_text(font, astras, cx + 58.0, card_y + 196.0, 7, PAL_GOLD_0);
+
+        // Status Launch Button
+        let btn_y = card_y + 212.0;
+        let btn_h = 24.0;
+        let btn_bg = if active {
+            Color::new(0.22, 0.18, 0.32, 1.0)
+        } else {
+            Color::new(0.12, 0.10, 0.16, 1.0)
+        };
+        draw_rectangle(cx + 8.0, btn_y, card_w - 16.0, btn_h, btn_bg);
+        draw_rectangle_lines(cx + 8.0, btn_y, card_w - 16.0, btn_h, 1.0, border_col);
+
+        let pulse_text = if active {
+            let blink = (time * 5.0).sin() > 0.0;
+            if blink { status_col } else { WHITE }
+        } else {
+            status_col
+        };
+        draw_pixel_text(font, status, cx + 38.0, btn_y + 16.0, 8, pulse_text);
+    }
+
+    // Bottom Navigation Bar
+    let nav_y = 318.0;
+    draw_line(40.0, nav_y, 600.0, nav_y, 1.0, Color::new(0.35, 0.30, 0.42, 0.7));
+    draw_pixel_text(
+        font,
+        "[A/D / Arrows / Mouse] Select Card   |   [ENTER / CLICK] Launch",
+        62.0,
+        333.0,
+        8,
+        PAL_GOLD_1,
+    );
+    draw_pixel_text(
+        font,
+        "[1] Tataka Forest   [2] Siddhashrama   [3] Mithila   [ESC] Title",
+        70.0,
+        348.0,
+        7,
+        Color::new(0.7, 0.7, 0.7, 1.0),
+    );
+}
+
+pub fn get_level_select_card_at(mouse: Vec2) -> Option<usize> {
+    let card_y = 56.0;
+    let card_h = 244.0;
+    let card_w = 188.0;
+
+    if mouse.y >= card_y && mouse.y <= card_y + card_h {
+        if mouse.x >= 20.0 && mouse.x <= 20.0 + card_w {
+            return Some(0);
+        }
+        if mouse.x >= 226.0 && mouse.x <= 226.0 + card_w {
+            return Some(1);
+        }
+        if mouse.x >= 432.0 && mouse.x <= 432.0 + card_w {
+            return Some(2);
+        }
+    }
+    None
+}
+
+// ============================================================================
+// IN-GAME PAUSE MENU
+// ============================================================================
+pub fn draw_pause_menu(font: &Font, selected: usize, _time: f32, virtual_mouse: Vec2) {
+    // Semi-translucent dark backdrop
+    draw_rectangle(0.0, 0.0, SCREEN_W, SCREEN_H, Color::new(0.04, 0.03, 0.06, 0.85));
+
+    // Centered modal box (290 x 205)
+    let box_x = 175.0;
+    let box_y = 75.0;
+    let box_w = 290.0;
+    let box_h = 205.0;
+
+    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.10, 0.09, 0.14, 0.98));
+    draw_rectangle_lines(box_x, box_y, box_w, box_h, 2.0, PAL_GOLD_1);
+
+    // Decorative corner accents
+    let c = 8.0;
+    draw_rectangle(box_x, box_y, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(box_x, box_y, 2.0, c, PAL_GOLD_0);
+    draw_rectangle(box_x + box_w - c, box_y, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(box_x + box_w - 2.0, box_y, 2.0, c, PAL_GOLD_0);
+    draw_rectangle(box_x, box_y + box_h - 2.0, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(box_x, box_y + box_h - c, 2.0, c, PAL_GOLD_0);
+    draw_rectangle(box_x + box_w - c, box_y + box_h - 2.0, c, 2.0, PAL_GOLD_0);
+    draw_rectangle(box_x + box_w - 2.0, box_y + box_h - c, 2.0, c, PAL_GOLD_0);
+
+    // Header
+    draw_pixel_text(font, "— GAME PAUSED —", box_x + 58.0, box_y + 26.0, 11, PAL_GOLD_1);
+    draw_line(box_x + 30.0, box_y + 36.0, box_x + box_w - 30.0, box_y + 36.0, 1.0, PAL_GOLD_3);
+
+    let options = [
+        ("RESUME GAME", "[ESC / CLICK]"),
+        ("RESTART LEVEL", "[R]"),
+        ("SELECT LEVEL", "[L]"),
+        ("QUIT TO TITLE", "[T]"),
+    ];
+
+    let hov_action = get_pause_menu_action_at(virtual_mouse);
+
+    let mut item_y = box_y + 50.0;
+    for (idx, (label, shortcut)) in options.iter().enumerate() {
+        let is_sel = selected == idx;
+        let is_hov = hov_action == Some(idx);
+        let active = is_sel || is_hov;
+
+        let btn_x = box_x + 20.0;
+        let btn_w = box_w - 40.0;
+        let btn_h = 28.0;
+
+        let btn_bg = if active {
+            Color::new(0.24, 0.18, 0.32, 1.0)
+        } else {
+            Color::new(0.14, 0.12, 0.18, 0.9)
+        };
+        draw_rectangle(btn_x, item_y, btn_w, btn_h, btn_bg);
+
+        let border_c = if active {
+            PAL_GOLD_1
+        } else {
+            Color::new(0.35, 0.30, 0.40, 0.8)
+        };
+        draw_rectangle_lines(btn_x, item_y, btn_w, btn_h, if active { 1.8 } else { 1.0 }, border_c);
+
+        if active {
+            draw_pixel_text(font, "▶", btn_x + 8.0, item_y + 18.0, 9, PAL_GOLD_0);
+        }
+
+        let text_c = if active { PAL_GOLD_0 } else { WHITE };
+        draw_pixel_text(font, label, btn_x + 24.0, item_y + 18.0, 9, text_c);
+        draw_pixel_text(font, shortcut, btn_x + btn_w - 85.0, item_y + 18.0, 7, Color::new(0.7, 0.7, 0.7, 1.0));
+
+        item_y += 36.0;
+    }
+}
+
+pub fn get_pause_menu_action_at(mouse: Vec2) -> Option<usize> {
+    let box_x = 175.0;
+    let box_y = 75.0;
+    let box_w = 290.0;
+    let btn_x = box_x + 20.0;
+    let btn_w = box_w - 40.0;
+    let btn_h = 28.0;
+
+    let mut item_y = box_y + 50.0;
+    for idx in 0..4 {
+        if mouse.x >= btn_x && mouse.x <= btn_x + btn_w && mouse.y >= item_y && mouse.y <= item_y + btn_h {
+            return Some(idx);
+        }
+        item_y += 36.0;
+    }
+    None
 }
 
 // Victory Screen for 16:9
@@ -1361,117 +1948,145 @@ pub fn draw_winged_asura(pos: Vec2, hit_flash: f32, time: f32) {
     draw_circle(pos.x, pos.y + 8.0, 4.0, Color::new(0.70, 0.05, 0.10, 1.0));
 }
 
-// Draw Maricha Boss (Illusionist Sorcerer)
+// ============================================================================
+// 16-BIT RETRO SPRITES: MARICHA (THE ILLUSIONIST SORCERER)
+// ============================================================================
 pub fn draw_maricha(pos: Vec2, hit_flash: f32, time: f32) {
     if hit_flash > 0.0 {
         draw_rectangle(pos.x - 14.0, pos.y - 20.0, 28.0, 40.0, WHITE);
         return;
     }
 
-    // Sorcerous Cloud Base
-    let cloud_w = 20.0 + ((time * 8.0).sin() * 3.0);
-    draw_ellipse(pos.x, pos.y + 14.0, cloud_w, 6.0, 0.0, Color::new(0.25, 0.10, 0.35, 0.6));
-    draw_ellipse(pos.x, pos.y + 12.0, cloud_w * 0.7, 4.0, 0.0, Color::new(0.40, 0.15, 0.55, 0.5));
+    // Sorcerous Cloud Base (Swirling Indigo Fog)
+    let cloud_w = 22.0 + ((time * 8.0).sin() * 3.5);
+    draw_ellipse(pos.x, pos.y + 14.0, cloud_w, 6.5, 0.0, Color::new(0.16, 0.19, 0.35, 0.65));
+    draw_ellipse(pos.x, pos.y + 12.0, cloud_w * 0.7, 4.5, 0.0, Color::new(0.25, 0.29, 0.50, 0.55));
 
-    // Illusion Afterimages (Telegraphing Maya)
-    let mirage_ofs = (time * 5.0).sin() * 12.0;
+    // Maya Illusion Afterimages (Telegraphing Deceptive Clones)
+    let mirage_ofs = (time * 5.0).sin() * 14.0;
     for &dir in &[-1.0f32, 1.0f32] {
         let mirage_x = pos.x + dir * mirage_ofs;
         draw_rectangle(
-            mirage_x - 6.0,
+            mirage_x - 7.0,
             pos.y - 12.0,
-            12.0,
-            22.0,
-            Color::new(0.5, 0.2, 0.8, 0.22),
+            14.0,
+            24.0,
+            Color::new(0.37, 0.42, 0.66, 0.25),
         );
-        draw_circle(mirage_x, pos.y - 16.0, 5.0, Color::new(0.5, 0.2, 0.8, 0.22));
+        draw_circle(mirage_x, pos.y - 16.0, 6.0, Color::new(0.55, 0.61, 0.80, 0.25));
     }
 
-    // Regal Indigo Robes
-    draw_rectangle(pos.x - 7.0, pos.y - 8.0, 14.0, 20.0, Color::new(0.18, 0.12, 0.38, 1.0));
-    draw_rectangle_lines(pos.x - 7.0, pos.y - 8.0, 14.0, 20.0, 1.2, COLOR_RAMA_GOLD);
+    // Regal Indigo Robes (4-tone Rakshasa Blue)
+    draw_rectangle(pos.x - 8.0, pos.y - 8.0, 16.0, 22.0, PAL_BLUE_3);
+    draw_rectangle(pos.x - 7.0, pos.y - 7.0, 14.0, 20.0, PAL_BLUE_2);
+    draw_rectangle(pos.x - 4.0, pos.y - 6.0, 8.0, 18.0, PAL_BLUE_1);
+    draw_rectangle_lines(pos.x - 7.0, pos.y - 7.0, 14.0, 20.0, 1.2, PAL_GOLD_1);
 
-    // Head
-    draw_circle(pos.x, pos.y - 14.0, 6.0, Color::new(0.20, 0.15, 0.28, 1.0));
+    // Demon Head & Visage
+    draw_circle(pos.x, pos.y - 14.0, 6.5, PAL_BLUE_3);
+    draw_circle(pos.x, pos.y - 14.0, 5.5, PAL_BLUE_2);
+    draw_circle(pos.x, pos.y - 15.0, 3.5, PAL_BLUE_1);
 
     // Golden Royal Mukuta (Crown)
     draw_triangle(
-        vec2(pos.x - 6.0, pos.y - 17.0),
-        vec2(pos.x + 6.0, pos.y - 17.0),
-        vec2(pos.x, pos.y - 25.0),
-        COLOR_RAMA_GOLD,
+        vec2(pos.x - 6.5, pos.y - 17.0),
+        vec2(pos.x + 6.5, pos.y - 17.0),
+        vec2(pos.x, pos.y - 27.0),
+        PAL_GOLD_2,
     );
-    draw_circle(pos.x, pos.y - 22.0, 1.5, Color::new(0.9, 0.1, 0.1, 1.0)); // Crown ruby
+    draw_triangle(
+        vec2(pos.x - 4.0, pos.y - 17.0),
+        vec2(pos.x + 4.0, pos.y - 17.0),
+        vec2(pos.x, pos.y - 25.0),
+        PAL_GOLD_0,
+    );
+    draw_circle(pos.x, pos.y - 22.0, 1.8, PAL_RED_0); // Crown ruby
 
     // Fierce Fiery Eyes
-    draw_circle(pos.x - 2.2, pos.y - 15.0, 1.3, Color::new(1.0, 0.2, 0.2, 1.0));
-    draw_circle(pos.x + 2.2, pos.y - 15.0, 1.3, Color::new(1.0, 0.2, 0.2, 1.0));
+    draw_circle(pos.x - 2.5, pos.y - 15.0, 1.5, PAL_RED_0);
+    draw_circle(pos.x + 2.5, pos.y - 15.0, 1.5, PAL_RED_0);
+    draw_circle(pos.x - 2.5, pos.y - 15.0, 0.7, WHITE);
+    draw_circle(pos.x + 2.5, pos.y - 15.0, 0.7, WHITE);
 
-    // Dark Sorcery Sigil rotating around hands
+    // Dark Sorcery Sigils rotating around hands
     let sigil_rot = time * 3.5;
-    for i in 0..3 {
-        let a = sigil_rot + i as f32 * (std::f32::consts::TAU / 3.0);
-        let sx = pos.x + a.cos() * 16.0;
-        let sy = pos.y + a.sin() * 8.0;
-        draw_circle(sx, sy, 1.8, Color::new(0.7, 0.3, 1.0, 0.8));
+    for i in 0..4 {
+        let a = sigil_rot + i as f32 * (std::f32::consts::PI * 0.5);
+        let sx = pos.x + a.cos() * 18.0;
+        let sy = pos.y + a.sin() * 9.0;
+        draw_circle(sx, sy, 2.2, PAL_BLUE_0);
+        draw_circle(sx, sy, 1.0, WHITE);
     }
 }
 
-// Draw Subahu Boss (Armored Demon Brute)
+// ============================================================================
+// 16-BIT RETRO SPRITES: SUBAHU (ARMORED BRUTE OF DEFILEMENT)
+// ============================================================================
 pub fn draw_subahu(pos: Vec2, hit_flash: f32, has_shield: bool, time: f32) {
     if hit_flash > 0.0 {
         draw_rectangle(pos.x - 16.0, pos.y - 22.0, 32.0, 44.0, WHITE);
         return;
     }
 
-    // Heavy ground shadow
-    draw_ellipse(pos.x, pos.y + 18.0, 16.0, 6.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.45));
+    // Heavy Ground Drop Shadow
+    draw_ellipse(pos.x, pos.y + 18.0, 18.0, 6.5, 0.0, Color::new(0.04, 0.02, 0.03, 0.55));
 
-    // Spiked Iron Pauldrons (Shoulders)
-    draw_rectangle(pos.x - 16.0, pos.y - 14.0, 32.0, 10.0, Color::new(0.22, 0.20, 0.24, 1.0));
+    // Spiked Iron Pauldrons (Shoulders in 4-tone Rakshasa Red / Iron)
+    draw_rectangle(pos.x - 17.0, pos.y - 14.0, 34.0, 10.0, PAL_RED_3);
+    draw_rectangle(pos.x - 15.0, pos.y - 13.0, 30.0, 8.0, PAL_RED_2);
+    // Shoulder spikes
     draw_triangle(
-        vec2(pos.x - 16.0, pos.y - 14.0),
+        vec2(pos.x - 17.0, pos.y - 14.0),
         vec2(pos.x - 12.0, pos.y - 14.0),
-        vec2(pos.x - 18.0, pos.y - 20.0),
-        Color::new(0.4, 0.4, 0.45, 1.0),
+        vec2(pos.x - 20.0, pos.y - 22.0),
+        PAL_RED_0,
     );
     draw_triangle(
         vec2(pos.x + 12.0, pos.y - 14.0),
-        vec2(pos.x + 16.0, pos.y - 14.0),
-        vec2(pos.x + 18.0, pos.y - 20.0),
-        Color::new(0.4, 0.4, 0.45, 1.0),
+        vec2(pos.x + 17.0, pos.y - 14.0),
+        vec2(pos.x + 20.0, pos.y - 22.0),
+        PAL_RED_0,
     );
 
-    // Torso (Heavy Bronze Plate)
-    draw_rectangle(pos.x - 10.0, pos.y - 6.0, 20.0, 22.0, Color::new(0.35, 0.18, 0.12, 1.0));
-    draw_rectangle_lines(pos.x - 10.0, pos.y - 6.0, 20.0, 22.0, 1.5, Color::new(0.65, 0.35, 0.20, 1.0));
+    // Torso (Heavy Bronze / Iron Breastplate)
+    draw_rectangle(pos.x - 11.0, pos.y - 6.0, 22.0, 23.0, PAL_RED_3);
+    draw_rectangle(pos.x - 9.0, pos.y - 5.0, 18.0, 20.0, PAL_RED_2);
+    draw_rectangle(pos.x - 6.0, pos.y - 4.0, 12.0, 8.0, PAL_RED_1);
+    draw_rectangle_lines(pos.x - 9.0, pos.y - 5.0, 18.0, 20.0, 1.5, PAL_GOLD_3);
 
-    // Massive Horned War Helm
-    draw_circle(pos.x, pos.y - 16.0, 7.5, Color::new(0.25, 0.22, 0.26, 1.0));
-    draw_line(pos.x - 5.0, pos.y - 20.0, pos.x - 12.0, pos.y - 27.0, 2.5, Color::new(0.5, 0.45, 0.4, 1.0));
-    draw_line(pos.x + 5.0, pos.y - 20.0, pos.x + 12.0, pos.y - 27.0, 2.5, Color::new(0.5, 0.45, 0.4, 1.0));
+    // Massive Horned Demonic War Helm
+    draw_circle(pos.x, pos.y - 16.0, 8.0, PAL_RED_3);
+    draw_circle(pos.x, pos.y - 16.0, 6.5, PAL_RED_2);
+    // Curved Iron Horns
+    draw_line(pos.x - 5.0, pos.y - 20.0, pos.x - 14.0, pos.y - 29.0, 3.0, PAL_RED_1);
+    draw_line(pos.x - 14.0, pos.y - 29.0, pos.x - 11.0, pos.y - 32.0, 2.0, PAL_RED_0);
+    draw_line(pos.x + 5.0, pos.y - 20.0, pos.x + 14.0, pos.y - 29.0, 3.0, PAL_RED_1);
+    draw_line(pos.x + 14.0, pos.y - 29.0, pos.x + 11.0, pos.y - 32.0, 2.0, PAL_RED_0);
 
-    // Blood-Red Slit Visor
-    draw_line(pos.x - 3.5, pos.y - 16.0, pos.x + 3.5, pos.y - 16.0, 2.0, Color::new(1.0, 0.15, 0.15, 1.0));
+    // Blood-Red Glowing Slit Visor
+    draw_line(pos.x - 4.0, pos.y - 16.0, pos.x + 4.0, pos.y - 16.0, 2.5, PAL_FIRE_3);
+    draw_line(pos.x - 2.0, pos.y - 16.0, pos.x + 2.0, pos.y - 16.0, 1.5, PAL_FIRE_0);
 
     // Massive Bronze Defilement Cauldron carried in hands
-    draw_circle(pos.x, pos.y + 6.0, 7.0, Color::new(0.38, 0.22, 0.15, 1.0));
-    draw_circle(pos.x, pos.y + 4.0, 5.0, Color::new(0.60, 0.08, 0.12, 1.0)); // Boiling gore
+    draw_circle(pos.x, pos.y + 6.0, 7.5, PAL_SAND_4);
+    draw_circle(pos.x, pos.y + 6.0, 6.0, PAL_RED_3);
+    draw_circle(pos.x, pos.y + 4.0, 4.5, PAL_FIRE_4); // Boiling sacrificial defilement gore
 
     // Crackling Miasma Shield (Vulnerable to Agneyastra!)
     if has_shield {
-        let shield_pulse = (time * 4.0).sin() * 2.0;
-        let shield_r = 25.0 + shield_pulse;
+        let shield_pulse = (time * 4.0).sin() * 2.5;
+        let shield_r = 26.0 + shield_pulse;
         draw_circle(pos.x, pos.y, shield_r, Color::new(0.55, 0.12, 0.75, 0.22));
-        draw_circle_lines(pos.x, pos.y, shield_r, 2.0, Color::new(0.75, 0.25, 0.95, 0.75));
+        draw_circle_lines(pos.x, pos.y, shield_r, 2.0, PAL_PURPLE_0);
 
         // Orbiting Hex Shield Sigils
         let shield_rot = time * 2.8;
         for i in 0..4 {
             let a = shield_rot + i as f32 * (std::f32::consts::PI * 0.5);
-            let sx = pos.x + a.cos() * shield_r;
-            let sy = pos.y + a.sin() * shield_r;
-            draw_circle(sx, sy, 2.5, Color::new(0.85, 0.4, 1.0, 0.9));
+            let hx = pos.x + a.cos() * shield_r;
+            let hy = pos.y + a.sin() * shield_r;
+            draw_circle(hx, hy, 3.0, PAL_PURPLE_1);
+            draw_circle(hx, hy, 1.5, WHITE);
         }
     }
 }

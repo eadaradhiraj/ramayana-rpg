@@ -121,6 +121,13 @@ pub enum DialogueTarget {
 #[derive(Clone, PartialEq, Debug)]
 pub enum GameState {
     TitleScreen,
+    LevelSelect {
+        selected: usize,
+    },
+    Paused {
+        level_id: LevelId,
+        selected: usize,
+    },
     Dialogue {
         speaker: String,
         lines: Vec<String>,
