@@ -268,7 +268,8 @@ async fn main() {
                 // Background matches level context
                 match target {
                     DialogueTarget::StartFight(LevelId::L3Mithila)
-                    | DialogueTarget::Victory(LevelId::L3Mithila) => {
+                    | DialogueTarget::Victory(LevelId::L3Mithila)
+                    | DialogueTarget::StartCutscene(_) => {
                         level3_fight.draw(&font, virtual_mouse, global_time);
                     }
                     DialogueTarget::StartFight(LevelId::L2Siddhashrama)
