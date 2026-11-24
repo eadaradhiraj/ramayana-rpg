@@ -20,6 +20,8 @@ pub struct SoundEffects {
     pub snap: Sound,
     pub thunder: Sound,
     pub bell: Sound,
+    // Level 4: Sacred Coronation Conch
+    pub conch: Sound,
 }
 
 impl SoundEffects {
@@ -41,6 +43,7 @@ impl SoundEffects {
         let snap = load_sound_from_bytes(&generate_snap_wav()).await.unwrap();
         let thunder = load_sound_from_bytes(&generate_thunder_wav()).await.unwrap();
         let bell = load_sound_from_bytes(&generate_bell_wav()).await.unwrap();
+        let conch = load_sound_from_bytes(&generate_conch_wav()).await.unwrap();
 
         Self {
             shoot,
@@ -60,6 +63,7 @@ impl SoundEffects {
             snap,
             thunder,
             bell,
+            conch,
         }
     }
 
@@ -430,6 +434,44 @@ fn generate_bell_wav() -> Vec<u8> {
 
         let sample = (h1 + h2 + h3) * env * 19000.0;
         samples.push(sample.clamp(-32767.0, 32767.0) as i16);
+    }
+    build_wav(&samples, rate)
+}
+
+// Level 4: Sacred Coronation Conch / Shankha Fanfare
+fn generate_conch_wav() -> Vec<u8> {
+    let rate = 22050;
+    let dur = 1.4;
+    let n = (rate as f32 * dur) as usize;
+    let mut samples = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let t = i as f32 / rate as f32;
+        let progress = t / dur;
+
+        // Swelling envelope with sustained tone and gentle decay
+        let env = if progress < 0.25 {
+            (progress / 0.25).powf(1.5)
+        } else if progress < 0.75 {
+            1.0
+        } else {
+            ((1.0 - progress) / 0.25).powf(1.8)
+        };
+
+        // Resonant conch pitch (Starts around 210 Hz, glides to 233 Hz Bb3 with subtle 5 Hz vibrato)
+        let vibrato = (2.0 * std::f32::consts::PI * 5.0 * t).sin() * 2.5;
+        let freq = (210.0 + (progress.min(0.25) / 0.25) * 23.0) + vibrato;
+
+        // Rich brass/shankha harmonics
+        let phase = 2.0 * std::f32::consts::PI * freq * t;
+        let f1 = (phase).sin();
+        let f2 = (phase * 2.0).sin() * 0.55;
+        let f3 = (phase * 3.0).sin() * 0.35;
+        let f4 = (phase * 4.0).sin() * 0.18;
+        let breath = ((i * 17) % 100) as f32 / 1000.0 - 0.05;
+
+        let tone = (f1 + f2 + f3 + f4 + breath) * env * 22000.0;
+        samples.push(tone.clamp(-32767.0, 32767.0) as i16);
     }
     build_wav(&samples, rate)
 }

@@ -4,6 +4,7 @@ mod audio;
 mod level1;
 mod level2;
 mod level3;
+mod level4;
 mod render;
 mod types;
 
@@ -11,6 +12,7 @@ use audio::SoundEffects;
 use level1::{FightResult, Level1Fight};
 use level2::{FightResultL2, Level2Fight};
 use level3::{FightResultL3, Level3Fight};
+use level4::{draw_victory_l4, FightResultL4, Level4Fight};
 use render::*;
 use types::*;
 
@@ -49,6 +51,7 @@ async fn main() {
     let mut level1_fight = Level1Fight::new();
     let mut level2_fight = Level2Fight::new();
     let mut level3_fight = Level3Fight::new();
+    let mut level4_fight = Level4Fight::new();
     let mut global_time: f32 = 0.0;
 
     loop {
@@ -121,6 +124,19 @@ async fn main() {
                         idx: 0,
                         target: DialogueTarget::StartFight(LevelId::L3Mithila),
                     };
+                } else if is_key_pressed(KeyCode::Key4) {
+                    sounds.play(&sounds.conch, 0.9);
+                    game_state = GameState::Dialogue {
+                        speaker: "Minister Sumantra".to_string(),
+                        lines: vec![
+                            "Prince Rama, welcome to the joyous city of Ayodhya!".to_string(),
+                            "His Majesty King Dasharatha has proclaimed your coronation as Yuvaraja tomorrow morning under Pushya nakshatra.".to_string(),
+                            "Walk along festive Raja Marga, greet the citizens of Ayodhya, and enter the Royal Council Sabha!".to_string(),
+                            "Controls: [A/D] Walk | [SPACE/E] Converse with citizens and ministers | Explore to Royal Sabha!".to_string(),
+                        ],
+                        idx: 0,
+                        target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
+                    };
                 } else if is_mouse_button_pressed(MouseButton::Left) {
                     sounds.play(&sounds.shoot, 0.7);
                     match get_title_screen_action_at(virtual_mouse) {
@@ -165,6 +181,19 @@ async fn main() {
                                 target: DialogueTarget::StartFight(LevelId::L3Mithila),
                             };
                         }
+                        Some(3) => {
+                            game_state = GameState::Dialogue {
+                                speaker: "Minister Sumantra".to_string(),
+                                lines: vec![
+                                    "Prince Rama, welcome to the joyous city of Ayodhya!".to_string(),
+                                    "His Majesty King Dasharatha has proclaimed your coronation as Yuvaraja tomorrow morning under Pushya nakshatra.".to_string(),
+                                    "Walk along festive Raja Marga, greet the citizens of Ayodhya, and enter the Royal Council Sabha!".to_string(),
+                                    "Controls: [A/D] Walk | [SPACE/E] Converse with citizens and ministers | Explore to Royal Sabha!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
+                            };
+                        }
                         _ => {
                             game_state = GameState::LevelSelect { selected: 0 };
                         }
@@ -186,10 +215,10 @@ async fn main() {
 
                 // Keyboard card cycling
                 if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
-                    *selected = (*selected + 2) % 3;
+                    *selected = (*selected + 3) % 4;
                     sounds.play(&sounds.shoot, 0.3);
                 } else if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
-                    *selected = (*selected + 1) % 3;
+                    *selected = (*selected + 1) % 4;
                     sounds.play(&sounds.shoot, 0.3);
                 }
 
@@ -200,6 +229,8 @@ async fn main() {
                     *selected = 1;
                 } else if is_key_pressed(KeyCode::Key3) {
                     *selected = 2;
+                } else if is_key_pressed(KeyCode::Key4) {
+                    *selected = 3;
                 }
 
                 // Launch selected level
@@ -237,7 +268,7 @@ async fn main() {
                                 target: DialogueTarget::StartFight(LevelId::L2Siddhashrama),
                             };
                         }
-                        _ => {
+                        2 => {
                             game_state = GameState::Dialogue {
                                 speaker: "King Janaka".to_string(),
                                 lines: vec![
@@ -249,6 +280,19 @@ async fn main() {
                                 ],
                                 idx: 0,
                                 target: DialogueTarget::StartFight(LevelId::L3Mithila),
+                            };
+                        }
+                        _ => {
+                            game_state = GameState::Dialogue {
+                                speaker: "Minister Sumantra".to_string(),
+                                lines: vec![
+                                    "Prince Rama, welcome to the joyous city of Ayodhya!".to_string(),
+                                    "His Majesty King Dasharatha has proclaimed your coronation as Yuvaraja tomorrow morning under Pushya nakshatra.".to_string(),
+                                    "Walk along festive Raja Marga, greet the citizens of Ayodhya, and enter the Royal Council Sabha!".to_string(),
+                                    "Controls: [A/D] Walk | [SPACE/E] Converse with citizens and ministers | Explore to Royal Sabha!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
                             };
                         }
                     }
@@ -267,6 +311,10 @@ async fn main() {
             } => {
                 // Background matches level context
                 match target {
+                    DialogueTarget::StartFight(LevelId::L4Ayodhya)
+                    | DialogueTarget::Victory(LevelId::L4Ayodhya) => {
+                        level4_fight.draw(&font, virtual_mouse, global_time);
+                    }
                     DialogueTarget::StartFight(LevelId::L3Mithila)
                     | DialogueTarget::Victory(LevelId::L3Mithila)
                     | DialogueTarget::StartCutscene(_) => {
@@ -323,6 +371,10 @@ async fn main() {
                                     LevelId::L3Mithila => {
                                         level3_fight = Level3Fight::new();
                                         game_state = GameState::Playing(LevelId::L3Mithila);
+                                    }
+                                    LevelId::L4Ayodhya => {
+                                        level4_fight = Level4Fight::new();
+                                        game_state = GameState::Playing(LevelId::L4Ayodhya);
                                     }
                                     _ => {}
                                 }
@@ -419,8 +471,19 @@ async fn main() {
                                 None => {}
                             }
                         }
+                        LevelId::L4Ayodhya => {
+                            let fight_result = level4_fight.update(dt, virtual_mouse, &mut stats, &sounds);
+                            level4_fight.draw(&font, virtual_mouse, global_time);
+
+                            match fight_result {
+                                Some(FightResultL4::Victory) => {
+                                    game_state = GameState::LevelComplete(LevelId::L4Ayodhya);
+                                }
+                                None => {}
+                            }
+                        }
                         _ => {
-                            draw_pixel_text(&font, "COMING SOON IN LEVEL 4", 180.0, 180.0, 14, WHITE);
+                            draw_pixel_text(&font, "COMING SOON IN LEVEL 5", 180.0, 180.0, 14, WHITE);
                         }
                     }
                 }
@@ -437,6 +500,9 @@ async fn main() {
                     }
                     LevelId::L3Mithila => {
                         level3_fight.draw(&font, virtual_mouse, global_time);
+                    }
+                    LevelId::L4Ayodhya => {
+                        level4_fight.draw(&font, virtual_mouse, global_time);
                     }
                     _ => {}
                 }
@@ -511,6 +577,10 @@ async fn main() {
                                     level3_fight = Level3Fight::new();
                                     game_state = GameState::Playing(LevelId::L3Mithila);
                                 }
+                                LevelId::L4Ayodhya => {
+                                    level4_fight = Level4Fight::new();
+                                    game_state = GameState::Playing(LevelId::L4Ayodhya);
+                                }
                                 _ => {}
                             }
                         }
@@ -519,7 +589,8 @@ async fn main() {
                             let card_sel = match level_id {
                                 LevelId::L1Tataka => 0,
                                 LevelId::L2Siddhashrama => 1,
-                                _ => 2,
+                                LevelId::L3Mithila => 2,
+                                _ => 3,
                             };
                             game_state = GameState::LevelSelect { selected: card_sel };
                         }
@@ -653,12 +724,38 @@ async fn main() {
                             || is_key_pressed(KeyCode::Enter)
                             || is_mouse_button_pressed(MouseButton::Left)
                         {
-                            sounds.play(&sounds.shoot, 0.6);
-                            game_state = GameState::LevelSelect { selected: 0 };
+                            sounds.play(&sounds.conch, 0.9);
+                            game_state = GameState::Dialogue {
+                                speaker: "Narrator (Ayodhya Kanda)".to_string(),
+                                lines: vec![
+                                    "Twelve joyous years have passed since the divine wedding in Mithila.".to_string(),
+                                    "In the golden city of Ayodhya, King Dasharatha convenes the royal council.".to_string(),
+                                    "He proclaims Prince Rama to be consecrated as Yuvaraja under tomorrow's Pushya star!".to_string(),
+                                    "Walk the festive streets of Ayodhya, meet the royal council, and receive the coronation vows!".to_string(),
+                                ],
+                                idx: 0,
+                                target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
+                            };
                         }
                         if is_key_pressed(KeyCode::R) {
                             level3_fight = Level3Fight::new();
                             game_state = GameState::Playing(LevelId::L3Mithila);
+                        }
+                    }
+                    LevelId::L4Ayodhya => {
+                        draw_victory_l4(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::LevelSelect { selected: 3 };
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            level4_fight = Level4Fight::new();
+                            game_state = GameState::Playing(LevelId::L4Ayodhya);
                         }
                     }
                     _ => {}
