@@ -21,8 +21,8 @@ use types::*;
 fn window_conf() -> Conf {
     Conf {
         window_title: "RAMAYANA: THE RETRO EPIC (2D Rust + WASM)".to_string(),
-        window_width: 960,  // 16:9 Widescreen
-        window_height: 540, // 16:9 Widescreen
+        window_width: 1280, // 16:9 720p HD
+        window_height: 720, // 16:9 720p HD
         window_resizable: true,
         ..Default::default()
     }
