@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 use crate::audio::SoundEffects;
 use crate::render::{
     draw_dialogue_box, draw_pixel_text, draw_reticle, is_dialogue_prev_button_hovered,
-    COLOR_RAMA_GOLD, PAL_FIRE_1, PAL_GOLD_0, PAL_GOLD_1, PAL_GOLD_2, PAL_GOLD_3,
+    wrap_pixel_text, COLOR_RAMA_GOLD, PAL_FIRE_1, PAL_GOLD_0, PAL_GOLD_1, PAL_GOLD_2, PAL_GOLD_3,
     PAL_GRASS_0, PAL_GRASS_1, PAL_GRASS_2, PAL_RED_1, PAL_TURMERIC_1, SCREEN_H, SCREEN_W,
 };
 
@@ -824,37 +824,29 @@ impl Level5Fight {
         let lines = [
             (
                 "Prince Rama",
-                "Bharata, father's vow is sacred and immutable across all the worlds.",
-                "He pledged two boons to mother Kaikeyi in honor of Dharma. I cannot return until the fourteen years are fulfilled.",
-                "Govern Ayodhya with righteousness, mercy, and steadfast devotion to our people.",
+                "Bharata, father's vow is sacred and immutable across all the worlds. He pledged two boons to mother Kaikeyi in honor of Dharma. I cannot return until the fourteen years are fulfilled. Govern Ayodhya with righteousness, mercy, and steadfast devotion to our people.",
             ),
             (
                 "Prince Bharata",
-                "Then hear my vow, O brother! I will never wear the crown of the Solar dynasty.",
-                "Step out of your golden-trimmed wooden sandals (Padukas) and bestow them upon me!",
-                "They alone shall preside upon the golden Simhasana of Ayodhya!",
+                "Then hear my vow, O brother! I will never wear the crown of the Solar dynasty. Step out of your golden-trimmed wooden sandals (Padukas) and bestow them upon me! They alone shall preside upon the golden Simhasana of Ayodhya!",
             ),
             (
                 "Prince Bharata",
-                "I shall dwell outside the capital at Nandigrama in an ascetic's hut, subsisting on roots and clad in bark.",
-                "I shall rule only as the servant and trustee of your holy Padukas!",
-                "If you do not return the exact day your 14 years end, I shall cast myself into the blazing pyre!",
+                "I shall dwell outside the capital at Nandigrama in an ascetic's hut, subsisting on roots and clad in bark. I shall rule only as the servant and trustee of your holy Padukas! If you do not return the exact day your 14 years end, I shall cast myself into the blazing pyre!",
             ),
             (
                 "Prince Rama",
-                "Take my holy Padukas, noble Bharata! May they protect Ayodhya and sustain Dharma.",
-                "Lead our subjects in harmony. We shall reunite in joy when the term of exile concludes.",
-                "Go in peace, dear brother. Ayodhya is blessed to have a guardian of your purity.",
+                "Take my holy Padukas, noble Bharata! May they protect Ayodhya and sustain Dharma. Lead our subjects in harmony. We shall reunite in joy when the term of exile concludes. Go in peace, dear brother. Ayodhya is blessed to have a guardian of your purity.",
             ),
         ];
 
         let cur = self.paduka_dialogue_idx.min(3);
-        let (speaker, l1, l2, l3) = lines[cur];
+        let (speaker, content) = lines[cur];
 
         let box_x = 30.0;
-        let box_y = SCREEN_H - 110.0;
+        let box_y = SCREEN_H - 108.0;
         let box_w = SCREEN_W - 60.0;
-        let box_h = 92.0;
+        let box_h = 96.0;
 
         draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.08, 0.08, 0.14, 0.96));
         draw_rectangle_lines(box_x, box_y, box_w, box_h, 2.0, PAL_GOLD_1);
@@ -865,10 +857,15 @@ impl Level5Fight {
         draw_rectangle_lines(box_x + 12.0, box_y - 10.0, 185.0, 20.0, 1.5, PAL_GOLD_0);
         draw_pixel_text(font, speaker, box_x + 18.0, box_y + 4.0, 9, PAL_GOLD_0);
 
-        // Lines
-        draw_pixel_text(font, l1, box_x + 18.0, box_y + 26.0, 8, WHITE);
-        draw_pixel_text(font, l2, box_x + 18.0, box_y + 42.0, 8, WHITE);
-        draw_pixel_text(font, l3, box_x + 18.0, box_y + 58.0, 8, PAL_TURMERIC_1);
+        // Word wrapped text guaranteed to fit within box
+        let max_text_w = box_w - 36.0;
+        let wrapped = wrap_pixel_text(font, content, 7, max_text_w);
+        let mut ty = box_y + 22.0;
+        for (i, wline) in wrapped.iter().enumerate().take(4) {
+            let col = if i == wrapped.len() - 1 && i > 1 { PAL_TURMERIC_1 } else { WHITE };
+            draw_pixel_text(font, wline, box_x + 18.0, ty, 7, col);
+            ty += 12.5;
+        }
 
         // Prev Button
         if cur > 0 {
@@ -890,7 +887,7 @@ impl Level5Fight {
 
         // Page Counter
         let page_tag = format!("{} / 4", cur + 1);
-        draw_pixel_text(font, &page_tag, box_x + box_w * 0.5 - 12.0, box_y + box_h - 10.0, 7, PAL_GOLD_2);
+        draw_pixel_text(font, &page_tag, box_x + box_w * 0.5 - 14.0, box_y + box_h - 10.0, 7, PAL_GOLD_2);
 
         // Next Prompt
         let blink = (time * 5.0).sin() > 0.0;
@@ -1177,16 +1174,16 @@ pub fn draw_victory_l5(font: &Font, time: f32) {
     draw_rectangle_lines(rw_x, rw_y, rw_w, rw_h, 1.5, PAL_GOLD_1);
 
     draw_pixel_text(font, "CHAPTER 5 ACCOMPLISHMENTS (AYODHYA KANDA FINALE):", rw_x + 16.0, rw_y + 20.0, 9, PAL_GOLD_0);
-    draw_pixel_text(font, "✓ The Sacred Raft (Plava)  : Lakshmana bound timber, bamboo & reeds to carry Sita across!", rw_x + 16.0, rw_y + 40.0, 7, WHITE);
-    draw_pixel_text(font, "✓ The Chitrakuta Hermitage : Sal pillars & Kusha thatch erected & consecrated by Agni!", rw_x + 16.0, rw_y + 60.0, 7, WHITE);
-    draw_pixel_text(font, "✓ Paduka Pattabhisheka     : Bharata received Rama's holy sandals to reign over Ayodhya!", rw_x + 16.0, rw_y + 80.0, 7, PAL_GOLD_1);
-    draw_pixel_text(font, "✓ Pitru-Vakya-Paripalana   : Rama upheld eternal Truth (Satya) and filial Dharma!", rw_x + 16.0, rw_y + 100.0, 7, Color::new(0.5, 0.9, 0.5, 1.0));
+    draw_pixel_text(font, "✓ Sacred Raft (Plava)  : Lakshmana bound timber & reeds to ferry Sita.", rw_x + 16.0, rw_y + 40.0, 7, WHITE);
+    draw_pixel_text(font, "✓ Chitrakuta Hermitage : Sal pillars & Kusha thatch sanctified by Agni.", rw_x + 16.0, rw_y + 60.0, 7, WHITE);
+    draw_pixel_text(font, "✓ Paduka Pattabhisheka : Bharata received holy sandals to reign over Ayodhya.", rw_x + 16.0, rw_y + 80.0, 7, PAL_GOLD_1);
+    draw_pixel_text(font, "✓ Pitru-Vakya-Palana   : Rama upheld eternal Truth (Satya) & filial Dharma.", rw_x + 16.0, rw_y + 100.0, 7, Color::new(0.5, 0.9, 0.5, 1.0));
 
     // Next Epic Rakshasa Battle Announcement
     draw_line(rw_x + 16.0, rw_y + 118.0, rw_x + rw_w - 16.0, rw_y + 118.0, 1.0, PAL_GOLD_3);
     draw_pixel_text(font, "★ NEXT: ARANYA KANDA — THE AMBUSH OF RAKSHASA VIRADHA ★", rw_x + 16.0, rw_y + 135.0, 8, PAL_FIRE_1);
-    draw_pixel_text(font, "Entering Dandakaranya, the towering man-eating demon Viradha ambushes the forest path,", rw_x + 16.0, rw_y + 152.0, 7, Color::new(0.9, 0.8, 0.8, 1.0));
-    draw_pixel_text(font, "invulnerable to blades, seizing Sita! Rama & Lakshmana must shatter his limbs & bury him alive!", rw_x + 16.0, rw_y + 167.0, 7, Color::new(0.9, 0.8, 0.8, 1.0));
+    draw_pixel_text(font, "In Dandakaranya, the towering man-eating demon Viradha ambushes the path,", rw_x + 16.0, rw_y + 152.0, 7, Color::new(0.9, 0.8, 0.8, 1.0));
+    draw_pixel_text(font, "invulnerable to blades! Rama & Lakshmana shatter his arms and bury him!", rw_x + 16.0, rw_y + 167.0, 7, Color::new(0.9, 0.8, 0.8, 1.0));
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {

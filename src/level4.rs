@@ -316,7 +316,7 @@ impl Level4Fight {
                         vec![
                             "Queen Kausalya: 'May the devas protect you, Rama! Here, receive the golden tilak of coronation blessings upon your brow!'".to_string(),
                             "Princess Sita: 'My Lord, I have prepared the sacred kusha grass bed and fragrant offerings for our holy Upavasa fast tonight.'".to_string(),
-                            "Prince Lakshmana: 'Brother! My bow Kodanda and my life shall ever stand guard beside your righteous throne!'".to_string(),
+                            "Prince Lakshmana: 'Brother! My bow, my quiver, and my life shall ever stand guard beside your righteous throne!'".to_string(),
                             "Proceed to the palace balcony to view the grand illuminated night sky of Ayodhya...".to_string(),
                         ],
                         0,
@@ -885,10 +885,10 @@ pub fn draw_victory_l4(font: &Font, time: f32) {
     draw_rectangle_lines(rw_x, rw_y, rw_w, rw_h, 1.5, PAL_GOLD_1);
 
     draw_pixel_text(font, "CHAPTER 4 MILESTONES COMPLETED:", rw_x + 16.0, rw_y + 22.0, 9, PAL_GOLD_0);
-    draw_pixel_text(font, "✓ Raja Marga Festivities : Ayodhya's avenues washed with sandalwood and flowers!", rw_x + 16.0, rw_y + 44.0, 7, WHITE);
-    draw_pixel_text(font, "✓ Royal Council Sabha   : King Dasharatha & Sage Vasishtha decree Rama Yuvaraja!", rw_x + 16.0, rw_y + 66.0, 7, WHITE);
-    draw_pixel_text(font, "✓ Sacred Upavasa Vow    : Queen Kausalya & Princess Sita bestow coronation blessings!", rw_x + 16.0, rw_y + 88.0, 7, PAL_GOLD_1);
-    draw_pixel_text(font, "✓ The Seed of Exile     : Manthara plots to demand the 14-year exile to Dandaka!", rw_x + 16.0, rw_y + 110.0, 7, Color::new(0.9, 0.4, 0.4, 1.0));
+    draw_pixel_text(font, "✓ Raja Marga Festivities : Ayodhya's avenues washed with sandalwood & petals!", rw_x + 16.0, rw_y + 44.0, 7, WHITE);
+    draw_pixel_text(font, "✓ Royal Council Sabha   : King Dasharatha & Sage Vasishtha decree Rama heir.", rw_x + 16.0, rw_y + 66.0, 7, WHITE);
+    draw_pixel_text(font, "✓ Sacred Upavasa Vow    : Queen Kausalya & Sita bestow coronation blessings.", rw_x + 16.0, rw_y + 88.0, 7, PAL_GOLD_1);
+    draw_pixel_text(font, "✓ The Seed of Exile     : Manthara plots to demand 14-year Dandaka exile!", rw_x + 16.0, rw_y + 110.0, 7, Color::new(0.9, 0.4, 0.4, 1.0));
     draw_pixel_text(font, "★ NEXT: THE EXILE DECREE & CHITRAKUTA (LEVEL 5) ★", rw_x + 16.0, rw_y + 138.0, 8, PAL_FIRE_1);
 
     let blink = (time * 4.0).sin() > 0.0;

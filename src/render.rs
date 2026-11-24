@@ -116,6 +116,40 @@ pub fn draw_pixel_text(font: &Font, text: &str, x: f32, y: f32, size: u16, color
     );
 }
 
+/// Robust pixel text word-wrapping to guarantee text never overflows bounding boxes.
+pub fn wrap_pixel_text(font: &Font, text: &str, font_size: u16, max_width: f32) -> Vec<String> {
+    let mut lines = Vec::new();
+    for paragraph in text.split('\n') {
+        let words: Vec<&str> = paragraph.split_whitespace().collect();
+        let mut current_line = String::new();
+
+        for word in words {
+            let test_line = if current_line.is_empty() {
+                word.to_string()
+            } else {
+                format!("{} {}", current_line, word)
+            };
+            let dims = measure_text(&test_line, Some(font), font_size, 1.0);
+            let approx_w = test_line.len() as f32 * (font_size as f32);
+            let w = if dims.width > 0.0 { dims.width } else { approx_w };
+
+            if w > max_width && !current_line.is_empty() {
+                lines.push(current_line);
+                current_line = word.to_string();
+            } else {
+                current_line = test_line;
+            }
+        }
+        if !current_line.is_empty() {
+            lines.push(current_line);
+        }
+    }
+    if lines.is_empty() && !text.is_empty() {
+        lines.push(text.to_string());
+    }
+    lines
+}
+
 pub struct Particle {
     pub pos: Vec2,
     pub vel: Vec2,
@@ -1102,8 +1136,8 @@ pub fn draw_hud(
 // Retro RPG Dialogue Box for 16:9 with Re-Read Support
 pub fn is_dialogue_prev_button_hovered(mouse: Vec2) -> bool {
     let box_x = 30.0;
-    let box_y = SCREEN_H - 110.0;
-    let box_h = 92.0;
+    let box_y = SCREEN_H - 108.0;
+    let box_h = 96.0;
     let btn_x = box_x + 16.0;
     let btn_y = box_y + box_h - 22.0;
     let btn_w = 100.0;
@@ -1112,12 +1146,12 @@ pub fn is_dialogue_prev_button_hovered(mouse: Vec2) -> bool {
 }
 
 pub fn is_cutscene_prev_button_hovered(mouse: Vec2) -> bool {
-    let nar_x = 40.0;
-    let nar_y = 238.0;
-    let nar_h = 96.0;
+    let nar_x = 30.0;
+    let nar_y = 236.0;
+    let nar_h = 100.0;
     let btn_x = nar_x + 16.0;
     let btn_y = nar_y + nar_h - 22.0;
-    let btn_w = 100.0;
+    let btn_w = 95.0;
     let btn_h = 16.0;
     mouse.x >= btn_x && mouse.x <= btn_x + btn_w && mouse.y >= btn_y && mouse.y <= btn_y + btn_h
 }
@@ -1132,43 +1166,40 @@ pub fn draw_dialogue_box(
     virtual_mouse: Vec2,
 ) {
     let box_x = 30.0;
-    let box_y = SCREEN_H - 110.0;
+    let box_y = SCREEN_H - 108.0;
     let box_w = SCREEN_W - 60.0;
-    let box_h = 92.0;
+    let box_h = 96.0;
 
     draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.08, 0.09, 0.12, 0.96));
     draw_rectangle_lines(box_x, box_y, box_w, box_h, 2.5, COLOR_RAMA_GOLD);
     draw_rectangle_lines(box_x + 2.0, box_y + 2.0, box_w - 4.0, box_h - 4.0, 1.0, Color::new(0.6, 0.5, 0.2, 0.8));
 
     // Speaker Nameplate
-    let plate_w = 175.0;
+    let plate_w = 185.0;
     let plate_h = 20.0;
     draw_rectangle(box_x + 12.0, box_y - 10.0, plate_w, plate_h, Color::new(0.18, 0.12, 0.08, 1.0));
     draw_rectangle_lines(box_x + 12.0, box_y - 10.0, plate_w, plate_h, 1.5, COLOR_RAMA_GOLD);
     draw_pixel_text(font, speaker, box_x + 18.0, box_y + 4.0, 9, COLOR_RAMA_GOLD);
 
-    // Word wrapped pixel dialogue text
-    let words: Vec<&str> = line.split_whitespace().collect();
-    let mut current_line = String::new();
-    let mut line_y = box_y + 24.0;
+    // Word-wrapped dialogue text guaranteed to stay inside bounds
+    let max_text_w = box_w - 36.0;
+    let wrapped_8 = wrap_pixel_text(font, line, 8, max_text_w);
+    let (font_sz, line_step, final_lines) = if wrapped_8.len() <= 4 {
+        (8, 13.5, wrapped_8)
+    } else {
+        let wrapped_7 = wrap_pixel_text(font, line, 7, max_text_w);
+        (7, 11.5, wrapped_7)
+    };
 
-    for word in words {
-        let test_line = if current_line.is_empty() {
-            word.to_string()
+    let mut line_y = box_y + 22.0;
+    for (i, wline) in final_lines.iter().enumerate().take(5) {
+        let col = if i == final_lines.len() - 1 && i > 1 {
+            Color::new(0.95, 0.95, 0.80, 1.0)
         } else {
-            format!("{} {}", current_line, word)
+            WHITE
         };
-        // Max ~52 chars per line for 9px font in 560px width
-        if test_line.len() > 52 {
-            draw_pixel_text(font, &current_line, box_x + 18.0, line_y, 9, WHITE);
-            current_line = word.to_string();
-            line_y += 16.0;
-        } else {
-            current_line = test_line;
-        }
-    }
-    if !current_line.is_empty() {
-        draw_pixel_text(font, &current_line, box_x + 18.0, line_y, 9, WHITE);
+        draw_pixel_text(font, wline, box_x + 18.0, line_y, font_sz, col);
+        line_y += line_step;
     }
 
     // Re-Read / Previous Button if idx > 0
@@ -1191,7 +1222,7 @@ pub fn draw_dialogue_box(
 
     // Page indicator in center
     let page_str = format!("{}/{}", idx + 1, total);
-    draw_pixel_text(font, &page_str, box_x + box_w * 0.5 - 12.0, box_y + box_h - 10.0, 7, PAL_TURMERIC_1);
+    draw_pixel_text(font, &page_str, box_x + box_w * 0.5 - 14.0, box_y + box_h - 10.0, 7, PAL_TURMERIC_1);
 
     // Next / Continue on Right
     let blink = (time * 5.0).sin() > 0.0;
@@ -2698,21 +2729,30 @@ pub fn draw_cutscene_screen(
     draw_rectangle(vig_x + vig_w - c, vig_y + vig_h - 2.0, c, 2.0, PAL_GOLD_0);
     draw_rectangle(vig_x + vig_w - 2.0, vig_y + vig_h - c, 2.0, c, PAL_GOLD_0);
 
-    // Narrative Box below (560 x 95)
-    let nar_x = 40.0;
-    let nar_y = 238.0;
-    let nar_w = 560.0;
-    let nar_h = 96.0;
+    // Narrative Box below (580 x 100)
+    let nar_x = 30.0;
+    let nar_y = 236.0;
+    let nar_w = SCREEN_W - 60.0;
+    let nar_h = 100.0;
 
     draw_rectangle(nar_x, nar_y, nar_w, nar_h, Color::new(0.09, 0.08, 0.14, 0.95));
     draw_rectangle_lines(nar_x, nar_y, nar_w, nar_h, 1.2, Color::new(0.4, 0.35, 0.45, 0.9));
 
     let (text_lines, total_slides) = get_cutscene_lines(cutscene, slide_idx);
 
-    let mut ty = nar_y + 18.0;
-    for line in text_lines {
-        draw_pixel_text(font, line, nar_x + 16.0, ty, 8, WHITE);
-        ty += 15.0;
+    let max_text_w = nar_w - 32.0;
+    let full_narrative = text_lines.join(" ");
+    let wrapped = wrap_pixel_text(font, &full_narrative, 7, max_text_w);
+
+    let mut ty = nar_y + 16.0;
+    for (i, line) in wrapped.iter().enumerate().take(5) {
+        let col = if i == wrapped.len() - 1 && i > 1 {
+            PAL_TURMERIC_1
+        } else {
+            WHITE
+        };
+        draw_pixel_text(font, line, nar_x + 16.0, ty, 7, col);
+        ty += 12.0;
     }
 
     // Re-Read / Prev Button if slide_idx > 0
