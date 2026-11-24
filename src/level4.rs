@@ -95,7 +95,7 @@ impl Level4Fight {
     pub fn update(
         &mut self,
         dt: f32,
-        _virtual_mouse: Vec2,
+        virtual_mouse: Vec2,
         _stats: &mut PlayerStats,
         sounds: &SoundEffects,
     ) -> Option<FightResultL4> {
@@ -116,8 +116,19 @@ impl Level4Fight {
             self.tilak_fx = (self.tilak_fx - dt).max(0.0);
         }
 
-        // Active Dialogue handling
+        // Active Dialogue handling with Re-Read Support
         if let Some((_speaker, lines, idx)) = &mut self.dialogue {
+            let is_prev_click = is_mouse_button_pressed(MouseButton::Left)
+                && is_dialogue_prev_button_hovered(virtual_mouse);
+
+            if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::Backspace) || is_prev_click {
+                if *idx > 0 {
+                    *idx -= 1;
+                    sounds.play(&sounds.shoot, 0.4);
+                }
+                return None;
+            }
+
             let advance = is_key_pressed(KeyCode::Space)
                 || is_key_pressed(KeyCode::Enter)
                 || is_key_pressed(KeyCode::E)
@@ -372,7 +383,7 @@ impl Level4Fight {
         // Draw Active Dialogue Box
         if let Some((speaker, lines, idx)) = &self.dialogue {
             if *idx < lines.len() {
-                draw_dialogue_box(font, speaker, &lines[*idx], time);
+                draw_dialogue_box(font, speaker, &lines[*idx], time, *idx, lines.len(), virtual_mouse);
             }
         }
 
@@ -878,11 +889,11 @@ pub fn draw_victory_l4(font: &Font, time: f32) {
     draw_pixel_text(font, "✓ Royal Council Sabha   : King Dasharatha & Sage Vasishtha decree Rama Yuvaraja!", rw_x + 16.0, rw_y + 66.0, 7, WHITE);
     draw_pixel_text(font, "✓ Sacred Upavasa Vow    : Queen Kausalya & Princess Sita bestow coronation blessings!", rw_x + 16.0, rw_y + 88.0, 7, PAL_GOLD_1);
     draw_pixel_text(font, "✓ The Seed of Exile     : Manthara plots to demand the 14-year exile to Dandaka!", rw_x + 16.0, rw_y + 110.0, 7, Color::new(0.9, 0.4, 0.4, 1.0));
-    draw_pixel_text(font, "★ NEXT: CHAPTER 5 — THE CHAMBER OF WRATH (THE TWO BOONS) ★", rw_x + 16.0, rw_y + 138.0, 8, PAL_FIRE_1);
+    draw_pixel_text(font, "★ NEXT: THE EXILE DECREE & CHITRAKUTA (LEVEL 5) ★", rw_x + 16.0, rw_y + 138.0, 8, PAL_FIRE_1);
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        draw_pixel_text(font, "PRESS SPACE OR CLICK TO RETURN TO CHAPTER SELECT", 100.0, 298.0, 9, PAL_GOLD_0);
+        draw_pixel_text(font, "PRESS SPACE OR CLICK TO PROCEED TO FOREST EXILE ▶", 90.0, 298.0, 9, PAL_GOLD_0);
     }
     draw_pixel_text(font, "Press [R] to Replay Chapter 4 (Ayodhya Coronation Eve)", 130.0, 324.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
 }

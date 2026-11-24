@@ -5,6 +5,7 @@ mod level1;
 mod level2;
 mod level3;
 mod level4;
+mod level5;
 mod render;
 mod types;
 
@@ -13,6 +14,7 @@ use level1::{FightResult, Level1Fight};
 use level2::{FightResultL2, Level2Fight};
 use level3::{FightResultL3, Level3Fight};
 use level4::{draw_victory_l4, FightResultL4, Level4Fight};
+use level5::{draw_victory_l5, FightResultL5, Level5Fight};
 use render::*;
 use types::*;
 
@@ -52,6 +54,7 @@ async fn main() {
     let mut level2_fight = Level2Fight::new();
     let mut level3_fight = Level3Fight::new();
     let mut level4_fight = Level4Fight::new();
+    let mut level5_fight = Level5Fight::new();
     let mut global_time: f32 = 0.0;
 
     loop {
@@ -137,6 +140,12 @@ async fn main() {
                         idx: 0,
                         target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
                     };
+                } else if is_key_pressed(KeyCode::Key5) {
+                    sounds.play(&sounds.victory, 0.8);
+                    game_state = GameState::Cutscene {
+                        cutscene_type: CutsceneType::AyodhyaExile,
+                        slide_idx: 0,
+                    };
                 } else if is_mouse_button_pressed(MouseButton::Left) {
                     sounds.play(&sounds.shoot, 0.7);
                     match get_title_screen_action_at(virtual_mouse) {
@@ -194,6 +203,13 @@ async fn main() {
                                 target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
                             };
                         }
+                        Some(4) => {
+                            sounds.play(&sounds.victory, 0.8);
+                            game_state = GameState::Cutscene {
+                                cutscene_type: CutsceneType::AyodhyaExile,
+                                slide_idx: 0,
+                            };
+                        }
                         _ => {
                             game_state = GameState::LevelSelect { selected: 0 };
                         }
@@ -215,10 +231,10 @@ async fn main() {
 
                 // Keyboard card cycling
                 if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::A) {
-                    *selected = (*selected + 3) % 4;
+                    *selected = (*selected + 4) % 5;
                     sounds.play(&sounds.shoot, 0.3);
                 } else if is_key_pressed(KeyCode::Right) || is_key_pressed(KeyCode::D) {
-                    *selected = (*selected + 1) % 4;
+                    *selected = (*selected + 1) % 5;
                     sounds.play(&sounds.shoot, 0.3);
                 }
 
@@ -231,6 +247,8 @@ async fn main() {
                     *selected = 2;
                 } else if is_key_pressed(KeyCode::Key4) {
                     *selected = 3;
+                } else if is_key_pressed(KeyCode::Key5) {
+                    *selected = 4;
                 }
 
                 // Launch selected level
@@ -282,7 +300,7 @@ async fn main() {
                                 target: DialogueTarget::StartFight(LevelId::L3Mithila),
                             };
                         }
-                        _ => {
+                        3 => {
                             game_state = GameState::Dialogue {
                                 speaker: "Minister Sumantra".to_string(),
                                 lines: vec![
@@ -293,6 +311,13 @@ async fn main() {
                                 ],
                                 idx: 0,
                                 target: DialogueTarget::StartFight(LevelId::L4Ayodhya),
+                            };
+                        }
+                        _ => {
+                            sounds.play(&sounds.victory, 0.8);
+                            game_state = GameState::Cutscene {
+                                cutscene_type: CutsceneType::AyodhyaExile,
+                                slide_idx: 0,
                             };
                         }
                     }
@@ -311,6 +336,10 @@ async fn main() {
             } => {
                 // Background matches level context
                 match target {
+                    DialogueTarget::StartFight(LevelId::L5Chitrakuta)
+                    | DialogueTarget::Victory(LevelId::L5Chitrakuta) => {
+                        level5_fight.draw(&font, virtual_mouse, global_time);
+                    }
                     DialogueTarget::StartFight(LevelId::L4Ayodhya)
                     | DialogueTarget::Victory(LevelId::L4Ayodhya) => {
                         level4_fight.draw(&font, virtual_mouse, global_time);
@@ -332,11 +361,19 @@ async fn main() {
                 }
 
                 if *idx < lines.len() {
-                    draw_dialogue_box(&font, speaker, &lines[*idx], global_time);
+                    draw_dialogue_box(&font, speaker, &lines[*idx], global_time, *idx, lines.len(), virtual_mouse);
                 }
                 draw_reticle(virtual_mouse, false);
 
-                if is_key_pressed(KeyCode::Space)
+                let is_prev_clicked = is_mouse_button_pressed(MouseButton::Left)
+                    && is_dialogue_prev_button_hovered(virtual_mouse);
+
+                if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::Backspace) || is_prev_clicked {
+                    if *idx > 0 {
+                        *idx -= 1;
+                        sounds.play(&sounds.shoot, 0.4);
+                    }
+                } else if is_key_pressed(KeyCode::Space)
                     || is_key_pressed(KeyCode::Enter)
                     || is_mouse_button_pressed(MouseButton::Left)
                 {
@@ -375,6 +412,10 @@ async fn main() {
                                     LevelId::L4Ayodhya => {
                                         level4_fight = Level4Fight::new();
                                         game_state = GameState::Playing(LevelId::L4Ayodhya);
+                                    }
+                                    LevelId::L5Chitrakuta => {
+                                        level5_fight = Level5Fight::new();
+                                        game_state = GameState::Playing(LevelId::L5Chitrakuta);
                                     }
                                     _ => {}
                                 }
@@ -482,8 +523,19 @@ async fn main() {
                                 None => {}
                             }
                         }
+                        LevelId::L5Chitrakuta => {
+                            let fight_result = level5_fight.update(dt, virtual_mouse, &sounds);
+                            level5_fight.draw(&font, virtual_mouse, global_time);
+
+                            match fight_result {
+                                Some(FightResultL5::Victory) => {
+                                    game_state = GameState::LevelComplete(LevelId::L5Chitrakuta);
+                                }
+                                None => {}
+                            }
+                        }
                         _ => {
-                            draw_pixel_text(&font, "COMING SOON IN LEVEL 5", 180.0, 180.0, 14, WHITE);
+                            draw_pixel_text(&font, "COMING SOON IN ARANYA KANDA (VIRADHA)", 120.0, 180.0, 11, WHITE);
                         }
                     }
                 }
@@ -503,6 +555,9 @@ async fn main() {
                     }
                     LevelId::L4Ayodhya => {
                         level4_fight.draw(&font, virtual_mouse, global_time);
+                    }
+                    LevelId::L5Chitrakuta => {
+                        level5_fight.draw(&font, virtual_mouse, global_time);
                     }
                     _ => {}
                 }
@@ -581,6 +636,10 @@ async fn main() {
                                     level4_fight = Level4Fight::new();
                                     game_state = GameState::Playing(LevelId::L4Ayodhya);
                                 }
+                                LevelId::L5Chitrakuta => {
+                                    level5_fight = Level5Fight::new();
+                                    game_state = GameState::Playing(LevelId::L5Chitrakuta);
+                                }
                                 _ => {}
                             }
                         }
@@ -590,7 +649,8 @@ async fn main() {
                                 LevelId::L1Tataka => 0,
                                 LevelId::L2Siddhashrama => 1,
                                 LevelId::L3Mithila => 2,
-                                _ => 3,
+                                LevelId::L4Ayodhya => 3,
+                                _ => 4,
                             };
                             game_state = GameState::LevelSelect { selected: card_sel };
                         }
@@ -605,7 +665,15 @@ async fn main() {
             GameState::Cutscene { cutscene_type, slide_idx } => {
                 draw_cutscene_screen(&font, *cutscene_type, *slide_idx, global_time, virtual_mouse);
 
-                if is_key_pressed(KeyCode::Space)
+                let is_prev_click = is_mouse_button_pressed(MouseButton::Left)
+                    && is_cutscene_prev_button_hovered(virtual_mouse);
+
+                if is_key_pressed(KeyCode::Left) || is_key_pressed(KeyCode::Backspace) || is_prev_click {
+                    if *slide_idx > 0 {
+                        *slide_idx -= 1;
+                        sounds.play(&sounds.shoot, 0.4);
+                    }
+                } else if is_key_pressed(KeyCode::Space)
                     || is_key_pressed(KeyCode::Enter)
                     || is_mouse_button_pressed(MouseButton::Left)
                 {
@@ -636,6 +704,11 @@ async fn main() {
                             CutsceneType::ParashuramaEncounter => {
                                 sounds.play(&sounds.victory, 0.8);
                                 game_state = GameState::LevelComplete(LevelId::L3Mithila);
+                            }
+                            CutsceneType::AyodhyaExile => {
+                                sounds.play(&sounds.victory, 0.8);
+                                level5_fight = Level5Fight::new();
+                                game_state = GameState::Playing(LevelId::L5Chitrakuta);
                             }
                         }
                     }
@@ -750,12 +823,31 @@ async fn main() {
                             || is_key_pressed(KeyCode::Enter)
                             || is_mouse_button_pressed(MouseButton::Left)
                         {
-                            sounds.play(&sounds.shoot, 0.6);
-                            game_state = GameState::LevelSelect { selected: 3 };
+                            sounds.play(&sounds.victory, 0.7);
+                            game_state = GameState::Cutscene {
+                                cutscene_type: CutsceneType::AyodhyaExile,
+                                slide_idx: 0,
+                            };
                         }
                         if is_key_pressed(KeyCode::R) {
                             level4_fight = Level4Fight::new();
                             game_state = GameState::Playing(LevelId::L4Ayodhya);
+                        }
+                    }
+                    LevelId::L5Chitrakuta => {
+                        draw_victory_l5(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::LevelSelect { selected: 4 };
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            level5_fight = Level5Fight::new();
+                            game_state = GameState::Playing(LevelId::L5Chitrakuta);
                         }
                     }
                     _ => {}

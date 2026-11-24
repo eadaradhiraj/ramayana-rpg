@@ -13,17 +13,16 @@ pub enum LevelId {
     L2Siddhashrama,
     L3Mithila,
     L4Ayodhya,
-    L5GangaBoat,
-    L6ChitrakootHut,
-    L7Panchavati,
-    L8Kishkindha,
-    L9OceanLeap,
-    L10LankaDahan,
-    L11RamaSetu,
-    L12Kumbhakarna,
-    L13Sanjeevani,
-    L14Indrajit,
-    L15Ravana,
+    L5Chitrakuta,
+    L6Panchavati,
+    L7Kishkindha,
+    L8OceanLeap,
+    L9LankaDahan,
+    L10RamaSetu,
+    L11Kumbhakarna,
+    L12Sanjeevani,
+    L13Indrajit,
+    L14Ravana,
 }
 
 #[allow(dead_code)]
@@ -34,17 +33,16 @@ impl LevelId {
             LevelId::L2Siddhashrama => "Bala Kanda: Siddhashrama",
             LevelId::L3Mithila => "Bala Kanda: Mithila (Swayamvara)",
             LevelId::L4Ayodhya => "Ayodhya Kanda: Eve of Coronation",
-            LevelId::L5GangaBoat => "Ayodhya Kanda: Ganga Crossing",
-            LevelId::L6ChitrakootHut => "Ayodhya Kanda: Chitrakoot",
-            LevelId::L7Panchavati => "Aranya Kanda: Panchavati",
-            LevelId::L8Kishkindha => "Kishkindha Kanda: Kishkindha",
-            LevelId::L9OceanLeap => "Sundara Kanda: The Ocean Leap",
-            LevelId::L10LankaDahan => "Sundara Kanda: Ashoka Vatika",
-            LevelId::L11RamaSetu => "Yuddha Kanda: Rama Setu",
-            LevelId::L12Kumbhakarna => "Yuddha Kanda: Kumbhakarna",
-            LevelId::L13Sanjeevani => "Yuddha Kanda: Sanjeevani Quest",
-            LevelId::L14Indrajit => "Yuddha Kanda: Nikumbhila & Sky",
-            LevelId::L15Ravana => "Yuddha Kanda: Battle of Lanka",
+            LevelId::L5Chitrakuta => "Ayodhya Kanda: Chitrakuta (Boat & Hermitage)",
+            LevelId::L6Panchavati => "Aranya Kanda: Panchavati",
+            LevelId::L7Kishkindha => "Kishkindha Kanda: Kishkindha",
+            LevelId::L8OceanLeap => "Sundara Kanda: The Ocean Leap",
+            LevelId::L9LankaDahan => "Sundara Kanda: Ashoka Vatika",
+            LevelId::L10RamaSetu => "Yuddha Kanda: Rama Setu",
+            LevelId::L11Kumbhakarna => "Yuddha Kanda: Kumbhakarna",
+            LevelId::L12Sanjeevani => "Yuddha Kanda: Sanjeevani Quest",
+            LevelId::L13Indrajit => "Yuddha Kanda: Nikumbhila & Sky",
+            LevelId::L14Ravana => "Yuddha Kanda: Battle of Lanka",
         }
     }
 }
@@ -120,6 +118,7 @@ pub enum CutsceneType {
     SitaBirth,
     SitaKalyanam,
     ParashuramaEncounter,
+    AyodhyaExile,
 }
 
 #[derive(Clone, PartialEq, Debug)]
