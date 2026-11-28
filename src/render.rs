@@ -89,11 +89,13 @@ pub const COLOR_TATAKA_EYES: Color = Color::new(1.0, 0.25, 0.25, 1.0);
 
 // Helper for crisp pixel text rendering with drop shadow
 pub fn draw_pixel_text(font: &Font, text: &str, x: f32, y: f32, size: u16, color: Color) {
+    let rx = x.round();
+    let ry = y.round();
     let shadow_color = Color::new(0.0, 0.0, 0.0, color.a * 0.95);
     draw_text_ex(
         text,
-        x + 1.0,
-        y + 1.0,
+        rx + 1.0,
+        ry + 1.0,
         TextParams {
             font: Some(font),
             font_size: size,
@@ -104,8 +106,8 @@ pub fn draw_pixel_text(font: &Font, text: &str, x: f32, y: f32, size: u16, color
     );
     draw_text_ex(
         text,
-        x,
-        y,
+        rx,
+        ry,
         TextParams {
             font: Some(font),
             font_size: size,
@@ -1174,12 +1176,13 @@ pub fn draw_dialogue_box(
     draw_rectangle_lines(box_x, box_y, box_w, box_h, 2.5, COLOR_RAMA_GOLD);
     draw_rectangle_lines(box_x + 2.0, box_y + 2.0, box_w - 4.0, box_h - 4.0, 1.0, Color::new(0.6, 0.5, 0.2, 0.8));
 
-    // Speaker Nameplate
-    let plate_w = 185.0;
+    // Speaker Nameplate (auto-sized to fit speaker name cleanly)
+    let spk_dim = measure_text(speaker, Some(font), 8, 1.0);
+    let plate_w = (spk_dim.width + 24.0).clamp(170.0, 360.0);
     let plate_h = 20.0;
     draw_rectangle(box_x + 12.0, box_y - 10.0, plate_w, plate_h, Color::new(0.18, 0.12, 0.08, 1.0));
     draw_rectangle_lines(box_x + 12.0, box_y - 10.0, plate_w, plate_h, 1.5, COLOR_RAMA_GOLD);
-    draw_pixel_text(font, speaker, box_x + 18.0, box_y + 4.0, 9, COLOR_RAMA_GOLD);
+    draw_pixel_text(font, speaker, box_x + 20.0, box_y + 4.0, 8, COLOR_RAMA_GOLD);
 
     // Word-wrapped dialogue text guaranteed to stay inside bounds
     let max_text_w = box_w - 36.0;
@@ -1236,548 +1239,589 @@ pub fn draw_dialogue_box(
 // 16-BIT RETRO TITLE SCREEN
 // ============================================================================
 pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
-    clear_background(Color::new(0.06, 0.05, 0.09, 1.0));
+    clear_background(Color::new(0.05, 0.04, 0.08, 1.0));
 
-    // Dynamic forest tree silhouettes swaying
-    let sway = (time * 0.8).sin() * 4.0;
-    for i in 0..11 {
-        let x = i as f32 * 65.0 + sway;
-        draw_circle(x, 190.0, 44.0, Color::new(0.10, 0.14, 0.10, 1.0));
-        draw_circle(x - 6.0, 185.0, 32.0, Color::new(0.13, 0.18, 0.12, 1.0));
+    // Distant twilight sky gradient strips
+    draw_rectangle(0.0, 0.0, SCREEN_W, 120.0, Color::new(0.07, 0.05, 0.12, 1.0));
+    draw_rectangle(0.0, 120.0, SCREEN_W, 100.0, Color::new(0.09, 0.06, 0.13, 1.0));
+
+    // Subtle shimmering stars
+    for i in 0..24 {
+        let sx = ((i * 53 + 17) % 640) as f32;
+        let sy = ((i * 29 + 11) % 160) as f32;
+        let a = ((time * 2.5 + i as f32).sin() * 0.3 + 0.5).clamp(0.1, 0.9);
+        draw_rectangle(sx, sy, 2.0, 2.0, Color::new(1.0, 0.95, 0.75, a));
     }
 
-    // Epic Title in Press Start 2P font
-    let title = "RAMAYANA: THE RETRO EPIC";
-    draw_pixel_text(font, title, 70.0, 38.0, 20, PAL_GOLD_1);
+    // Layered forest silhouette backdrop using detailed canopies
+    let sway = (time * 0.8).sin() * 2.5;
+    for i in 0..10 {
+        let tx = i as f32 * 70.0 + sway;
+        draw_circle(tx, 260.0, 50.0, Color::new(0.07, 0.12, 0.09, 1.0));
+        draw_circle(tx - 16.0, 250.0, 34.0, Color::new(0.09, 0.16, 0.11, 1.0));
+        draw_circle(tx + 16.0, 252.0, 32.0, Color::new(0.08, 0.14, 0.10, 1.0));
+    }
 
-    let sub = "BALA & AYODHYA KANDAS — THE RETRO ADVENTURES OF RAMA";
-    draw_pixel_text(font, sub, 95.0, 56.0, 9, PAL_TURMERIC_1);
+    // Epic Title in crisp 16px pixel font
+    let title = "RAMAYANA: THE RETRO EPIC";
+    draw_pixel_text(font, title, 128.0, 30.0, 16, PAL_GOLD_0);
+
+    let sub = "BALA, AYODHYA & ARANYA KANDAS — VEDIC RETRO RPG";
+    draw_pixel_text(font, sub, 124.0, 48.0, 8, PAL_TURMERIC_1);
 
     // Decorative Bow & Arrow Divider
-    draw_line(150.0, 66.0, 490.0, 66.0, 2.0, PAL_GOLD_2);
-    draw_circle(320.0, 66.0, 5.0, PAL_RED_1);
-    draw_circle(320.0, 66.0, 2.5, PAL_GOLD_0);
+    draw_line(110.0, 57.0, 530.0, 57.0, 2.0, PAL_GOLD_2);
+    draw_circle(320.0, 57.0, 4.5, PAL_RED_1);
+    draw_circle(320.0, 57.0, 2.0, PAL_GOLD_0);
 
-    // Chapter Select / Preview Box
-    let box_x = 35.0;
-    let box_y = 68.0;
-    let box_w = 570.0;
-    let box_h = 258.0;
-    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.10, 0.09, 0.15, 0.95));
-    draw_rectangle_lines(box_x, box_y, box_w, box_h, 1.5, PAL_GOLD_3);
+    // Main Menu Panel
+    let box_x = 28.0;
+    let box_y = 66.0;
+    let box_w = 584.0;
+    let box_h = 256.0;
+    draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.08, 0.07, 0.13, 0.95));
+    draw_rectangle_lines(box_x, box_y, box_w, box_h, 2.0, PAL_GOLD_2);
+    draw_rectangle_lines(box_x + 3.0, box_y + 3.0, box_w - 6.0, box_h - 6.0, 1.0, Color::new(0.45, 0.34, 0.16, 0.6));
 
     let hovered_action = get_title_screen_action_at(virtual_mouse);
 
-    // Level 1 Row
-    let r0_bg = if hovered_action == Some(0) {
-        Color::new(0.18, 0.16, 0.26, 0.95)
-    } else {
-        Color::new(0.12, 0.11, 0.18, 0.5)
-    };
-    draw_rectangle(box_x + 8.0, box_y + 5.0, box_w - 16.0, 22.0, r0_bg);
-    if hovered_action == Some(0) {
-        draw_rectangle_lines(box_x + 8.0, box_y + 5.0, box_w - 16.0, 22.0, 1.0, PAL_GOLD_1);
-        draw_pixel_text(font, "▶ PLAY [1]", box_x + box_w - 100.0, box_y + 17.0, 8, PAL_GOLD_0);
+    let rows = [
+        (
+            "[1] BALA    | TATAKA'S FOREST (Shabdavedhi Sound Hunt)",
+            "Track sound ripples in the cursed forest & slay Tataka before dusk (90s).",
+            PAL_GOLD_1,
+            Color::new(0.18, 0.16, 0.26, 0.95),
+            Color::new(0.11, 0.10, 0.17, 0.65),
+        ),
+        (
+            "[2] BALA    | SIDDHASHRAMA (Yajna Defense: Maricha & Subahu)",
+            "Protect the sacred fire altar with 4 celestial Astras against Asura raids.",
+            Color::new(1.0, 0.68, 0.28, 1.0),
+            Color::new(0.24, 0.16, 0.16, 0.95),
+            Color::new(0.13, 0.10, 0.15, 0.65),
+        ),
+        (
+            "[3] BALA    | MITHILA SWAYAMVARA (Shiva's Pinaka Bow)",
+            "Lift the iron-wheeled Pinaka bow, string it, and face sage Parashurama.",
+            Color::new(0.85, 0.68, 1.0, 1.0),
+            Color::new(0.20, 0.14, 0.28, 0.95),
+            Color::new(0.12, 0.10, 0.18, 0.65),
+        ),
+        (
+            "[4] AYODHYA | EVE OF CORONATION (Raja Marga & Royal Sabha)",
+            "Walk festive Raja Marga, take the Upavasa vow & witness Manthara's plot.",
+            Color::new(1.0, 0.86, 0.38, 1.0),
+            Color::new(0.26, 0.20, 0.13, 0.95),
+            Color::new(0.14, 0.12, 0.12, 0.65),
+        ),
+        (
+            "[5] AYODHYA | CHITRAKUTA (Raft, Parnashala & Bharata's Padukas)",
+            "Lakshmana crafts a bamboo raft & hermitage; Bharata receives the Padukas.",
+            Color::new(0.45, 0.92, 0.55, 1.0),
+            Color::new(0.15, 0.26, 0.17, 0.95),
+            Color::new(0.10, 0.15, 0.12, 0.65),
+        ),
+        (
+            "[6] ARANYA  | DANDAKARANYA (Ambush of Rakshasa Viradha)",
+            "Disarm Viradha's trident, bypass Brahma's boon, and liberate Tumburu.",
+            Color::new(0.95, 0.50, 0.50, 1.0),
+            Color::new(0.28, 0.14, 0.16, 0.95),
+            Color::new(0.16, 0.09, 0.11, 0.65),
+        ),
+        (
+            "[7] ARANYA  | PANCHAVATI (14,000 Host: Khara & Dushana)",
+            "Stand alone as Eka-Vira on the Godavari & shatter Khara's 14,000 host!",
+            PAL_FIRE_1,
+            Color::new(0.32, 0.15, 0.10, 0.95),
+            Color::new(0.18, 0.10, 0.08, 0.65),
+        ),
+    ];
+
+    let row_start_y = box_y + 8.0;
+    let row_h = 20.0;
+    let row_gap = 2.0;
+
+    for (i, (label, _desc, col, hov_bg, norm_bg)) in rows.iter().enumerate() {
+        let ry = row_start_y + i as f32 * (row_h + row_gap);
+        let is_hov = hovered_action == Some(i);
+        draw_rectangle(
+            box_x + 10.0,
+            ry,
+            box_w - 20.0,
+            row_h,
+            if is_hov { *hov_bg } else { *norm_bg },
+        );
+        if is_hov {
+            draw_rectangle_lines(box_x + 10.0, ry, box_w - 20.0, row_h, 1.0, PAL_GOLD_0);
+            draw_pixel_text(font, "▶ PLAY", box_x + box_w - 64.0, ry + 14.0, 8, PAL_GOLD_0);
+        }
+        draw_pixel_text(font, label, box_x + 18.0, ry + 14.0, 8, *col);
     }
-    draw_pixel_text(font, "[1] LEVEL 1: TATAKA'S FOREST (SHABDAVEDHI)", box_x + 16.0, box_y + 16.0, 8, PAL_GOLD_1);
-    draw_pixel_text(font, "    Track sound ripples & strike unseen Yakshini before dusk (90s)", box_x + 16.0, box_y + 24.0, 6, Color::new(0.4, 0.85, 1.0, 1.0));
 
-    // Level 2 Row
-    let r1_bg = if hovered_action == Some(1) {
-        Color::new(0.22, 0.16, 0.18, 0.95)
+    // Chapter Showcase Button (row 7 -> action 7)
+    let btn_y = row_start_y + 7.0 * (row_h + row_gap) + 3.0;
+    let btn_hov = hovered_action == Some(7);
+    draw_rectangle(
+        box_x + 10.0,
+        btn_y,
+        box_w - 20.0,
+        22.0,
+        if btn_hov { Color::new(0.25, 0.19, 0.36, 1.0) } else { Color::new(0.16, 0.13, 0.25, 1.0) },
+    );
+    draw_rectangle_lines(
+        box_x + 10.0,
+        btn_y,
+        box_w - 20.0,
+        22.0,
+        1.2,
+        if btn_hov { PAL_GOLD_0 } else { PAL_GOLD_2 },
+    );
+    draw_pixel_text(
+        font,
+        "▶ PRESS [L], [TAB] OR CLICK FOR CHAPTER SHOWCASE & DIORAMAS ◀",
+        box_x + 42.0,
+        btn_y + 15.0,
+        8,
+        PAL_GOLD_0,
+    );
+
+    // Dynamic Preview / Controls Box inside panel (crisp 8px text)
+    let info_y = btn_y + 27.0;
+    let info_h = box_y + box_h - info_y - 8.0;
+    draw_rectangle(box_x + 10.0, info_y, box_w - 20.0, info_h, Color::new(0.05, 0.05, 0.09, 0.9));
+    draw_rectangle_lines(box_x + 10.0, info_y, box_w - 20.0, info_h, 1.0, Color::new(0.32, 0.26, 0.40, 0.8));
+
+    let (info_title, info_body, info_col) = if let Some(act) = hovered_action {
+        if act < rows.len() {
+            ("CHAPTER BRIEFING:", rows[act].1, rows[act].2)
+        } else {
+            (
+                "CHAPTER SHOWCASE:",
+                "Inspect animated dioramas, Astras, and objectives for all 7 chapters.",
+                PAL_GOLD_0,
+            )
+        }
     } else {
-        Color::new(0.14, 0.11, 0.15, 0.5)
+        (
+            "CONTROLS & QUEST:",
+            "WASD Move | Mouse Aim & Draw | [1-6] Astras | [ESC] Pause | Hover row for brief.",
+            Color::new(0.82, 0.90, 0.82, 1.0),
+        )
     };
-    draw_rectangle(box_x + 8.0, box_y + 29.0, box_w - 16.0, 22.0, r1_bg);
-    if hovered_action == Some(1) {
-        draw_rectangle_lines(box_x + 8.0, box_y + 29.0, box_w - 16.0, 22.0, 1.0, PAL_GOLD_1);
-        draw_pixel_text(font, "▶ PLAY [2]", box_x + box_w - 100.0, box_y + 41.0, 8, PAL_GOLD_0);
+    draw_pixel_text(font, info_title, box_x + 18.0, info_y + 14.0, 8, info_col);
+    let wrapped_info = wrap_pixel_text(font, info_body, 8, box_w - 40.0);
+    for (idx, line) in wrapped_info.iter().take(2).enumerate() {
+        draw_pixel_text(font, line, box_x + 18.0, info_y + 27.0 + idx as f32 * 12.0, 8, WHITE);
     }
-    draw_pixel_text(font, "[2] LEVEL 2: SIDDHASHRAMA (SACRED YAJNA DEFENSE)", box_x + 16.0, box_y + 40.0, 8, Color::new(1.0, 0.65, 0.25, 1.0));
-    draw_pixel_text(font, "    Defend holy Altar with Astras: Kodanda, Vayavya, Manava & Agneya", box_x + 16.0, box_y + 48.0, 6, Color::new(1.0, 0.85, 0.40, 1.0));
-
-    // Level 3 Row
-    let r2_bg = if hovered_action == Some(2) {
-        Color::new(0.20, 0.14, 0.26, 0.95)
-    } else {
-        Color::new(0.13, 0.10, 0.18, 0.5)
-    };
-    draw_rectangle(box_x + 8.0, box_y + 53.0, box_w - 16.0, 22.0, r2_bg);
-    if hovered_action == Some(2) {
-        draw_rectangle_lines(box_x + 8.0, box_y + 53.0, box_w - 16.0, 22.0, 1.0, PAL_GOLD_1);
-        draw_pixel_text(font, "▶ PLAY [3]", box_x + box_w - 100.0, box_y + 65.0, 8, PAL_GOLD_0);
-    }
-    draw_pixel_text(font, "[3] LEVEL 3: MITHILA (THE TRIAL OF SHIVA DHANUSH)", box_x + 16.0, box_y + 64.0, 8, Color::new(0.85, 0.65, 1.0, 1.0));
-    draw_pixel_text(font, "    Lift Pinaka bow, Dhanurbhanga, lineage recitals & Parashurama", box_x + 16.0, box_y + 72.0, 6, Color::new(0.75, 0.85, 1.0, 1.0));
-
-    // Level 4 Row (Ayodhya Coronation Eve)
-    let r3_bg = if hovered_action == Some(3) {
-        Color::new(0.26, 0.20, 0.14, 0.95)
-    } else {
-        Color::new(0.15, 0.13, 0.12, 0.5)
-    };
-    draw_rectangle(box_x + 8.0, box_y + 77.0, box_w - 16.0, 22.0, r3_bg);
-    if hovered_action == Some(3) {
-        draw_rectangle_lines(box_x + 8.0, box_y + 77.0, box_w - 16.0, 22.0, 1.0, PAL_GOLD_1);
-        draw_pixel_text(font, "▶ PLAY [4]", box_x + box_w - 100.0, box_y + 89.0, 8, PAL_GOLD_0);
-    }
-    draw_pixel_text(font, "[4] LEVEL 4: AYODHYA (EVE OF THE CORONATION)", box_x + 16.0, box_y + 88.0, 8, Color::new(1.0, 0.85, 0.35, 1.0));
-    draw_pixel_text(font, "    Festive Raja Marga, Royal Sabha, Upavasa vow & Manthara's plot", box_x + 16.0, box_y + 96.0, 6, Color::new(0.9, 0.85, 0.6, 1.0));
-
-    // Level 5 Row (Chitrakuta - Raft, Hermitage & Padukas)
-    let r4_bg = if hovered_action == Some(4) {
-        Color::new(0.16, 0.26, 0.18, 0.95)
-    } else {
-        Color::new(0.11, 0.16, 0.13, 0.5)
-    };
-    draw_rectangle(box_x + 8.0, box_y + 101.0, box_w - 16.0, 22.0, r4_bg);
-    if hovered_action == Some(4) {
-        draw_rectangle_lines(box_x + 8.0, box_y + 101.0, box_w - 16.0, 22.0, 1.0, PAL_GOLD_1);
-        draw_pixel_text(font, "▶ PLAY [5]", box_x + box_w - 100.0, box_y + 113.0, 8, PAL_GOLD_0);
-    }
-    draw_pixel_text(font, "[5] LEVEL 5: CHITRAKUTA (RAFT, HERMITAGE & PADUKAS)", box_x + 16.0, box_y + 112.0, 8, Color::new(0.4, 0.9, 0.5, 1.0));
-    draw_pixel_text(font, "    Lakshmana crafts river raft & Parnashala; Bharata's Padukas", box_x + 16.0, box_y + 120.0, 6, Color::new(0.7, 0.95, 0.75, 1.0));
-
-    // Level 6 Row (Viradha Ambush)
-    let r5_bg = if hovered_action == Some(5) {
-        Color::new(0.28, 0.14, 0.16, 0.95)
-    } else {
-        Color::new(0.18, 0.10, 0.12, 0.5)
-    };
-    draw_rectangle(box_x + 8.0, box_y + 125.0, box_w - 16.0, 22.0, r5_bg);
-    if hovered_action == Some(5) {
-        draw_rectangle_lines(box_x + 8.0, box_y + 125.0, box_w - 16.0, 22.0, 1.0, PAL_GOLD_1);
-        draw_pixel_text(font, "▶ PLAY [6]", box_x + box_w - 100.0, box_y + 137.0, 8, PAL_GOLD_0);
-    }
-    draw_pixel_text(font, "[6] LEVEL 6: DANDAKARANYA (AMBUSH OF RAKSHASA VIRADHA)", box_x + 16.0, box_y + 136.0, 8, Color::new(0.95, 0.45, 0.45, 1.0));
-    draw_pixel_text(font, "    Shatter iron trident, bypass Brahma's boon & bury demon alive", box_x + 16.0, box_y + 144.0, 6, Color::new(1.0, 0.75, 0.75, 1.0));
-
-    // Level Select Button Highlight
-    let r6_bg = if hovered_action == Some(6) {
-        Color::new(0.24, 0.18, 0.34, 1.0)
-    } else {
-        Color::new(0.16, 0.13, 0.24, 1.0)
-    };
-    draw_rectangle(box_x + 8.0, box_y + 152.0, box_w - 16.0, 22.0, r6_bg);
-    let border_btn = if hovered_action == Some(6) { PAL_GOLD_0 } else { PAL_GOLD_2 };
-    draw_rectangle_lines(box_x + 8.0, box_y + 152.0, box_w - 16.0, 22.0, 1.0, border_btn);
-    draw_pixel_text(font, "▶ PRESS [L], [TAB] OR CLICK FOR FULL CHAPTER SELECT SCREEN ◀", box_x + 32.0, box_y + 166.0, 8, PAL_GOLD_0);
-
-    // Controls & Instructions line
-    draw_pixel_text(font, "Controls: WASD Move | Mouse Aim & Tension | 1-6 Chapters | ESC Pause", box_x + 16.0, box_y + 190.0, 7, WHITE);
-    draw_pixel_text(font, "Click any chapter row above or press [1]-[6] to launch immediately!", box_x + 16.0, box_y + 204.0, 7, Color::new(0.8, 0.9, 0.7, 1.0));
-    draw_pixel_text(font, "Aranya Kanda: Slay Viradha & prepare for Janasthana (14,000 Host)!", box_x + 16.0, box_y + 218.0, 6, PAL_FIRE_1);
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        let prompt = "▶ PRESS [1]-[6] TO PLAY, [L] FOR LEVEL SELECT, OR [SPACE] ◀";
-        draw_pixel_text(font, prompt, 38.0, 336.0, 9, PAL_GOLD_1);
+        let prompt = "▶ PRESS [1]-[7] TO PLAY, [L] SHOWCASE, OR [SPACE] ◀";
+        draw_pixel_text(font, prompt, 96.0, 338.0, 8, PAL_GOLD_1);
     }
 
-    draw_pixel_text(font, "16:9 Widescreen | 16-Bit Vedic Retro RPG | Rust + WASM", 100.0, 350.0, 7, Color::new(0.65, 0.65, 0.65, 1.0));
+    draw_pixel_text(
+        font,
+        "16:9 Widescreen 720p | 16-Bit Vedic Retro RPG | Rust + WASM",
+        92.0,
+        352.0,
+        8,
+        Color::new(0.65, 0.65, 0.72, 1.0),
+    );
 }
 
 // ============================================================================
-// 16-BIT LEVEL SELECT SCREEN (INTERACTIVE TEST HARNESS)
+// 16-BIT LEVEL SELECT SCREEN (SPLIT-PANE CHAPTER SHOWCASE)
 // ============================================================================
 pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse: Vec2) {
-    clear_background(Color::new(0.06, 0.05, 0.09, 1.0));
+    clear_background(Color::new(0.05, 0.04, 0.08, 1.0));
 
-    // Decorative background Vedic pattern
+    // Decorative background Vedic grid lines
     for i in 0..16 {
         let x = i as f32 * 42.0;
-        draw_line(x, 0.0, x, SCREEN_H, 1.0, Color::new(0.12, 0.10, 0.18, 0.4));
+        draw_line(x, 0.0, x, SCREEN_H, 1.0, Color::new(0.11, 0.09, 0.17, 0.45));
     }
 
-    // Top Header Banner
-    let title = "RAMAYANA — SELECT BATTLE CHAPTER";
-    draw_pixel_text(font, title, 140.0, 30.0, 13, PAL_GOLD_1);
+    // Top Header Banner (crisp 16px)
+    draw_pixel_text(font, "RAMAYANA — BATTLE CHAPTERS", 112.0, 26.0, 16, PAL_GOLD_0);
+    draw_line(70.0, 35.0, 570.0, 35.0, 2.0, PAL_GOLD_2);
+    draw_circle(320.0, 35.0, 4.0, PAL_RED_1);
+    draw_circle(320.0, 35.0, 2.0, PAL_GOLD_0);
 
-    // Decorative bow divider line
-    draw_line(80.0, 42.0, 560.0, 42.0, 2.0, PAL_GOLD_2);
-    draw_circle(320.0, 42.0, 4.0, PAL_RED_1);
-    draw_circle(320.0, 42.0, 2.0, PAL_GOLD_0);
-
-    // 6 Level Cards across 640px widescreen
-    let card_w = 97.0;
-    let card_h = 244.0;
-    let card_y = 54.0;
-
-    let cards = [
+    let chapters = [
         (
             0,
-            9.0,
-            "LEVEL 1",
-            "TATAKA",
-            "Shabdavedhi",
+            "[1] TATAKA'S FOREST",
+            "Bala Kanda • Shabdavedhi",
             PAL_GOLD_1,
             Color::new(0.40, 0.85, 1.0, 1.0),
             vec![
-                "• Dark cursed woods",
-                "• Sound ripple track",
-                "• Strike unseen demon",
-                "• 90s Dusk Countdown",
+                "Track sound ripples in the dark cursed woods of Malada.",
+                "Loose Kodanda shafts into unseen Yakshini phantoms.",
+                "Slay Tataka before dusk (90s) unleashes her blood frenzy.",
             ],
-            "Kodanda Bow",
-            "▶ READY ◀",
-            Color::new(0.35, 0.85, 0.45, 1.0),
+            "Kodanda Shabdavedhi",
         ),
         (
             1,
-            114.0,
-            "LEVEL 2",
-            "SIDDHASHRAMA",
-            "Yajna Defense",
+            "[2] SIDDHASHRAMA",
+            "Bala Kanda • Yajna Defense",
             Color::new(1.0, 0.65, 0.25, 1.0),
             Color::new(1.0, 0.85, 0.40, 1.0),
             vec![
-                "• Defend holy Altar",
-                "• Maricha & Subahu",
-                "• Asura blood swarms",
-                "• 4 Divine Astras",
+                "Guard Sage Vishwamitra's central Yajna fire altar.",
+                "Use [2] Vayavya to scatter swarms, [3] Manava on Maricha.",
+                "Break Subahu's shield and burn him with [4] Agneyastra.",
             ],
-            "All 4 Astras",
-            "▶ READY ◀",
-            Color::new(0.35, 0.85, 0.45, 1.0),
+            "4 Celestial Astras",
         ),
         (
             2,
-            219.0,
-            "LEVEL 3",
-            "MITHILA",
-            "Pinaka Bow",
+            "[3] MITHILA COURT",
+            "Bala Kanda • Pinaka Bow",
             Color::new(0.85, 0.65, 1.0, 1.0),
             Color::new(0.75, 0.55, 0.95, 1.0),
             vec![
-                "• King Janaka Court",
-                "• 8-Wheel Bow Cart",
-                "• Snap Pinaka bow",
-                "• Lineage Recital",
+                "Approach the 8-wheeled iron cart holding Shiva's Pinaka.",
+                "Lift and bend the cosmic bow until it snaps in two.",
+                "Recite the Solar & Mithila lineages and meet Parashurama.",
             ],
-            "Pinaka Bow",
-            "▶ READY ◀",
-            Color::new(0.35, 0.85, 0.45, 1.0),
+            "Dhanurbhanga Trial",
         ),
         (
             3,
-            324.0,
-            "LEVEL 4",
-            "AYODHYA",
-            "Coronation Eve",
+            "[4] AYODHYA PALACE",
+            "Ayodhya Kanda • Coronation",
             Color::new(1.0, 0.85, 0.35, 1.0),
-            Color::new(0.9, 0.65, 0.25, 1.0),
+            Color::new(0.95, 0.72, 0.30, 1.0),
             vec![
-                "• Festive Raja Marga",
-                "• Royal Sabha Decree",
-                "• Queen Shrine Vows",
-                "• Manthara's Plot",
+                "Walk festive Raja Marga amidst cheering Ayodhya citizens.",
+                "Hear King Dasharatha's decree in the Royal Sabha hall.",
+                "Take the Upavasa fast at Kausalya's shrine before exile.",
             ],
-            "Yuvaraja Vow",
-            "▶ READY ◀",
-            Color::new(0.35, 0.85, 0.45, 1.0),
+            "Yuvaraja Vows",
         ),
         (
             4,
-            429.0,
-            "LEVEL 5",
-            "CHITRAKUTA",
-            "Sanctuary",
-            Color::new(0.4, 0.9, 0.5, 1.0),
-            Color::new(0.7, 0.95, 0.75, 1.0),
+            "[5] CHITRAKUTA",
+            "Ayodhya Kanda • Sanctuary",
+            Color::new(0.42, 0.92, 0.55, 1.0),
+            Color::new(0.72, 0.96, 0.78, 1.0),
             vec![
-                "• Craft River Raft",
-                "• Build Parnashala",
-                "• Bharata's Padukas",
-                "• Peaceful Hermitage",
+                "Lakshmana crafts a bamboo raft to cross sacred Mandakini.",
+                "Build the thatched Parnashala hut with Sal & Kusha grass.",
+                "Grant Rama's golden Padukas to Bharata at the mount.",
             ],
-            "Lakshmana Craft",
-            "▶ READY ◀",
-            Color::new(0.35, 0.85, 0.45, 1.0),
+            "Craft & Padukas",
         ),
         (
             5,
-            534.0,
-            "LEVEL 6",
-            "DANDAKA",
-            "Viradha Ambush",
-            Color::new(0.95, 0.45, 0.45, 1.0),
-            Color::new(1.0, 0.75, 0.75, 1.0),
+            "[6] DANDAKARANYA",
+            "Aranya Kanda • Viradha Boss",
+            Color::new(0.95, 0.50, 0.50, 1.0),
+            Color::new(1.0, 0.78, 0.78, 1.0),
             vec![
-                "• Shatter Trident",
-                "• Bypass Brahma Boon",
-                "• Break Demon Limbs",
-                "• Dig Trench Burial",
+                "Shatter Viradha's iron trident joint; his flesh is immune.",
+                "Break both demon arm joints in ferocious close combat.",
+                "Dig a sacred trench with Lakshmana & liberate Tumburu.",
             ],
-            "Trench Burial",
-            "▶ READY ◀",
-            Color::new(0.35, 0.85, 0.45, 1.0),
+            "Trench Liberation",
+        ),
+        (
+            6,
+            "[7] PANCHAVATI HOST",
+            "Aranya Kanda • 14,000 Host",
+            PAL_FIRE_1,
+            Color::new(1.0, 0.72, 0.45, 1.0),
+            vec![
+                "Stand alone as Eka-Vira on the banks of river Godavari.",
+                "Defeat Dushana, 3-headed Trishiras & charioteer Khara.",
+                "Awaken [5] Gandharvastra so the 14,000 slay each other!",
+            ],
+            "Gandharvastra Eka-Vira",
         ),
     ];
 
     let hovered_idx = get_level_select_card_at(virtual_mouse);
+    let active_idx = selected.min(chapters.len() - 1);
 
-    for (idx, cx, badge, ch_name, sub, title_col, sub_col, bullets, astras, status, status_col) in cards {
-        let is_sel = selected == idx;
-        let is_hov = hovered_idx == Some(idx);
-        let active = is_sel || is_hov;
+    // ------------------------------------------------------------------------
+    // LEFT PANE: CHAPTER ROSTER LIST (x: 16..288, y: 44..310)
+    // ------------------------------------------------------------------------
+    let list_x = 16.0;
+    let list_y = 44.0;
+    let list_w = 272.0;
+    let list_h = 266.0;
+    draw_rectangle(list_x, list_y, list_w, list_h, Color::new(0.08, 0.07, 0.12, 0.96));
+    draw_rectangle_lines(list_x, list_y, list_w, list_h, 1.5, PAL_GOLD_3);
 
-        // Card Base
-        let bg_col = if active {
-            Color::new(0.14, 0.12, 0.20, 0.98)
+    for (idx, title_str, sub_str, title_col, _sub_col, _bullets, _key) in &chapters {
+        let ry = list_y + 8.0 + (*idx as f32) * 36.0;
+        let rx = list_x + 8.0;
+        let rw = list_w - 16.0;
+        let rh = 32.0;
+
+        let is_sel = active_idx == *idx;
+        let is_hov = hovered_idx == Some(*idx);
+        let bg = if is_sel {
+            Color::new(0.18, 0.14, 0.28, 1.0)
+        } else if is_hov {
+            Color::new(0.14, 0.11, 0.20, 0.95)
         } else {
-            Color::new(0.09, 0.08, 0.13, 0.92)
+            Color::new(0.10, 0.09, 0.15, 0.85)
         };
-        draw_rectangle(cx, card_y, card_w, card_h, bg_col);
+        draw_rectangle(rx, ry, rw, rh, bg);
 
-        // Border
-        let border_col = if active {
+        let b_col = if is_sel {
             let glow = ((time * 6.0).sin() * 0.2 + 0.8).clamp(0.0, 1.0);
-            Color::new(PAL_GOLD_1.r * glow, PAL_GOLD_1.g * glow, PAL_GOLD_1.b * glow, 1.0)
+            Color::new(PAL_GOLD_0.r * glow, PAL_GOLD_0.g * glow, PAL_GOLD_0.b * glow, 1.0)
+        } else if is_hov {
+            PAL_GOLD_2
         } else {
-            Color::new(0.35, 0.30, 0.42, 0.8)
+            Color::new(0.28, 0.24, 0.36, 0.8)
         };
-        draw_rectangle_lines(cx, card_y, card_w, card_h, if active { 2.0 } else { 1.2 }, border_col);
+        draw_rectangle_lines(rx, ry, rw, rh, if is_sel { 1.5 } else { 1.0 }, b_col);
 
-        // Ornamental Corners
-        let c_sz = 6.0;
-        let corner_col = if active { PAL_GOLD_0 } else { PAL_SAND_3 };
-        draw_rectangle(cx, card_y, c_sz, 2.0, corner_col);
-        draw_rectangle(cx, card_y, 2.0, c_sz, corner_col);
-        draw_rectangle(cx + card_w - c_sz, card_y, c_sz, 2.0, corner_col);
-        draw_rectangle(cx + card_w - 2.0, card_y, 2.0, c_sz, corner_col);
-        draw_rectangle(cx, card_y + card_h - 2.0, c_sz, 2.0, corner_col);
-        draw_rectangle(cx, card_y + card_h - c_sz, 2.0, c_sz, corner_col);
-        draw_rectangle(cx + card_w - c_sz, card_y + card_h - 2.0, c_sz, 2.0, corner_col);
-        draw_rectangle(cx + card_w - 2.0, card_y + card_h - c_sz, 2.0, c_sz, corner_col);
+        // Side Kanda color bar
+        draw_rectangle(rx + 2.0, ry + 2.0, 4.0, rh - 4.0, *title_col);
 
-        // Card Header Badge
-        draw_rectangle(cx + 6.0, card_y + 8.0, 58.0, 15.0, Color::new(0.18, 0.15, 0.25, 1.0));
-        draw_rectangle_lines(cx + 6.0, card_y + 8.0, 58.0, 15.0, 1.0, border_col);
-        draw_pixel_text(font, badge, cx + 9.0, card_y + 19.0, 7, PAL_GOLD_1);
+        draw_pixel_text(font, title_str, rx + 10.0, ry + 14.0, 8, if is_sel { PAL_GOLD_0 } else { *title_col });
+        draw_pixel_text(font, sub_str, rx + 10.0, ry + 26.0, 8, Color::new(0.75, 0.76, 0.84, 1.0));
 
-        // Chapter Name & Subtitle
-        draw_pixel_text(font, ch_name, cx + 6.0, card_y + 38.0, 7, title_col);
-        draw_pixel_text(font, sub, cx + 6.0, card_y + 50.0, 6, sub_col);
-
-        // Mini Diorama / Visual Box
-        let box_y = card_y + 58.0;
-        let box_h = 58.0;
-        draw_rectangle(cx + 6.0, box_y, card_w - 12.0, box_h, Color::new(0.06, 0.05, 0.09, 1.0));
-        draw_rectangle_lines(cx + 6.0, box_y, card_w - 12.0, box_h, 1.0, Color::new(0.25, 0.22, 0.30, 1.0));
-
-        // Draw thematic mini diorama inside
-        match idx {
-            0 => {
-                // Tataka forest mini-silhouette
-                draw_rectangle(cx + 6.0, box_y + box_h - 16.0, card_w - 12.0, 16.0, PAL_GRASS_4);
-                draw_circle(cx + 25.0, box_y + 26.0, 11.0, PAL_GRASS_3);
-                draw_circle(cx + 90.0, box_y + 28.0, 12.0, PAL_GRASS_3);
-                let rip_r = (time * 18.0) % 20.0;
-                draw_circle_lines(cx + 56.0, box_y + 28.0, rip_r, 1.0, Color::new(0.4, 0.9, 1.0, 0.7));
-                draw_circle(cx + 56.0, box_y + 28.0, 3.0, PAL_RED_0);
-            }
-            1 => {
-                // Siddhashrama Yajna altar mini
-                draw_rectangle(cx + 6.0, box_y + box_h - 16.0, card_w - 12.0, 16.0, Color::new(0.25, 0.40, 0.20, 1.0));
-                draw_rectangle(cx + 36.0, box_y + 30.0, 42.0, 18.0, PAL_SAND_4);
-                draw_rectangle(cx + 44.0, box_y + 22.0, 26.0, 10.0, PAL_SAND_2);
-                let f_h = 10.0 + (time * 8.0).sin() * 3.0;
-                draw_triangle(
-                    vec2(cx + 49.0, box_y + 22.0),
-                    vec2(cx + 65.0, box_y + 22.0),
-                    vec2(cx + 57.0, box_y + 22.0 - f_h),
-                    PAL_FIRE_2,
-                );
-                draw_circle(cx + 57.0, box_y + 20.0, 2.5, PAL_FIRE_0);
-            }
-            2 => {
-                // Mithila Pinaka Bow mini
-                draw_rectangle(cx + 6.0, box_y + box_h - 14.0, card_w - 12.0, 14.0, PAL_SAND_3);
-                draw_rectangle(cx + 28.0, box_y + 36.0, 58.0, 8.0, Color::new(0.3, 0.28, 0.32, 1.0));
-                draw_circle(cx + 38.0, box_y + 44.0, 4.0, PAL_GOLD_2);
-                draw_circle(cx + 76.0, box_y + 44.0, 4.0, PAL_GOLD_2);
-                draw_line(cx + 30.0, box_y + 34.0, cx + 57.0, box_y + 16.0, 2.5, PAL_GOLD_1);
-                draw_line(cx + 57.0, box_y + 16.0, cx + 84.0, box_y + 34.0, 2.5, PAL_GOLD_1);
-                draw_circle(cx + 57.0, box_y + 16.0, 3.0, PAL_GOLD_0);
-            }
-            3 => {
-                // Ayodhya Palace & Saffron Flag mini
-                draw_rectangle(cx + 6.0, box_y + box_h - 14.0, card_w - 12.0, 14.0, Color::new(0.88, 0.82, 0.72, 1.0));
-                draw_rectangle(cx + 36.0, box_y + 24.0, 42.0, 20.0, Color::new(0.95, 0.94, 0.98, 1.0));
-                draw_triangle(
-                    vec2(cx + 36.0, box_y + 24.0),
-                    vec2(cx + 78.0, box_y + 24.0),
-                    vec2(cx + 57.0, box_y + 10.0),
-                    PAL_GOLD_1,
-                );
-                draw_circle(cx + 57.0, box_y + 9.0, 2.5, PAL_GOLD_0);
-                let fw = (time * 6.0).sin() * 3.0;
-                draw_line(cx + 57.0, box_y + 10.0, cx + 57.0, box_y + 2.0, 1.5, PAL_SAND_2);
-                draw_triangle(
-                    vec2(cx + 57.0, box_y + 2.0),
-                    vec2(cx + 57.0, box_y + 8.0),
-                    vec2(cx + 68.0 + fw, box_y + 5.0),
-                    PAL_TURMERIC_1,
-                );
-            }
-            4 => {
-                // Chitrakuta Parnashala & Padukas mini
-                draw_rectangle(cx + 6.0, box_y + box_h - 14.0, card_w - 12.0, 14.0, PAL_GRASS_2);
-                // Mountain slope
-                draw_triangle(
-                    vec2(cx + 8.0, box_y + box_h - 14.0),
-                    vec2(cx + 42.0, box_y + box_h - 14.0),
-                    vec2(cx + 25.0, box_y + 16.0),
-                    Color::new(0.35, 0.45, 0.55, 1.0),
-                );
-                // Thatched cottage
-                draw_rectangle(cx + 36.0, box_y + 26.0, 30.0, 18.0, Color::new(0.72, 0.58, 0.32, 1.0));
-                draw_triangle(
-                    vec2(cx + 32.0, box_y + 26.0),
-                    vec2(cx + 70.0, box_y + 26.0),
-                    vec2(cx + 51.0, box_y + 12.0),
-                    PAL_GOLD_1,
-                );
-                // Golden Padukas
-                draw_rectangle(cx + 43.0, box_y + 36.0, 16.0, 4.0, PAL_GOLD_0);
-                draw_circle(cx + 47.0, box_y + 34.0, 1.5, PAL_RED_1);
-                draw_circle(cx + 55.0, box_y + 34.0, 1.5, PAL_RED_1);
-            }
-            _ => {
-                // Dandakaranya & Viradha mini
-                draw_rectangle(cx + 6.0, box_y + box_h - 14.0, card_w - 12.0, 14.0, Color::new(0.12, 0.22, 0.14, 1.0));
-                // Twisted dark trees
-                draw_line(cx + 14.0, box_y + box_h - 14.0, cx + 16.0, box_y + 18.0, 2.5, Color::new(0.25, 0.18, 0.14, 1.0));
-                draw_circle(cx + 16.0, box_y + 16.0, 9.0, Color::new(0.08, 0.18, 0.10, 0.9));
-                draw_line(cx + 68.0, box_y + box_h - 14.0, cx + 66.0, box_y + 20.0, 2.5, Color::new(0.25, 0.18, 0.14, 1.0));
-                draw_circle(cx + 66.0, box_y + 18.0, 8.0, Color::new(0.08, 0.18, 0.10, 0.9));
-                // Viradha towering figure
-                let vx = cx + 42.0;
-                let vy = box_y + 18.0;
-                // Golden boon aura
-                let aura_r = 9.0 + (time * 4.0).sin() * 1.5;
-                draw_circle_lines(vx, vy + 10.0, aura_r, 1.0, PAL_GOLD_1);
-                // Demon body
-                draw_rectangle(vx - 5.0, vy + 4.0, 10.0, 18.0, Color::new(0.45, 0.20, 0.15, 1.0));
-                // Horned head
-                draw_circle(vx, vy, 5.0, Color::new(0.55, 0.22, 0.18, 1.0));
-                draw_line(vx - 3.0, vy - 2.0, vx - 5.0, vy - 6.0, 1.5, PAL_RED_1);
-                draw_line(vx + 3.0, vy - 2.0, vx + 5.0, vy - 6.0, 1.5, PAL_RED_1);
-                // Iron trident
-                draw_line(vx + 9.0, vy - 2.0, vx + 9.0, vy + 24.0, 1.5, Color::new(0.7, 0.7, 0.75, 1.0));
-                draw_line(vx + 6.0, vy - 2.0, vx + 12.0, vy - 2.0, 1.5, Color::new(0.8, 0.8, 0.85, 1.0));
-            }
+        if is_sel {
+            draw_pixel_text(font, "▶", rx + rw - 16.0, ry + 18.0, 8, PAL_GOLD_0);
         }
-
-        // Bullets
-        let mut by = box_y + box_h + 10.0;
-        for line in &bullets {
-            draw_pixel_text(font, line, cx + 5.0, by, 6, Color::new(0.85, 0.85, 0.88, 1.0));
-            by += 10.5;
-        }
-
-        // Astras line
-        draw_pixel_text(font, "KEY:", cx + 5.0, card_y + 196.0, 6, PAL_GOLD_2);
-        draw_pixel_text(font, astras, cx + 32.0, card_y + 196.0, 6, PAL_GOLD_0);
-
-        // Status Launch Button
-        let btn_y = card_y + 212.0;
-        let btn_h = 24.0;
-        let btn_bg = if active {
-            Color::new(0.22, 0.18, 0.32, 1.0)
-        } else {
-            Color::new(0.12, 0.10, 0.16, 1.0)
-        };
-        draw_rectangle(cx + 6.0, btn_y, card_w - 12.0, btn_h, btn_bg);
-        draw_rectangle_lines(cx + 6.0, btn_y, card_w - 12.0, btn_h, 1.0, border_col);
-
-        let pulse_text = if active {
-            let blink = (time * 5.0).sin() > 0.0;
-            if blink { status_col } else { WHITE }
-        } else {
-            status_col
-        };
-        draw_pixel_text(font, status, cx + 18.0, btn_y + 16.0, 7, pulse_text);
     }
 
+    // ------------------------------------------------------------------------
+    // RIGHT PANE: FEATURED CHAPTER SHOWCASE & ANIMATED DIORAMA (x: 298..624)
+    // ------------------------------------------------------------------------
+    let pan_x = 298.0;
+    let pan_y = 44.0;
+    let pan_w = 326.0;
+    let pan_h = 266.0;
+    draw_rectangle(pan_x, pan_y, pan_w, pan_h, Color::new(0.09, 0.08, 0.14, 0.98));
+    draw_rectangle_lines(pan_x, pan_y, pan_w, pan_h, 2.0, PAL_GOLD_1);
+
+    // Ornamental corners
+    for &(cx, cy, dx, dy) in &[
+        (pan_x, pan_y, 1.0, 1.0),
+        (pan_x + pan_w, pan_y, -1.0, 1.0),
+        (pan_x, pan_y + pan_h, 1.0, -1.0),
+        (pan_x + pan_w, pan_y + pan_h, -1.0, -1.0),
+    ] {
+        draw_rectangle(cx.min(cx + dx * 8.0), cy.min(cy + dy * 2.0), 8.0, 2.0, PAL_GOLD_0);
+        draw_rectangle(cx.min(cx + dx * 2.0), cy.min(cy + dy * 8.0), 2.0, 8.0, PAL_GOLD_0);
+    }
+
+    let (_, sel_title, sel_sub, sel_col, sel_sub_col, sel_bullets, sel_key) = &chapters[active_idx];
+    draw_pixel_text(font, sel_title, pan_x + 12.0, pan_y + 18.0, 8, *sel_col);
+    draw_pixel_text(font, sel_sub, pan_x + 12.0, pan_y + 31.0, 8, *sel_sub_col);
+
+    // Animated Diorama Showcase Box (302 x 92)
+    let dx = pan_x + 12.0;
+    let dy = pan_y + 38.0;
+    let dw = pan_w - 24.0;
+    let dh = 92.0;
+    draw_rectangle(dx, dy, dw, dh, Color::new(0.05, 0.04, 0.08, 1.0));
+    draw_rectangle_lines(dx, dy, dw, dh, 1.2, PAL_GOLD_3);
+
+    match active_idx {
+        0 => {
+            // Tataka diorama: cursed twilight forest, sound ripple & Rama aiming
+            draw_rectangle(dx + 2.0, dy + dh - 22.0, dw - 4.0, 20.0, PAL_GRASS_4);
+            draw_ancient_forest_tree(dx + 38.0, dy + dh - 20.0, 62.0, 12.0, 0, time);
+            draw_ancient_forest_tree(dx + 260.0, dy + dh - 20.0, 66.0, 14.0, 1, time);
+            let rip_r = (time * 24.0) % 28.0;
+            draw_circle_lines(dx + 200.0, dy + 42.0, rip_r, 1.5, Color::new(0.4, 0.9, 1.0, 0.8));
+            draw_circle(dx + 200.0, dy + 42.0, 6.0, PAL_PURPLE_2);
+            draw_circle(dx + 198.0, dy + 40.0, 1.5, PAL_RED_0);
+            draw_circle(dx + 202.0, dy + 40.0, 1.5, PAL_RED_0);
+            draw_hero_exile(vec2(dx + 85.0, dy + dh - 22.0), true, vec2(1.0, -0.2), 0.5, true, time);
+        }
+        1 => {
+            // Siddhashrama diorama: Sacred Altar, blazing Yajna flame & Maricha/Subahu
+            draw_rectangle(dx + 2.0, dy + dh - 20.0, dw - 4.0, 18.0, PAL_GRASS_3);
+            draw_rectangle(dx + 110.0, dy + 54.0, 82.0, 20.0, PAL_SAND_4);
+            draw_rectangle(dx + 124.0, dy + 42.0, 54.0, 14.0, PAL_SAND_2);
+            let fh = 18.0 + (time * 9.0).sin() * 4.0;
+            draw_triangle(vec2(dx + 137.0, dy + 42.0), vec2(dx + 165.0, dy + 42.0), vec2(dx + 151.0, dy + 42.0 - fh), PAL_FIRE_3);
+            draw_triangle(vec2(dx + 143.0, dy + 42.0), vec2(dx + 159.0, dy + 42.0), vec2(dx + 151.0, dy + 42.0 - fh * 0.6), PAL_FIRE_0);
+            draw_circle(dx + 65.0, dy + 32.0 + (time * 3.0).sin() * 4.0, 8.0, PAL_BLUE_1);
+            draw_circle(dx + 235.0, dy + 34.0 - (time * 3.0).sin() * 4.0, 9.0, PAL_RED_1);
+        }
+        2 => {
+            // Mithila diorama: Pinaka 8-wheeled cart & golden royal pavilion
+            draw_rectangle(dx + 2.0, dy + dh - 20.0, dw - 4.0, 18.0, PAL_SAND_3);
+            draw_rectangle(dx + 75.0, dy + 56.0, 152.0, 14.0, Color::new(0.28, 0.25, 0.32, 1.0));
+            for wx in [92.0, 130.0, 172.0, 210.0] {
+                draw_circle(dx + wx, dy + 72.0, 6.0, PAL_GOLD_2);
+                draw_circle(dx + wx, dy + 72.0, 2.5, PAL_GOLD_0);
+            }
+            let glow = ((time * 5.0).sin() * 0.2 + 0.8).clamp(0.0, 1.0);
+            draw_line(dx + 88.0, dy + 52.0, dx + 151.0, dy + 22.0, 4.0, Color::new(1.0 * glow, 0.85 * glow, 0.35, 1.0));
+            draw_line(dx + 151.0, dy + 22.0, dx + 214.0, dy + 52.0, 4.0, Color::new(1.0 * glow, 0.85 * glow, 0.35, 1.0));
+            draw_circle(dx + 151.0, dy + 22.0, 5.0, PAL_GOLD_0);
+        }
+        3 => {
+            // Ayodhya diorama: White marble Sabha & golden Sikhara + saffron banner
+            draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, dh - 22.0, Color::new(0.18, 0.14, 0.24, 1.0));
+            draw_rectangle(dx + 2.0, dy + dh - 20.0, dw - 4.0, 18.0, Color::new(0.82, 0.76, 0.66, 1.0));
+            draw_rectangle(dx + 86.0, dy + 42.0, 130.0, 32.0, Color::new(0.95, 0.93, 0.96, 1.0));
+            draw_triangle(vec2(dx + 82.0, dy + 42.0), vec2(dx + 220.0, dy + 42.0), vec2(dx + 151.0, dy + 16.0), PAL_GOLD_1);
+            let fw = (time * 6.0).sin() * 5.0;
+            draw_line(dx + 151.0, dy + 16.0, dx + 151.0, dy + 4.0, 2.0, PAL_GOLD_0);
+            draw_triangle(vec2(dx + 151.0, dy + 4.0), vec2(dx + 151.0, dy + 12.0), vec2(dx + 172.0 + fw, dy + 8.0), PAL_SAFFRON_1);
+        }
+        4 => {
+            // Chitrakuta diorama: Kamadgiri mountain, Parnashala Kutir & golden Padukas
+            draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, dh - 30.0, Color::new(0.32, 0.54, 0.72, 1.0));
+            draw_triangle(vec2(dx + 16.0, dy + dh - 24.0), vec2(dx + 115.0, dy + dh - 24.0), vec2(dx + 65.0, dy + 14.0), Color::new(0.32, 0.42, 0.54, 1.0));
+            draw_rectangle(dx + 2.0, dy + dh - 24.0, dw - 4.0, 22.0, PAL_GRASS_2);
+            draw_hermitage_kutir(dx + 185.0, dy + dh - 20.0, time);
+            draw_rectangle(dx + 116.0, dy + 56.0, 34.0, 7.0, PAL_GOLD_1);
+            draw_circle(dx + 124.0, dy + 53.0, 2.5, PAL_RED_1);
+            draw_circle(dx + 142.0, dy + 53.0, 2.5, PAL_RED_1);
+        }
+        5 => {
+            // Dandakaranya & Viradha diorama: Gnarled trees, Viradha giant + golden boon
+            draw_rectangle(dx + 2.0, dy + dh - 18.0, dw - 4.0, 16.0, Color::new(0.14, 0.25, 0.16, 1.0));
+            draw_ancient_forest_tree(dx + 34.0, dy + dh - 18.0, 66.0, 14.0, 0, time);
+            draw_ancient_forest_tree(dx + 266.0, dy + dh - 18.0, 68.0, 14.0, 1, time);
+            let vx = dx + 195.0;
+            let vy = dy + 42.0;
+            let aura = 20.0 + (time * 4.0).sin() * 2.5;
+            draw_circle_lines(vx, vy + 6.0, aura, 1.5, PAL_GOLD_1);
+            draw_rectangle(vx - 14.0, vy - 6.0, 28.0, 24.0, PAL_PURPLE_2);
+            draw_circle(vx, vy - 12.0, 9.0, PAL_PURPLE_1);
+            draw_circle(vx - 3.0, vy - 13.0, 1.8, PAL_RED_0);
+            draw_circle(vx + 3.0, vy - 13.0, 1.8, PAL_RED_0);
+            draw_line(vx - 18.0, vy - 24.0, vx - 18.0, vy + 26.0, 2.5, Color::new(0.75, 0.78, 0.85, 1.0));
+            draw_hero_exile(vec2(dx + 88.0, dy + dh - 18.0), true, vec2(1.0, -0.2), 0.7, true, time);
+        }
+        _ => {
+            // Level 7 Panchavati diorama: Sacred Godavari river, crimson sky, swarm & 3-headed Trishiras
+            draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, 44.0, Color::new(0.28, 0.08, 0.10, 1.0));
+            draw_rectangle(dx + 2.0, dy + 46.0, dw - 4.0, 26.0, Color::new(0.20, 0.34, 0.16, 1.0));
+            draw_rectangle(dx + 2.0, dy + 72.0, dw - 4.0, 18.0, Color::new(0.14, 0.40, 0.62, 1.0));
+            draw_ancient_forest_tree(dx + 32.0, dy + 68.0, 56.0, 12.0, 0, time);
+            // Swarming Rakshasa vanguard
+            for k in 0..5 {
+                let rx = dx + 145.0 + k as f32 * 26.0 + (time * 10.0 + k as f32).sin() * 2.0;
+                let ry = dy + 54.0 + (k % 2) as f32 * 6.0;
+                draw_rectangle(rx - 4.0, ry - 8.0, 8.0, 12.0, PAL_RED_2);
+                draw_circle(rx, ry - 11.0, 3.5, PAL_RED_1);
+            }
+            // Three-headed Trishiras silhouette on right
+            let tx = dx + 258.0;
+            let ty = dy + 50.0;
+            draw_rectangle(tx - 12.0, ty - 10.0, 24.0, 22.0, PAL_RED_3);
+            for hdx in [-8.0f32, 0.0, 8.0] {
+                draw_circle(tx + hdx, ty - 16.0, 4.5, PAL_RED_1);
+                draw_triangle(vec2(tx + hdx - 3.0, ty - 19.0), vec2(tx + hdx + 3.0, ty - 19.0), vec2(tx + hdx, ty - 25.0), PAL_GOLD_1);
+            }
+            draw_hero_exile(vec2(dx + 78.0, dy + 68.0), true, vec2(1.0, -0.1), 0.9, true, time);
+        }
+    }
+
+    // Wrapped Objectives List (crisp 8px text, guaranteed inside panel)
+    let mut oy = dy + dh + 16.0;
+    for bullet in sel_bullets {
+        let lines = wrap_pixel_text(font, &format!("• {}", bullet), 8, dw - 4.0);
+        for line in lines.iter().take(2) {
+            draw_pixel_text(font, line, dx, oy, 8, Color::new(0.90, 0.90, 0.94, 1.0));
+            oy += 11.0;
+        }
+    }
+
+    // Key Mechanic Badge
+    let key_y = pan_y + pan_h - 42.0;
+    draw_pixel_text(font, &format!("KEY: {}", sel_key), dx, key_y, 8, PAL_GOLD_0);
+
+    // Launch Chapter Button (pan_x + 12 .. +314, pan_y + pan_h - 34 .. -6)
+    let lbtn_x = dx;
+    let lbtn_y = pan_y + pan_h - 32.0;
+    let lbtn_w = dw;
+    let lbtn_h = 24.0;
+    let lbtn_hov = is_level_select_launch_hovered(virtual_mouse);
+    draw_rectangle(
+        lbtn_x,
+        lbtn_y,
+        lbtn_w,
+        lbtn_h,
+        if lbtn_hov { Color::new(0.28, 0.22, 0.40, 1.0) } else { Color::new(0.18, 0.15, 0.28, 1.0) },
+    );
+    draw_rectangle_lines(lbtn_x, lbtn_y, lbtn_w, lbtn_h, 1.5, if lbtn_hov { PAL_GOLD_0 } else { PAL_GOLD_1 });
+    let blink = (time * 5.0).sin() > 0.0;
+    let launch_col = if lbtn_hov || blink { PAL_GOLD_0 } else { Color::new(0.45, 0.92, 0.55, 1.0) };
+    draw_pixel_text(font, "▶ LAUNCH CHAPTER [ENTER] ◀", lbtn_x + 44.0, lbtn_y + 16.0, 8, launch_col);
+
     // Bottom Navigation Bar
-    let nav_y = 318.0;
-    draw_line(40.0, nav_y, 600.0, nav_y, 1.0, Color::new(0.35, 0.30, 0.42, 0.7));
+    let nav_y = 320.0;
+    draw_line(24.0, nav_y, SCREEN_W - 24.0, nav_y, 1.0, Color::new(0.35, 0.30, 0.42, 0.8));
     draw_pixel_text(
         font,
-        "[A/D / Arrows / Mouse] Select Card   |   [ENTER / CLICK] Launch",
-        62.0,
-        333.0,
+        "[W/S/1-7/Mouse] Select Chapter   |   [ENTER / CLICK] Launch",
+        68.0,
+        336.0,
         8,
         PAL_GOLD_1,
     );
     draw_pixel_text(
         font,
-        "[1] Tataka  [2] Siddhashrama  [3] Mithila  [4] Ayodhya  [5] Chitrakuta  [6] Dandaka  [ESC] Title",
-        15.0,
-        348.0,
-        7,
-        Color::new(0.75, 0.75, 0.75, 1.0),
+        "[ESC] Return to Title Screen",
+        208.0,
+        351.0,
+        8,
+        Color::new(0.75, 0.75, 0.80, 1.0),
     );
 }
 
 pub fn get_title_screen_action_at(mouse: Vec2) -> Option<usize> {
-    let box_x = 35.0;
-    let box_y = 74.0;
-    let box_w = 570.0;
+    let box_x = 28.0;
+    let box_y = 66.0;
+    let box_w = 584.0;
+    let row_start_y = box_y + 8.0;
+    let row_h = 20.0;
+    let row_gap = 2.0;
 
-    if mouse.x >= box_x + 8.0 && mouse.x <= box_x + box_w - 8.0 {
-        if mouse.y >= box_y + 5.0 && mouse.y < box_y + 28.0 {
-            return Some(0); // Level 1
+    if mouse.x >= box_x + 10.0 && mouse.x <= box_x + box_w - 10.0 {
+        for i in 0..7 {
+            let ry = row_start_y + i as f32 * (row_h + row_gap);
+            if mouse.y >= ry && mouse.y < ry + row_h {
+                return Some(i);
+            }
         }
-        if mouse.y >= box_y + 29.0 && mouse.y < box_y + 52.0 {
-            return Some(1); // Level 2
-        }
-        if mouse.y >= box_y + 53.0 && mouse.y < box_y + 76.0 {
-            return Some(2); // Level 3
-        }
-        if mouse.y >= box_y + 77.0 && mouse.y < box_y + 100.0 {
-            return Some(3); // Level 4
-        }
-        if mouse.y >= box_y + 101.0 && mouse.y < box_y + 124.0 {
-            return Some(4); // Level 5
-        }
-        if mouse.y >= box_y + 125.0 && mouse.y < box_y + 148.0 {
-            return Some(5); // Level 6
-        }
-        if mouse.y >= box_y + 150.0 && mouse.y < box_y + 176.0 {
-            return Some(6); // Full Chapter Select
+        let btn_y = row_start_y + 7.0 * (row_h + row_gap) + 3.0;
+        if mouse.y >= btn_y && mouse.y <= btn_y + 22.0 {
+            return Some(7); // Full Chapter Showcase
         }
     }
     None
 }
 
 pub fn get_level_select_card_at(mouse: Vec2) -> Option<usize> {
-    let card_y = 54.0;
-    let card_h = 244.0;
-    let card_w = 97.0;
+    let list_x = 16.0;
+    let list_y = 44.0;
+    let list_w = 272.0;
 
-    if mouse.y >= card_y && mouse.y <= card_y + card_h {
-        if mouse.x >= 9.0 && mouse.x <= 9.0 + card_w {
-            return Some(0);
-        }
-        if mouse.x >= 114.0 && mouse.x <= 114.0 + card_w {
-            return Some(1);
-        }
-        if mouse.x >= 219.0 && mouse.x <= 219.0 + card_w {
-            return Some(2);
-        }
-        if mouse.x >= 324.0 && mouse.x <= 324.0 + card_w {
-            return Some(3);
-        }
-        if mouse.x >= 429.0 && mouse.x <= 429.0 + card_w {
-            return Some(4);
-        }
-        if mouse.x >= 534.0 && mouse.x <= 534.0 + card_w {
-            return Some(5);
+    if mouse.x >= list_x + 8.0 && mouse.x <= list_x + list_w - 8.0 {
+        for idx in 0..7 {
+            let ry = list_y + 8.0 + (idx as f32) * 36.0;
+            if mouse.y >= ry && mouse.y <= ry + 32.0 {
+                return Some(idx);
+            }
         }
     }
     None
+}
+
+pub fn is_level_select_launch_hovered(mouse: Vec2) -> bool {
+    let lbtn_x = 310.0;
+    let lbtn_y = 278.0;
+    let lbtn_w = 302.0;
+    let lbtn_h = 24.0;
+    mouse.x >= lbtn_x && mouse.x <= lbtn_x + lbtn_w && mouse.y >= lbtn_y && mouse.y <= lbtn_y + lbtn_h
 }
 
 // ============================================================================
@@ -2490,6 +2534,16 @@ pub fn draw_astra_projectile(pos: Vec2, vel: Vec2, p_type: AstraProjectileType, 
                 let sy = pos.y + ((time * 22.0 + i as f32).cos() * 4.0);
                 draw_circle(sx, sy, 1.5, Color::new(1.0, 0.7, 0.2, 0.8));
             }
+        }
+        AstraProjectileType::Gandharva => {
+            // Gandharvastra: Shimmering Illusionary Maya-Wave Arrow
+            let p1 = pos - dir * 15.0;
+            let p2 = pos + dir * 15.0;
+            draw_line(p1.x, p1.y, p2.x, p2.y, 3.0, PAL_PURPLE_0);
+            draw_line(p1.x, p1.y, p2.x, p2.y, 1.4, PAL_GOLD_0);
+            let ring_r = 5.0 + (time * 20.0).sin().abs() * 3.0;
+            draw_circle_lines(p2.x, p2.y, ring_r, 1.4, PAL_GOLD_0);
+            draw_circle(p2.x, p2.y, 2.5, WHITE);
         }
     }
 }
@@ -3427,4 +3481,263 @@ fn draw_vignette_ayodhya_exile(x: f32, y: f32, w: f32, h: f32, slide: usize, tim
             draw_circle(c_x - 14.0, c_y - 4.0, 3.5, Color::new(0.85, 0.72, 0.60, 1.0));
         }
     }
+}
+
+// ============================================================================
+// SHARED HIGH-DETAIL 16-BIT ARANYA KANDA ENVIRONMENT & SPRITE HELPERS
+// ============================================================================
+
+/// Detailed 16-bit exiled prince sprite (feet at `pos`, facing `aim_dir`)
+pub fn draw_hero_exile(
+    pos: Vec2,
+    is_rama: bool,
+    aim_dir: Vec2,
+    bow_tension: f32,
+    is_drawing: bool,
+    time: f32,
+) {
+    let x = pos.x;
+    let y = pos.y;
+    let dir = if aim_dir.length_squared() > 0.01 {
+        aim_dir.normalize()
+    } else {
+        vec2(1.0, 0.0)
+    };
+    let face_sign = if dir.x >= 0.0 { 1.0 } else { -1.0 };
+
+    // 1. Ground shadow
+    draw_ellipse(x, y + 1.0, 13.0, 4.5, 0.0, Color::new(0.04, 0.06, 0.05, 0.45));
+
+    // 2. Bare feet / sandals & ankle bands
+    draw_rectangle(x - 6.0, y - 4.0, 4.5, 4.0, PAL_SAND_4);
+    draw_rectangle(x + 1.5, y - 4.0, 4.5, 4.0, PAL_SAND_4);
+    draw_rectangle(x - 6.0, y - 5.0, 4.5, 1.5, PAL_GOLD_2);
+    draw_rectangle(x + 1.5, y - 5.0, 4.5, 1.5, PAL_GOLD_2);
+
+    // 3. Valkala Bark Dhoti (Multi-tone Saffron/Turmeric drapes + crimson sash)
+    draw_rectangle(x - 7.0, y - 14.0, 14.0, 10.0, if is_rama { PAL_TURMERIC_3 } else { PAL_SAFFRON_3 });
+    draw_rectangle(x - 6.0, y - 13.0, 12.0, 8.0, if is_rama { PAL_TURMERIC_2 } else { PAL_SAFFRON_2 });
+    draw_rectangle(x - 4.0, y - 13.0, 3.0, 7.0, if is_rama { PAL_TURMERIC_1 } else { PAL_SAFFRON_1 });
+    draw_rectangle(x + 1.0, y - 13.0, 3.0, 7.0, if is_rama { PAL_TURMERIC_0 } else { PAL_SAFFRON_0 });
+    draw_rectangle(x - 7.0, y - 15.0, 14.0, 3.0, PAL_RED_2);
+    let sway = (time * 4.0).sin() * 2.0;
+    draw_triangle(
+        vec2(x - 7.0 * face_sign, y - 14.0),
+        vec2(x - 11.0 * face_sign + sway, y - 6.0),
+        vec2(x - 4.0 * face_sign, y - 11.0),
+        PAL_RED_2,
+    );
+
+    // 4. Muscular Torso + Valkala Shoulder Sash + Yajnopavita
+    let (skin_0, skin_1, skin_3) = if is_rama {
+        (PAL_RAMA_0, PAL_RAMA_1, PAL_RAMA_3)
+    } else {
+        (PAL_SAND_0, PAL_SAND_1, PAL_SAND_3)
+    };
+    draw_rectangle(x - 6.5, y - 26.0, 13.0, 11.0, skin_3);
+    draw_rectangle(x - 5.5, y - 25.0, 11.0, 9.0, skin_1);
+    draw_rectangle(x - 3.5, y - 24.0, 3.5, 4.0, skin_0);
+    draw_rectangle(x + 0.5, y - 24.0, 3.5, 4.0, skin_0);
+
+    // Valkala diagonal chest wrap & Yajnopavita sacred thread
+    draw_line(x - 5.0, y - 25.0, x + 5.0, y - 15.0, 3.0, Color::new(0.68, 0.44, 0.24, 0.95));
+    draw_line(x - 5.0, y - 25.0, x + 5.0, y - 15.0, 1.2, Color::new(0.96, 0.96, 0.96, 0.9));
+
+    // Quiver with feathered shafts behind shoulder
+    let qx = x - 7.5 * face_sign;
+    draw_line(qx, y - 29.0, qx + 4.0 * face_sign, y - 16.0, 3.5, PAL_SAND_4);
+    draw_line(qx, y - 28.0, qx + 3.0 * face_sign, y - 17.0, 1.5, PAL_GOLD_2);
+    draw_line(qx - 2.0 * face_sign, y - 30.0, qx - 5.0 * face_sign, y - 35.0, 1.5, WHITE);
+    draw_line(qx + 1.0 * face_sign, y - 30.0, qx - 1.0 * face_sign, y - 36.0, 1.5, PAL_RED_1);
+
+    // 5. Head, Expressive Eyes, Tilaka & Ascetic Jata Crown
+    draw_circle(x, y - 31.0, 6.0, skin_3);
+    draw_circle(x, y - 31.0, 5.0, skin_1);
+    draw_circle(x + 1.2 * face_sign, y - 32.0, 2.5, skin_0);
+
+    // Ascetic Jata matted topknot + Rudraksha ornament
+    let hair_col = Color::new(0.10, 0.08, 0.11, 1.0);
+    draw_circle(x - 3.5, y - 34.0, 3.0, hair_col);
+    draw_circle(x + 3.5, y - 34.0, 3.0, hair_col);
+    draw_circle(x, y - 37.5, 4.0, hair_col);
+    draw_circle(x, y - 38.0, 1.5, PAL_GOLD_1); // Golden hair-band / Rudraksha
+
+    // Tilaka & Eyes
+    draw_line(x + 1.0 * face_sign, y - 34.0, x + 1.0 * face_sign, y - 31.0, 1.2, PAL_RED_1);
+    draw_circle(x + 2.5 * face_sign, y - 31.0, 1.1, WHITE);
+    draw_circle(x + 3.0 * face_sign, y - 31.0, 0.6, BLACK);
+
+    // 6. Celestial Kodanda / Bow held forward
+    let bow_c = vec2(x + dir.x * 11.0, y - 22.0 + dir.y * 8.0);
+    let perp = vec2(-dir.y, dir.x);
+    let tip_top = bow_c + perp * 14.0 + dir * 2.0;
+    let tip_bot = bow_c - perp * 14.0 + dir * 2.0;
+    let grip = bow_c + dir * 4.0;
+
+    draw_line(tip_bot.x, tip_bot.y, grip.x, grip.y, 2.8, PAL_GOLD_3);
+    draw_line(tip_bot.x, tip_bot.y, grip.x, grip.y, 1.6, if is_rama { PAL_GOLD_0 } else { PAL_GOLD_1 });
+    draw_line(grip.x, grip.y, tip_top.x, tip_top.y, 2.8, PAL_GOLD_3);
+    draw_line(grip.x, grip.y, tip_top.x, tip_top.y, 1.6, if is_rama { PAL_GOLD_0 } else { PAL_GOLD_1 });
+
+    let pull_dist = if is_drawing { 2.0 + bow_tension * 7.0 } else { 0.0 };
+    let nock = bow_c - dir * pull_dist;
+    draw_line(tip_bot.x, tip_bot.y, nock.x, nock.y, 1.0, Color::new(0.95, 0.95, 1.0, 0.9));
+    draw_line(tip_top.x, tip_top.y, nock.x, nock.y, 1.0, Color::new(0.95, 0.95, 1.0, 0.9));
+
+    if is_drawing {
+        let arrow_tip = nock + dir * 16.0;
+        draw_line(nock.x, nock.y, arrow_tip.x, arrow_tip.y, 1.6, WHITE);
+        draw_circle(arrow_tip.x, arrow_tip.y, 2.0, PAL_GOLD_0);
+    }
+}
+
+/// Detailed 16-bit Princess Sita in saffron ascetic sari (feet at `pos`)
+pub fn draw_sita_hermit(pos: Vec2, time: f32) {
+    let x = pos.x;
+    let y = pos.y;
+    let sway = (time * 2.2).sin() * 0.8;
+
+    draw_ellipse(x, y + 1.0, 11.0, 4.0, 0.0, Color::new(0.04, 0.06, 0.05, 0.4));
+
+    // Draped Silk-Saffron Sari skirt with golden zari border
+    draw_rectangle(x - 6.0, y - 16.0, 12.0, 16.0, PAL_SAFFRON_2);
+    draw_rectangle(x - 4.0, y - 15.0, 8.0, 14.0, PAL_SAFFRON_1);
+    draw_rectangle(x - 6.0, y - 3.0, 12.0, 2.5, PAL_GOLD_1);
+    draw_line(x, y - 15.0, x + 1.0, y - 3.0, 1.0, PAL_SAFFRON_3);
+
+    // Upper bodice & pallu shoulder drape
+    draw_rectangle(x - 5.5, y - 26.0, 11.0, 10.0, PAL_SAFFRON_2);
+    draw_line(x - 5.0, y - 26.0, x + 5.0, y - 16.0, 3.0, PAL_SAFFRON_0);
+    draw_line(x - 5.0, y - 26.0, x + 5.0, y - 16.0, 1.0, PAL_GOLD_0);
+
+    // Golden bangles & Anjali prayer hands
+    draw_circle(x + 3.0, y - 20.0, 2.0, PAL_SAND_1);
+    draw_rectangle(x + 1.0, y - 21.0, 2.5, 2.0, PAL_GOLD_1);
+
+    // Face, Sindoor & Jasmine-adorned Braid
+    draw_circle(x, y - 30.5 + sway * 0.3, 5.0, PAL_SAND_1);
+    draw_circle(x + 1.0, y - 31.0 + sway * 0.3, 2.5, PAL_SAND_0);
+    let hair = Color::new(0.10, 0.08, 0.10, 1.0);
+    draw_circle(x - 2.0, y - 33.5 + sway * 0.3, 3.5, hair);
+    draw_circle(x - 4.5, y - 30.0 + sway * 0.3, 2.5, hair);
+    // White jasmine flowers in hair + gold bindi
+    draw_circle(x - 4.0, y - 33.0 + sway * 0.3, 1.4, WHITE);
+    draw_circle(x - 5.5, y - 30.5 + sway * 0.3, 1.2, WHITE);
+    draw_circle(x + 2.0, y - 32.5 + sway * 0.3, 1.0, PAL_RED_1);
+    draw_circle(x + 2.5, y - 30.5 + sway * 0.3, 0.8, BLACK);
+}
+
+/// Multi-layered 16-bit ancient banyan/sal tree with flared roots, striated bark & clustered canopy
+pub fn draw_ancient_forest_tree(
+    x: f32,
+    ground_y: f32,
+    height: f32,
+    trunk_w: f32,
+    variant: usize,
+    time: f32,
+) {
+    let sway = (time * 0.9 + variant as f32 * 1.4).sin() * 1.8;
+    let top_y = ground_y - height;
+    let bark_dark = Color::new(0.15, 0.10, 0.08, 1.0);
+    let bark_mid = Color::new(0.24, 0.16, 0.12, 1.0);
+    let bark_light = Color::new(0.32, 0.22, 0.16, 1.0);
+
+    // Flared buttress roots gripping the earth
+    draw_triangle(
+        vec2(x - trunk_w * 1.15, ground_y + 2.0),
+        vec2(x, ground_y + 2.0),
+        vec2(x - trunk_w * 0.3, ground_y - height * 0.22),
+        bark_dark,
+    );
+    draw_triangle(
+        vec2(x, ground_y + 2.0),
+        vec2(x + trunk_w * 1.15, ground_y + 2.0),
+        vec2(x + trunk_w * 0.3, ground_y - height * 0.22),
+        bark_mid,
+    );
+
+    // Main trunk + striated bark texture
+    draw_rectangle(x - trunk_w * 0.5, top_y + height * 0.2, trunk_w, height * 0.8 + 2.0, bark_dark);
+    draw_rectangle(x - trunk_w * 0.35, top_y + height * 0.22, trunk_w * 0.65, height * 0.78, bark_mid);
+    draw_rectangle(x + trunk_w * 0.05, top_y + height * 0.26, trunk_w * 0.22, height * 0.72, bark_light);
+
+    // Forked upper boughs
+    draw_line(x, top_y + height * 0.32, x - trunk_w * 1.3 + sway, top_y + height * 0.12, trunk_w * 0.35, bark_dark);
+    draw_line(x, top_y + height * 0.30, x + trunk_w * 1.3 + sway, top_y + height * 0.14, trunk_w * 0.35, bark_mid);
+
+    // Hanging banyan aerial vines
+    let vine_col = Color::new(0.20, 0.34, 0.18, 0.85);
+    draw_line(x - trunk_w * 1.1 + sway, top_y + height * 0.22, x - trunk_w * 1.15 + sway * 1.4, ground_y - 16.0, 1.5, vine_col);
+    draw_line(x + trunk_w * 0.9 + sway, top_y + height * 0.24, x + trunk_w * 0.95 + sway * 1.3, ground_y - 24.0, 1.2, vine_col);
+
+    // Multi-lobe pixel canopy (dark shadow -> mid forest green -> sunlit top highlights)
+    let r = trunk_w * 1.7;
+    let cx = x + sway;
+    let cy = top_y + height * 0.14;
+    let leaf_shadow = Color::new(0.08, 0.20, 0.12, 1.0);
+    let leaf_mid = if variant % 2 == 0 {
+        Color::new(0.14, 0.32, 0.17, 1.0)
+    } else {
+        Color::new(0.16, 0.36, 0.18, 1.0)
+    };
+    let leaf_hi = Color::new(0.24, 0.48, 0.22, 1.0);
+
+    // Back shadow clusters
+    draw_circle(cx - r * 0.85, cy + r * 0.25, r * 0.78, leaf_shadow);
+    draw_circle(cx + r * 0.85, cy + r * 0.22, r * 0.78, leaf_shadow);
+    draw_circle(cx, cy + r * 0.32, r * 0.88, leaf_shadow);
+
+    // Mid foliage lobes
+    draw_circle(cx - r * 0.62, cy + r * 0.05, r * 0.72, leaf_mid);
+    draw_circle(cx + r * 0.62, cy + r * 0.04, r * 0.72, leaf_mid);
+    draw_circle(cx, cy - r * 0.22, r * 0.85, leaf_mid);
+
+    // Sunlit crown highlights
+    draw_circle(cx - r * 0.25, cy - r * 0.48, r * 0.48, leaf_hi);
+    draw_circle(cx + r * 0.35, cy - r * 0.32, r * 0.40, leaf_hi);
+}
+
+/// Detailed Vedic Parnashala / Rishi Hermitage Kutir (base centered at `x`, `ground_y`)
+pub fn draw_hermitage_kutir(x: f32, ground_y: f32, time: f32) {
+    // Mudstone raised plinth
+    draw_rectangle(x - 36.0, ground_y - 6.0, 72.0, 8.0, PAL_SAND_4);
+    draw_rectangle(x - 34.0, ground_y - 6.0, 68.0, 3.0, PAL_SAND_3);
+
+    // Bamboo & mud-plaster walls
+    draw_rectangle(x - 28.0, ground_y - 34.0, 56.0, 28.0, Color::new(0.58, 0.44, 0.28, 1.0));
+    draw_rectangle_lines(x - 28.0, ground_y - 34.0, 56.0, 28.0, 1.5, PAL_SAND_4);
+    // Vertical bamboo slats
+    for bx in [-22.0f32, -14.0, 14.0, 22.0] {
+        draw_line(x + bx, ground_y - 34.0, x + bx, ground_y - 6.0, 1.2, Color::new(0.42, 0.30, 0.18, 0.8));
+    }
+
+    // Arched dark doorway
+    draw_rectangle(x - 8.0, ground_y - 26.0, 16.0, 20.0, Color::new(0.14, 0.08, 0.06, 1.0));
+    draw_rectangle_lines(x - 8.0, ground_y - 26.0, 16.0, 20.0, 1.0, PAL_GOLD_3);
+
+    // Pitched Kusha Grass Thatch Roof (3-tone layered)
+    draw_triangle(
+        vec2(x - 38.0, ground_y - 32.0),
+        vec2(x + 38.0, ground_y - 32.0),
+        vec2(x, ground_y - 62.0),
+        Color::new(0.55, 0.40, 0.16, 1.0),
+    );
+    draw_triangle(
+        vec2(x - 32.0, ground_y - 34.0),
+        vec2(x + 32.0, ground_y - 34.0),
+        vec2(x, ground_y - 60.0),
+        Color::new(0.76, 0.58, 0.24, 1.0),
+    );
+    draw_triangle(
+        vec2(x - 20.0, ground_y - 40.0),
+        vec2(x + 20.0, ground_y - 40.0),
+        vec2(x, ground_y - 59.0),
+        PAL_GOLD_1,
+    );
+
+    // Glowing brass Deepa oil lamp at threshold
+    let flicker = (time * 12.0).sin() * 1.2;
+    draw_rectangle(x + 15.0, ground_y - 11.0, 5.0, 5.0, PAL_GOLD_2);
+    draw_circle(x + 17.5, ground_y - 13.0, 3.0 + flicker * 0.5, Color::new(1.0, 0.65, 0.15, 0.55));
+    draw_circle(x + 17.5, ground_y - 13.0, 1.4, PAL_FIRE_0);
 }

@@ -56,6 +56,7 @@ pub enum Astra {
     Vayavyastra,
     Manavastra,
     Agneyastra,
+    Gandharvastra,
     Brahmastra,
 }
 
@@ -65,6 +66,7 @@ pub enum AstraProjectileType {
     Vayavya,
     Manava,
     Agneya,
+    Gandharva,
 }
 
 #[allow(dead_code)]
@@ -75,6 +77,7 @@ impl Astra {
             Astra::Vayavyastra => "Vayavyastra",
             Astra::Manavastra => "Manavastra",
             Astra::Agneyastra => "Agneyastra",
+            Astra::Gandharvastra => "Gandharvastra",
             Astra::Brahmastra => "Brahmastra",
         }
     }
@@ -85,7 +88,8 @@ impl Astra {
             Astra::Vayavyastra => "[2]",
             Astra::Manavastra => "[3]",
             Astra::Agneyastra => "[4]",
-            Astra::Brahmastra => "[5]",
+            Astra::Gandharvastra => "[5]",
+            Astra::Brahmastra => "[6]",
         }
     }
 }

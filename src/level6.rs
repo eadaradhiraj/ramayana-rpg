@@ -1,9 +1,11 @@
 use macroquad::prelude::*;
 use crate::audio::SoundEffects;
 use crate::render::{
-    draw_dialogue_box, draw_pixel_text, draw_reticle, is_dialogue_prev_button_hovered,
+    draw_ancient_forest_tree, draw_dialogue_box, draw_hermitage_kutir, draw_hero_exile,
+    draw_pixel_text, draw_reticle, draw_sita_hermit, is_dialogue_prev_button_hovered,
     COLOR_RAMA_GOLD, PAL_FIRE_1, PAL_GOLD_0, PAL_GOLD_1, PAL_GOLD_2, PAL_GOLD_3,
-    PAL_GRASS_2, PAL_RED_1, PAL_TURMERIC_1, SCREEN_H, SCREEN_W,
+    PAL_GRASS_2, PAL_GRASS_3, PAL_PURPLE_1, PAL_PURPLE_2, PAL_PURPLE_3,
+    PAL_RED_0, PAL_RED_1, PAL_RED_2, PAL_SAFFRON_0, PAL_SAND_1, PAL_TURMERIC_1, SCREEN_H, SCREEN_W,
 };
 use crate::types::{Astra, PlayerStats};
 
@@ -116,9 +118,9 @@ impl Level6Fight {
     pub fn new() -> Self {
         let mut fight = Self {
             phase: Level6Phase::IntroDialogue,
-            rama_pos: vec2(140.0, 240.0),
+            rama_pos: vec2(158.0, 240.0),
             rama_vel: Vec2::ZERO,
-            viradha_pos: vec2(500.0, 225.0),
+            viradha_pos: vec2(495.0, 225.0),
             viradha_facing_left: true,
             trident_hp: 100.0,
             max_trident_hp: 100.0,
@@ -128,9 +130,9 @@ impl Level6Fight {
             left_arm_broken: false,
             right_arm_broken: false,
             trench_progress: 0.0,
-            trench_x: 440.0,
-            lakshmana_pos: vec2(200.0, 240.0),
-            sita_pos: vec2(70.0, 240.0),
+            trench_x: 420.0,
+            lakshmana_pos: vec2(204.0, 240.0),
+            sita_pos: vec2(106.0, 240.0),
 
             attack_timer: 0.0,
             attack_state: 0,
@@ -344,7 +346,7 @@ impl Level6Fight {
         self.phase = Level6Phase::Phase3Excavation;
         self.lakshmana_pos = vec2(self.trench_x - 30.0, 240.0);
         self.action_message = Some((
-            "WEAPONS CANNOT SLAY HIM! DEFEND LAKSHMANA & PRESS [SPACE] AT THE PIT TO DIG!".to_string(),
+            "WEAPONS CANNOT SLAY HIM! PRESS [SPACE] AT PIT TO DIG!".to_string(),
             5.0,
         ));
     }
@@ -796,18 +798,19 @@ impl Level6Fight {
         }
 
         // 3. Characters & Entities
-        // Sita in safety
-        self.draw_sita_safe(self.sita_pos.x, self.sita_pos.y);
+        // Sita in safety beside the Rishi Hermitage Kutir
+        self.draw_sita_safe(self.sita_pos.x, self.sita_pos.y, time);
 
         // Lakshmana
         if self.phase == Level6Phase::Phase3Excavation {
             self.draw_lakshmana_digging(self.lakshmana_pos.x, self.lakshmana_pos.y, time);
         } else {
-            self.draw_lakshmana(self.lakshmana_pos.x, self.lakshmana_pos.y);
+            self.draw_lakshmana(self.lakshmana_pos.x, self.lakshmana_pos.y, time);
         }
 
-        // Prince Rama
-        self.draw_rama(self.rama_pos.x, self.rama_pos.y, time);
+        // Prince Rama (aims toward virtual_mouse)
+        let aim_dir = (virtual_mouse - (self.rama_pos + vec2(0.0, -24.0))).normalize_or_zero();
+        self.draw_rama(self.rama_pos.x, self.rama_pos.y, aim_dir, time);
 
         // Viradha / Tumburu
         if self.phase == Level6Phase::BurialAndAscension {
@@ -826,8 +829,8 @@ impl Level6Fight {
         // Shockwaves
         for sw in &self.shockwaves {
             if sw.active {
-                draw_circle_lines(sw.x, sw.y, sw.radius, 2.0, PAL_FIRE_1);
-                draw_circle(sw.x, sw.y, sw.radius * 0.5, Color::new(1.0, 0.4, 0.1, 0.4));
+                draw_circle_lines(sw.x, sw.y, sw.radius, 2.5, PAL_FIRE_1);
+                draw_circle(sw.x, sw.y, sw.radius * 0.5, Color::new(1.0, 0.4, 0.1, 0.35));
             }
         }
 
@@ -846,24 +849,25 @@ impl Level6Fight {
             draw_rectangle(p.pos.x - p.size * 0.5, p.pos.y - p.size * 0.5, p.size, p.size, col);
         }
 
-        // Floating texts
+        // Floating texts (crisp 8px)
         for ft in &self.floating_texts {
             let alpha = (ft.timer / ft.max_timer).clamp(0.0, 1.0);
             let mut col = ft.color;
             col.a *= alpha;
-            draw_pixel_text(font, &ft.text, ft.pos.x, ft.pos.y, 7, col);
+            draw_pixel_text(font, &ft.text, ft.pos.x, ft.pos.y, 8, col);
         }
 
         // 4. Boss HUD & Quest Objectives
         self.draw_level6_hud(font, stats, time);
 
-        // Top Action Message
+        // Action Message Banner positioned cleanly below HUD (y = 42, auto-sized!)
         if let Some((msg, _)) = &self.action_message {
-            let bw = 480.0;
+            let tw = measure_text(msg, Some(font), 8, 1.0).width + 24.0;
+            let bw = tw.clamp(220.0, SCREEN_W - 24.0);
             let bx = (SCREEN_W - bw) * 0.5;
-            draw_rectangle(bx, 14.0, bw, 22.0, Color::new(0.08, 0.07, 0.12, 0.92));
-            draw_rectangle_lines(bx, 14.0, bw, 22.0, 1.2, PAL_GOLD_1);
-            draw_pixel_text(font, msg, bx + 12.0, 29.0, 7, PAL_GOLD_0);
+            draw_rectangle(bx, 42.0, bw, 22.0, Color::new(0.07, 0.06, 0.12, 0.92));
+            draw_rectangle_lines(bx, 42.0, bw, 22.0, 1.2, PAL_GOLD_1);
+            draw_pixel_text(font, msg, bx + 12.0, 57.0, 8, PAL_GOLD_0);
         }
 
         // Active Dialogue
@@ -876,289 +880,318 @@ impl Level6Fight {
         draw_reticle(virtual_mouse, false);
     }
 
-    // Dandakaranya Forest Environment
+    // Dandakaranya Forest Environment (Multi-layered 16-bit Twilight Forest)
     fn draw_dandaka_forest(&self, time: f32, shake: Vec2) {
-        // Twilight violet/indigo sky
-        draw_rectangle(0.0, 0.0, SCREEN_W, 240.0, Color::new(0.08, 0.06, 0.14, 1.0));
+        // Layered twilight sky gradient strips (deep midnight -> mystic plum)
+        draw_rectangle(0.0, 0.0, SCREEN_W, 70.0, Color::new(0.05, 0.04, 0.11, 1.0));
+        draw_rectangle(0.0, 70.0, SCREEN_W, 70.0, Color::new(0.08, 0.06, 0.16, 1.0));
+        draw_rectangle(0.0, 140.0, SCREEN_W, 60.0, Color::new(0.11, 0.08, 0.19, 1.0));
+        draw_rectangle(0.0, 200.0, SCREEN_W, 42.0, Color::new(0.14, 0.10, 0.22, 1.0));
 
-        // Spores in forest air
-        for i in 0..20 {
-            let sx = (i as f32 * 34.0 + time * 12.0) % SCREEN_W;
-            let sy = 50.0 + ((i * 17) as f32 % 140.0) + (time * 2.0 + i as f32).sin() * 5.0;
-            draw_circle(sx, sy, 1.2, Color::new(0.4, 0.85, 0.7, 0.6));
-        }
+        // Crescent moon veiled behind forest mist
+        draw_circle(540.0, 56.0, 16.0, Color::new(0.95, 0.90, 0.72, 0.85));
+        draw_circle(546.0, 52.0, 14.0, Color::new(0.05, 0.04, 0.11, 1.0));
 
-        // Mountain silhouettes in background
-        for i in 0..6 {
-            let mx = i as f32 * 120.0 - 20.0;
+        // Distant mountain ridge silhouettes
+        for i in 0..7 {
+            let mx = i as f32 * 110.0 - 20.0;
             draw_triangle(
                 vec2(mx, 240.0),
-                vec2(mx + 60.0, 110.0),
-                vec2(mx + 120.0, 240.0),
-                Color::new(0.12, 0.09, 0.18, 0.9),
+                vec2(mx + 55.0, 122.0 + (i % 2) as f32 * 18.0),
+                vec2(mx + 115.0, 240.0),
+                Color::new(0.10, 0.08, 0.16, 0.95),
             );
         }
 
-        // Giant Ancient Sal & Banyan Tree Trunks
-        let trunks = [35.0, 170.0, 310.0, 480.0, 600.0];
-        for (i, tx) in trunks.iter().enumerate() {
-            let sway = (time * 0.8 + i as f32).sin() * 2.0;
-            let trunk_x = *tx + sway + shake.x * 0.3;
-            // Trunk
-            draw_rectangle(trunk_x - 14.0, 30.0, 28.0, 210.0, Color::new(0.18, 0.14, 0.12, 1.0));
-            draw_rectangle(trunk_x - 10.0, 30.0, 8.0, 210.0, Color::new(0.14, 0.10, 0.08, 1.0));
-            // Twisted roots
-            draw_line(trunk_x - 14.0, 230.0, trunk_x - 28.0, 244.0, 3.5, Color::new(0.18, 0.14, 0.12, 1.0));
-            draw_line(trunk_x + 14.0, 230.0, trunk_x + 28.0, 244.0, 3.5, Color::new(0.18, 0.14, 0.12, 1.0));
-
-            // Hanging lianas / vines
-            draw_line(trunk_x - 8.0, 60.0, trunk_x - 12.0, 150.0, 1.5, Color::new(0.24, 0.40, 0.22, 0.8));
-            draw_line(trunk_x + 8.0, 80.0, trunk_x + 10.0, 170.0, 1.5, Color::new(0.24, 0.40, 0.22, 0.8));
-
-            // Canopy foliage
-            draw_circle(trunk_x, 45.0, 42.0, Color::new(0.10, 0.22, 0.14, 0.95));
-            draw_circle(trunk_x - 12.0, 40.0, 34.0, Color::new(0.14, 0.28, 0.18, 0.95));
+        // Background shadow grove silhouettes
+        for i in 0..8 {
+            let bx = i as f32 * 92.0 + 18.0;
+            draw_rectangle(bx - 5.0, 110.0, 10.0, 130.0, Color::new(0.08, 0.10, 0.10, 0.85));
+            draw_circle(bx, 106.0, 26.0, Color::new(0.07, 0.13, 0.10, 0.85));
         }
 
-        // Forest Floor (Moss & Roots)
-        draw_rectangle(0.0, 240.0, SCREEN_W, SCREEN_H - 240.0, Color::new(0.16, 0.26, 0.18, 1.0));
-        draw_rectangle(0.0, 244.0, SCREEN_W, 6.0, Color::new(0.12, 0.20, 0.14, 1.0));
-        draw_line(0.0, 240.0, SCREEN_W, 240.0, 2.0, PAL_GRASS_2);
+        // Magical glowing twilight fireflies & forest spores
+        for i in 0..22 {
+            let sx = (i as f32 * 37.0 + time * 10.0) % SCREEN_W;
+            let sy = 75.0 + ((i * 23) as f32 % 145.0) + (time * 2.4 + i as f32).sin() * 6.0;
+            let pulse = ((time * 3.0 + i as f32).sin() * 0.4 + 0.6).clamp(0.1, 1.0);
+            draw_circle(sx, sy, 1.5, Color::new(0.55, 0.95, 0.65, 0.65 * pulse));
+        }
 
-        // Ancient Forest Hermitage Altar (behind Sita at x = 70.0)
-        draw_rectangle(45.0, 210.0, 50.0, 30.0, Color::new(0.22, 0.20, 0.24, 1.0));
-        draw_rectangle_lines(45.0, 210.0, 50.0, 30.0, 1.5, PAL_GOLD_3);
-        draw_circle(70.0, 205.0, 8.0, Color::new(0.9, 0.5, 0.2, 0.8)); // Sacred deepa lamp
+        // Detailed Multi-layered Ancient Sal & Banyan Trees
+        let trees = [
+            (28.0, 188.0, 20.0, 0),
+            (182.0, 196.0, 22.0, 1),
+            (325.0, 186.0, 20.0, 2),
+            (468.0, 198.0, 22.0, 3),
+            (608.0, 188.0, 20.0, 4),
+        ];
+        for (tx, th, tw, var) in trees {
+            draw_ancient_forest_tree(tx + shake.x * 0.3, 240.0, th, tw, var, time);
+        }
+
+        // Layered Forest Floor: Mossy Grass Bands, Loamy Soil & Wildflowers
+        draw_rectangle(0.0, 240.0, SCREEN_W, 18.0, PAL_GRASS_3);
+        draw_rectangle(0.0, 240.0, SCREEN_W, 4.0, PAL_GRASS_2);
+        draw_rectangle(0.0, 258.0, SCREEN_W, SCREEN_H - 258.0, Color::new(0.13, 0.21, 0.14, 1.0));
+        draw_rectangle(0.0, 286.0, SCREEN_W, SCREEN_H - 286.0, Color::new(0.10, 0.16, 0.11, 1.0));
+
+        // Textured stone pebbles, moss tufts & trail path
+        for i in 0..16 {
+            let gx = i as f32 * 42.0 + 10.0;
+            draw_rectangle(gx, 248.0 + (i % 3) as f32 * 10.0, 8.0, 3.0, Color::new(0.24, 0.36, 0.20, 0.7));
+            draw_circle(gx + 16.0, 266.0 + (i % 2) as f32 * 8.0, 2.2, Color::new(0.32, 0.28, 0.24, 0.7));
+            if i % 3 == 0 {
+                draw_circle(gx + 5.0, 244.0, 1.8, PAL_GOLD_1);
+            }
+        }
+
+        // Low-lying eerie ground mist
+        for i in 0..6 {
+            let mx = ((i as f32 * 120.0) + time * 12.0) % (SCREEN_W + 80.0) - 40.0;
+            draw_ellipse(mx, 238.0, 46.0, 6.0, 0.0, Color::new(0.35, 0.45, 0.52, 0.18));
+        }
+
+        // Hermit Sanctuary Kutir safely on the far left (behind/beside Sita at x=106)
+        draw_hermitage_kutir(52.0, 242.0, time);
     }
 
     fn draw_trench_site(&self, font: &Font, time: f32) {
         let tx = self.trench_x;
-        let tw = 70.0;
-        let th = 18.0 + (self.trench_progress / 100.0) * 22.0;
+        let tw = 74.0;
+        let th = 16.0 + (self.trench_progress / 100.0) * 24.0;
 
-        // Pit hole in earth
-        draw_rectangle(tx - tw * 0.5, 240.0, tw, th, Color::new(0.08, 0.05, 0.04, 1.0));
-        draw_rectangle_lines(tx - tw * 0.5, 240.0, tw, th, 1.5, Color::new(0.35, 0.25, 0.15, 1.0));
+        // Pit hole in earth with layered cliff shading
+        draw_rectangle(tx - tw * 0.5, 240.0, tw, th, Color::new(0.07, 0.04, 0.03, 1.0));
+        draw_rectangle(tx - tw * 0.5 + 4.0, 240.0, tw - 8.0, 4.0, Color::new(0.20, 0.12, 0.08, 1.0));
+        draw_rectangle_lines(tx - tw * 0.5, 240.0, tw, th, 1.5, Color::new(0.45, 0.30, 0.18, 1.0));
 
         // Piles of excavated earth on sides
-        draw_rectangle(tx - tw * 0.5 - 16.0, 235.0, 16.0, 8.0, Color::new(0.30, 0.22, 0.15, 1.0));
-        draw_rectangle(tx + tw * 0.5, 235.0, 16.0, 8.0, Color::new(0.30, 0.22, 0.15, 1.0));
+        draw_triangle(
+            vec2(tx - tw * 0.5 - 22.0, 242.0),
+            vec2(tx - tw * 0.5, 242.0),
+            vec2(tx - tw * 0.5 - 10.0, 231.0),
+            Color::new(0.36, 0.24, 0.15, 1.0),
+        );
+        draw_triangle(
+            vec2(tx + tw * 0.5, 242.0),
+            vec2(tx + tw * 0.5 + 22.0, 242.0),
+            vec2(tx + tw * 0.5 + 10.0, 231.0),
+            Color::new(0.36, 0.24, 0.15, 1.0),
+        );
 
-        // Digging prompt
+        // Digging prompt (crisp 8px)
         if self.phase == Level6Phase::Phase3Excavation {
             let dist = (self.rama_pos.x - tx).abs();
             if dist < 50.0 {
                 let blink = (time * 6.0).sin() > 0.0;
                 let col = if blink { PAL_GOLD_0 } else { WHITE };
-                draw_pixel_text(font, "[SPACE / E] DIG SACRED PIT!", tx - 52.0, 225.0, 7, col);
+                draw_pixel_text(font, "[SPACE / E] DIG PIT!", tx - 72.0, 224.0, 8, col);
             }
         }
     }
 
-    // Viradha Titan Sprite
+    // Viradha Titan Sprite (4-Tone Shaded Demon Boss)
     fn draw_viradha(&self, x: f32, y: f32, time: f32) {
         let breathe = (time * 3.0).sin() * 2.0;
 
-        // Giant Shadow
-        draw_ellipse(x, y + 15.0, 38.0, 10.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.45));
+        // Giant Ground Shadow
+        draw_ellipse(x, y + 16.0, 42.0, 10.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.5));
 
-        // Divine Golden Shield Halo when Brahma's Boon protects body
+        // Divine Golden Brahma's Boon Ward Aura
         if self.phase == Level6Phase::Phase1Trident || self.phase == Level6Phase::Phase2HandToHand {
-            let shield_pulse = ((time * 4.0).sin() * 0.15 + 0.35).clamp(0.0, 1.0);
-            draw_circle_lines(x - 10.0, y - 35.0, 48.0, 1.5, Color::new(1.0, 0.85, 0.3, shield_pulse));
+            let shield_pulse = ((time * 4.0).sin() * 0.15 + 0.40).clamp(0.0, 1.0);
+            draw_circle(x - 2.0, y - 36.0, 50.0, Color::new(1.0, 0.85, 0.3, shield_pulse * 0.18));
+            draw_circle_lines(x - 2.0, y - 36.0, 50.0, 1.5, Color::new(1.0, 0.85, 0.3, shield_pulse));
+            draw_circle_lines(x - 2.0, y - 36.0, 44.0, 1.0, Color::new(1.0, 0.65, 0.2, shield_pulse * 0.7));
         }
 
-        // Feet & Claws
-        draw_rectangle(x - 24.0, y + 5.0, 14.0, 10.0, Color::new(0.28, 0.22, 0.32, 1.0));
-        draw_rectangle(x + 6.0, y + 5.0, 14.0, 10.0, Color::new(0.28, 0.22, 0.32, 1.0));
+        // Clawed Feet & Iron Anklets
+        draw_rectangle(x - 25.0, y + 5.0, 16.0, 10.0, PAL_PURPLE_3);
+        draw_rectangle(x + 7.0, y + 5.0, 16.0, 10.0, PAL_PURPLE_3);
+        draw_rectangle(x - 23.0, y + 2.0, 12.0, 3.0, PAL_GOLD_3);
+        draw_rectangle(x + 9.0, y + 2.0, 12.0, 3.0, PAL_GOLD_3);
 
-        // Massive Muscular Legs
-        draw_rectangle(x - 22.0, y - 20.0, 12.0, 26.0, Color::new(0.32, 0.25, 0.38, 1.0));
-        draw_rectangle(x + 8.0, y - 20.0, 12.0, 26.0, Color::new(0.32, 0.25, 0.38, 1.0));
+        // Muscular Legs (shaded)
+        draw_rectangle(x - 23.0, y - 20.0, 13.0, 24.0, PAL_PURPLE_3);
+        draw_rectangle(x - 21.0, y - 19.0, 9.0, 22.0, PAL_PURPLE_2);
+        draw_rectangle(x + 8.0, y - 20.0, 13.0, 24.0, PAL_PURPLE_3);
+        draw_rectangle(x + 10.0, y - 19.0, 9.0, 22.0, PAL_PURPLE_2);
 
-        // Dark Hide Loincloth & Bronze Belt
-        draw_rectangle(x - 24.0, y - 24.0, 46.0, 16.0, Color::new(0.18, 0.12, 0.10, 1.0));
-        draw_rectangle(x - 24.0, y - 26.0, 46.0, 4.0, PAL_GOLD_3);
+        // Hide Loincloth & Bronze Studded Waistband
+        draw_rectangle(x - 25.0, y - 25.0, 48.0, 16.0, Color::new(0.20, 0.12, 0.10, 1.0));
+        draw_rectangle(x - 25.0, y - 27.0, 48.0, 4.0, PAL_GOLD_2);
+        draw_circle(x - 1.0, y - 25.0, 3.0, PAL_RED_1);
 
-        // Towering Muscular Torso (Broad shoulders)
-        draw_rectangle(x - 30.0, y - 56.0 + breathe, 58.0, 34.0, Color::new(0.36, 0.28, 0.42, 1.0));
-        draw_rectangle(x - 22.0, y - 52.0 + breathe, 42.0, 26.0, Color::new(0.40, 0.32, 0.46, 1.0));
+        // Broad Towering Torso (4-tone Rakshasa Purple Pectoral Shading)
+        draw_rectangle(x - 31.0, y - 58.0 + breathe, 60.0, 34.0, PAL_PURPLE_3);
+        draw_rectangle(x - 28.0, y - 55.0 + breathe, 54.0, 29.0, PAL_PURPLE_2);
+        draw_rectangle(x - 20.0, y - 52.0 + breathe, 16.0, 12.0, PAL_PURPLE_1);
+        draw_rectangle(x + 2.0, y - 52.0 + breathe, 16.0, 12.0, PAL_PURPLE_1);
 
-        // Bone Necklace
+        // Spiked Bronze Pauldrons
+        draw_rectangle(x - 35.0, y - 60.0 + breathe, 16.0, 10.0, PAL_RED_2);
+        draw_rectangle(x + 17.0, y - 60.0 + breathe, 16.0, 10.0, PAL_RED_2);
+        draw_triangle(vec2(x - 33.0, y - 60.0 + breathe), vec2(x - 26.0, y - 60.0 + breathe), vec2(x - 38.0, y - 69.0 + breathe), PAL_GOLD_1);
+        draw_triangle(vec2(x + 24.0, y - 60.0 + breathe), vec2(x + 31.0, y - 60.0 + breathe), vec2(x + 36.0, y - 69.0 + breathe), PAL_GOLD_1);
+
+        // Bone & Skull Garland Necklace
         for i in 0..5 {
-            let bx = x - 20.0 + i as f32 * 10.0;
-            draw_rectangle(bx, y - 56.0 + breathe, 6.0, 4.0, Color::new(0.9, 0.85, 0.75, 1.0));
+            let bx = x - 18.0 + i as f32 * 9.0;
+            draw_circle(bx, y - 53.0 + breathe, 3.0, Color::new(0.92, 0.88, 0.78, 1.0));
+            draw_circle(bx - 1.0, y - 53.0 + breathe, 0.8, BLACK);
+            draw_circle(bx + 1.0, y - 53.0 + breathe, 0.8, BLACK);
         }
 
         // Arms
-        // Left Arm (holding trident in Phase 1, brawler in Phase 2)
         if self.left_arm_broken {
-            // Dangling limp broken arm
-            draw_line(x - 30.0, y - 48.0 + breathe, x - 38.0, y - 20.0, 6.0, Color::new(0.30, 0.22, 0.35, 1.0));
-            draw_line(x - 38.0, y - 20.0, x - 32.0, y + 2.0, 5.0, Color::new(0.30, 0.22, 0.35, 1.0));
-            draw_circle(x - 38.0, y - 20.0, 4.0, PAL_RED_1); // Bone fracture
+            draw_line(x - 30.0, y - 48.0 + breathe, x - 38.0, y - 20.0, 6.0, PAL_PURPLE_3);
+            draw_line(x - 38.0, y - 20.0, x - 32.0, y + 2.0, 5.0, PAL_PURPLE_3);
+            draw_circle(x - 38.0, y - 20.0, 4.0, PAL_RED_1);
         } else {
-            // Strong muscular arm
-            draw_rectangle(x - 42.0, y - 52.0 + breathe, 14.0, 28.0, Color::new(0.36, 0.28, 0.42, 1.0));
-            draw_rectangle(x - 46.0, y - 28.0 + breathe, 12.0, 24.0, Color::new(0.32, 0.25, 0.38, 1.0));
+            draw_rectangle(x - 43.0, y - 52.0 + breathe, 14.0, 26.0, PAL_PURPLE_2);
+            draw_rectangle(x - 46.0, y - 28.0 + breathe, 12.0, 22.0, PAL_PURPLE_1);
             if self.phase == Level6Phase::Phase2HandToHand {
-                // Weak point target indicator at left elbow
                 let blink = (time * 8.0).sin() > 0.0;
                 let col = if blink { PAL_GOLD_0 } else { PAL_RED_1 };
-                draw_circle_lines(x - 42.0, y - 32.0, 7.0, 1.5, col);
+                draw_circle_lines(x - 42.0, y - 32.0, 8.0, 1.8, col);
             }
         }
 
-        // Right Arm
         if self.right_arm_broken {
-            // Dangling limp broken arm
-            draw_line(x + 28.0, y - 48.0 + breathe, x + 34.0, y - 20.0, 6.0, Color::new(0.30, 0.22, 0.35, 1.0));
-            draw_line(x + 34.0, y - 20.0, x + 28.0, y + 2.0, 5.0, Color::new(0.30, 0.22, 0.35, 1.0));
-            draw_circle(x + 34.0, y - 20.0, 4.0, PAL_RED_1); // Bone fracture
+            draw_line(x + 28.0, y - 48.0 + breathe, x + 34.0, y - 20.0, 6.0, PAL_PURPLE_3);
+            draw_line(x + 34.0, y - 20.0, x + 28.0, y + 2.0, 5.0, PAL_PURPLE_3);
+            draw_circle(x + 34.0, y - 20.0, 4.0, PAL_RED_1);
         } else {
-            draw_rectangle(x + 26.0, y - 52.0 + breathe, 14.0, 28.0, Color::new(0.36, 0.28, 0.42, 1.0));
-            draw_rectangle(x + 28.0, y - 28.0 + breathe, 12.0, 24.0, Color::new(0.32, 0.25, 0.38, 1.0));
+            draw_rectangle(x + 27.0, y - 52.0 + breathe, 14.0, 26.0, PAL_PURPLE_2);
+            draw_rectangle(x + 29.0, y - 28.0 + breathe, 12.0, 22.0, PAL_PURPLE_1);
             if self.phase == Level6Phase::Phase2HandToHand {
                 let blink = (time * 8.0).sin() > 0.0;
                 let col = if blink { PAL_GOLD_0 } else { PAL_RED_1 };
-                draw_circle_lines(x + 32.0, y - 32.0, 7.0, 1.5, col);
+                draw_circle_lines(x + 32.0, y - 32.0, 8.0, 1.8, col);
             }
         }
 
-        // Colossal Three-Pronged Iron Trident (Phase 1 only)
+        // Colossal Three-Pronged Blazing Iron Trident (Phase 1 only)
         if self.phase == Level6Phase::Phase1Trident {
             let tr_x = x - 40.0;
             let tr_y = y - 40.0 + breathe;
-            // Long iron shaft
-            draw_line(tr_x, tr_y + 40.0, tr_x - 15.0, tr_y - 45.0, 4.0, Color::new(0.25, 0.25, 0.30, 1.0));
-            // 3 Fiery Prongs
+            draw_line(tr_x, tr_y + 42.0, tr_x - 15.0, tr_y - 45.0, 4.5, Color::new(0.24, 0.25, 0.30, 1.0));
+            draw_line(tr_x - 1.0, tr_y + 42.0, tr_x - 16.0, tr_y - 45.0, 1.5, Color::new(0.55, 0.58, 0.68, 1.0));
             let tip_x = tr_x - 15.0;
             let tip_y = tr_y - 45.0;
-            draw_line(tip_x, tip_y, tip_x - 8.0, tip_y - 25.0, 3.0, Color::new(0.8, 0.8, 0.9, 1.0));
-            draw_line(tip_x, tip_y, tip_x, tip_y - 30.0, 3.5, Color::new(0.9, 0.9, 1.0, 1.0));
-            draw_line(tip_x, tip_y, tip_x + 8.0, tip_y - 25.0, 3.0, Color::new(0.8, 0.8, 0.9, 1.0));
+            draw_line(tip_x - 9.0, tip_y, tip_x + 9.0, tip_y, 3.0, PAL_GOLD_2);
+            draw_line(tip_x - 9.0, tip_y, tip_x - 11.0, tip_y - 24.0, 3.0, Color::new(0.85, 0.88, 0.95, 1.0));
+            draw_line(tip_x, tip_y, tip_x, tip_y - 32.0, 3.5, WHITE);
+            draw_line(tip_x + 9.0, tip_y, tip_x + 11.0, tip_y - 24.0, 3.0, Color::new(0.85, 0.88, 0.95, 1.0));
 
-            // Glowing Trident Joint (Weak point target!)
             let joint_pulse = ((time * 6.0).sin() * 0.3 + 0.7).clamp(0.0, 1.0);
-            draw_circle(tip_x, tip_y, 6.0, Color::new(1.0, 0.3, 0.1, joint_pulse));
-            draw_circle_lines(tip_x, tip_y, 9.0, 1.5, PAL_GOLD_0);
+            draw_circle(tip_x, tip_y, 6.0, Color::new(1.0, 0.35, 0.1, joint_pulse));
+            draw_circle_lines(tip_x, tip_y, 10.0, 1.8, PAL_GOLD_0);
         }
 
-        // Head & Ferocious Demon Face
-        let head_y = y - 72.0 + breathe;
-        draw_rectangle(x - 16.0, head_y, 30.0, 24.0, Color::new(0.36, 0.28, 0.42, 1.0));
+        // Head, Wild Crimson Hair & Curved Tusks
+        let head_y = y - 76.0 + breathe;
+        draw_rectangle(x - 16.0, head_y, 30.0, 22.0, PAL_PURPLE_3);
+        draw_rectangle(x - 14.0, head_y + 2.0, 26.0, 18.0, PAL_PURPLE_2);
 
-        // Wild Matted Black & Blood-Red Hair
+        // Curving Bull Horns
+        draw_line(x - 14.0, head_y + 4.0, x - 24.0, head_y - 8.0, 3.5, PAL_SAND_1);
+        draw_line(x + 12.0, head_y + 4.0, x + 22.0, head_y - 8.0, 3.5, PAL_SAND_1);
+
+        // Wild Matted Crimson/Black Hair
         for i in 0..7 {
-            let hx = x - 22.0 + i as f32 * 7.0;
-            draw_line(hx, head_y + 2.0, hx - 4.0, head_y - 14.0, 3.5, Color::new(0.12, 0.08, 0.10, 1.0));
+            let hx = x - 18.0 + i as f32 * 5.5;
+            draw_line(hx, head_y + 2.0, hx - 2.0, head_y - 11.0, 3.0, Color::new(0.22, 0.08, 0.10, 1.0));
         }
 
-        // Glowing Red Demon Eyes
+        // Glowing Red Eyes + Core Spark
         let eye_glow = ((time * 6.0).sin() * 0.2 + 0.8).clamp(0.0, 1.0);
-        draw_rectangle(x - 10.0, head_y + 8.0, 5.0, 3.0, Color::new(1.0, 0.15, 0.15, eye_glow));
-        draw_rectangle(x + 2.0, head_y + 8.0, 5.0, 3.0, Color::new(1.0, 0.15, 0.15, eye_glow));
+        draw_rectangle(x - 10.0, head_y + 7.0, 6.0, 3.5, Color::new(1.0, 0.15, 0.15, eye_glow));
+        draw_rectangle(x + 2.0, head_y + 7.0, 6.0, 3.5, Color::new(1.0, 0.15, 0.15, eye_glow));
+        draw_rectangle(x - 8.0, head_y + 8.0, 2.0, 1.5, PAL_GOLD_0);
+        draw_rectangle(x + 4.0, head_y + 8.0, 2.0, 1.5, PAL_GOLD_0);
 
-        // Sharp White Tusks curving up from jaw
-        draw_line(x - 8.0, head_y + 20.0, x - 10.0, head_y + 13.0, 2.5, WHITE);
-        draw_line(x + 6.0, head_y + 20.0, x + 8.0, head_y + 13.0, 2.5, WHITE);
+        // Sharp White Tusks
+        draw_triangle(vec2(x - 11.0, head_y + 19.0), vec2(x - 6.0, head_y + 19.0), vec2(x - 10.0, head_y + 11.0), WHITE);
+        draw_triangle(vec2(x + 4.0, head_y + 19.0), vec2(x + 9.0, head_y + 19.0), vec2(x + 8.0, head_y + 11.0), WHITE);
     }
 
     // Celestial Gandharva Tumburu (Ascension)
-    fn draw_tumburu_ascension(&self, x: f32, _time: f32) {
-        let rise_y = 230.0 - (self.ascension_timer * 18.0).min(90.0);
+    fn draw_tumburu_ascension(&self, x: f32, time: f32) {
+        let rise_y = 228.0 - (self.ascension_timer * 18.0).min(88.0);
 
         // Divine Radiant Light Pillar from trench
-        draw_rectangle(x - 30.0, 0.0, 60.0, 240.0, Color::new(1.0, 0.90, 0.50, 0.25));
-        draw_line(x - 20.0, 0.0, x - 20.0, 240.0, 2.0, Color::new(1.0, 0.95, 0.70, 0.4));
-        draw_line(x + 20.0, 0.0, x + 20.0, 240.0, 2.0, Color::new(1.0, 0.95, 0.70, 0.4));
+        draw_rectangle(x - 34.0, 0.0, 68.0, 240.0, Color::new(1.0, 0.90, 0.50, 0.22));
+        draw_rectangle(x - 16.0, 0.0, 32.0, 240.0, Color::new(1.0, 0.96, 0.78, 0.28));
+        draw_line(x - 24.0, 0.0, x - 24.0, 240.0, 1.5, Color::new(1.0, 0.95, 0.70, 0.5));
+        draw_line(x + 24.0, 0.0, x + 24.0, 240.0, 1.5, Color::new(1.0, 0.95, 0.70, 0.5));
 
-        // Celestial Golden Halo
-        draw_circle(x, rise_y - 20.0, 22.0, Color::new(1.0, 0.85, 0.35, 0.8));
-        draw_circle_lines(x, rise_y - 20.0, 26.0, 1.5, PAL_GOLD_0);
+        // Celestial Golden Mandala Halo
+        let h_pulse = (time * 5.0).sin() * 2.0;
+        draw_circle(x, rise_y - 20.0, 24.0 + h_pulse, Color::new(1.0, 0.85, 0.35, 0.65));
+        draw_circle_lines(x, rise_y - 20.0, 28.0 + h_pulse, 1.8, PAL_GOLD_0);
 
-        // Radiant Robes (Pure White and Gold)
+        // Fluttering Silk Uttariya Scarf
+        let scarf_sway = (time * 4.0).sin() * 4.0;
+        draw_line(x - 14.0, rise_y - 10.0, x - 24.0 + scarf_sway, rise_y + 12.0, 3.0, PAL_SAFFRON_0);
+        draw_line(x + 14.0, rise_y - 10.0, x + 24.0 - scarf_sway, rise_y + 12.0, 3.0, PAL_SAFFRON_0);
+
+        // Radiant Robes (Pure White and Gold Trim)
         draw_rectangle(x - 12.0, rise_y - 12.0, 24.0, 30.0, WHITE);
-        draw_rectangle(x - 10.0, rise_y + 2.0, 20.0, 16.0, PAL_GOLD_0);
+        draw_rectangle(x - 10.0, rise_y + 2.0, 20.0, 16.0, PAL_GOLD_1);
+        draw_rectangle_lines(x - 12.0, rise_y - 12.0, 24.0, 30.0, 1.2, PAL_GOLD_2);
 
         // Head & Golden Crown (Kirita)
-        draw_circle(x, rise_y - 20.0, 9.0, Color::new(1.0, 0.88, 0.75, 1.0));
+        draw_circle(x, rise_y - 20.0, 8.5, Color::new(1.0, 0.88, 0.75, 1.0));
         draw_triangle(
-            vec2(x - 7.0, rise_y - 27.0),
-            vec2(x, rise_y - 37.0),
-            vec2(x + 7.0, rise_y - 27.0),
+            vec2(x - 7.0, rise_y - 26.0),
+            vec2(x + 7.0, rise_y - 26.0),
+            vec2(x, rise_y - 38.0),
             PAL_GOLD_0,
         );
+        draw_circle(x, rise_y - 31.0, 2.0, PAL_RED_0);
 
-        // Celestial Veena in Hand
-        draw_line(x - 16.0, rise_y - 5.0, x + 16.0, rise_y - 15.0, 2.5, PAL_GOLD_1);
-        draw_circle(x - 14.0, rise_y - 5.0, 5.0, PAL_TURMERIC_1);
-        draw_circle(x + 14.0, rise_y - 15.0, 4.0, PAL_TURMERIC_1);
+        // Ornate Celestial Veena in Hand
+        draw_line(x - 18.0, rise_y - 4.0, x + 18.0, rise_y - 16.0, 2.8, PAL_GOLD_2);
+        draw_circle(x - 16.0, rise_y - 4.0, 5.5, PAL_TURMERIC_1);
+        draw_circle(x - 16.0, rise_y - 4.0, 2.5, PAL_GOLD_0);
+        draw_circle(x + 16.0, rise_y - 16.0, 4.5, PAL_TURMERIC_1);
     }
 
     fn draw_phantom(&self, x: f32, y: f32, time: f32) {
         let hover = (time * 4.0).sin() * 4.0;
-        draw_ellipse(x, y + 8.0, 16.0, 6.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.3));
-        // Dark spectral body
-        draw_circle(x, y - 12.0 + hover, 10.0, Color::new(0.35, 0.15, 0.45, 0.85));
-        draw_rectangle(x - 8.0, y - 10.0 + hover, 16.0, 16.0, Color::new(0.25, 0.10, 0.35, 0.85));
-        // Glowing purple eyes
-        draw_circle(x - 3.0, y - 13.0 + hover, 1.5, PAL_RED_1);
-        draw_circle(x + 3.0, y - 13.0 + hover, 1.5, PAL_RED_1);
+        draw_ellipse(x, y + 8.0, 16.0, 5.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.35));
+        draw_circle(x, y - 12.0 + hover, 10.0, Color::new(0.32, 0.14, 0.44, 0.88));
+        draw_rectangle(x - 8.0, y - 10.0 + hover, 16.0, 16.0, Color::new(0.22, 0.08, 0.34, 0.88));
+        draw_circle(x - 3.0, y - 13.0 + hover, 1.8, PAL_RED_0);
+        draw_circle(x + 3.0, y - 13.0 + hover, 1.8, PAL_RED_0);
     }
 
-    fn draw_rama(&self, x: f32, y: f32, _time: f32) {
-        // Shadow
-        draw_ellipse(x, y + 2.0, 14.0, 5.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.3));
-
-        // Dhoti & Valkala bark garments
-        draw_rectangle(x - 5.0, y - 14.0, 10.0, 14.0, PAL_TURMERIC_1);
-        draw_rectangle(x - 4.0, y - 26.0, 9.0, 13.0, Color::new(0.70, 0.52, 0.32, 1.0)); // Valkala upper sash
-
-        // Head & Jata (Ascetic hair)
-        draw_circle(x, y - 31.0, 5.5, Color::new(0.38, 0.58, 0.72, 1.0)); // Sky-blue skin
-        draw_circle(x, y - 37.0, 4.0, Color::new(0.12, 0.08, 0.06, 1.0)); // Jata topknot
-
-        // Celestial Kodanda Bow in Hand
-        let bow_x = x + 10.0;
-        let bow_y = y - 24.0;
-        draw_line(bow_x, bow_y - 16.0, bow_x + 5.0, bow_y, 2.0, PAL_GOLD_0);
-        draw_line(bow_x + 5.0, bow_y, bow_x, bow_y + 16.0, 2.0, PAL_GOLD_0);
-
-        // Arrow drawn on bow if holding tension
-        if self.is_drawing {
-            let pull = self.bow_tension * 8.0;
-            draw_line(bow_x - pull, bow_y, bow_x + 12.0, bow_y, 1.5, WHITE);
-            draw_line(bow_x, bow_y - 16.0, bow_x - pull, bow_y, 1.0, PAL_GOLD_2);
-            draw_line(bow_x, bow_y + 16.0, bow_x - pull, bow_y, 1.0, PAL_GOLD_2);
-        }
+    fn draw_rama(&self, x: f32, y: f32, aim_dir: Vec2, time: f32) {
+        draw_hero_exile(vec2(x, y), true, aim_dir, self.bow_tension, self.is_drawing, time);
     }
 
-    fn draw_lakshmana(&self, x: f32, y: f32) {
-        draw_ellipse(x, y + 2.0, 12.0, 4.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.25));
-        draw_rectangle(x - 4.0, y - 14.0, 8.0, 14.0, PAL_GOLD_2);
-        draw_rectangle(x - 4.0, y - 25.0, 8.0, 12.0, Color::new(0.70, 0.52, 0.32, 1.0));
-        draw_circle(x, y - 30.0, 5.0, Color::new(0.92, 0.78, 0.62, 1.0));
-        draw_circle(x, y - 35.0, 3.5, Color::new(0.15, 0.10, 0.08, 1.0));
-        // Bow on shoulder
-        draw_line(x - 6.0, y - 35.0, x - 8.0, y - 10.0, 1.5, PAL_GOLD_1);
+    fn draw_lakshmana(&self, x: f32, y: f32, time: f32) {
+        draw_hero_exile(vec2(x, y), false, vec2(1.0, 0.0), 0.0, false, time);
     }
 
     fn draw_lakshmana_digging(&self, x: f32, y: f32, time: f32) {
         let dig_cycle = (time * 8.0).sin();
-        let dig_y = y + dig_cycle * 3.0;
-        draw_ellipse(x, y + 2.0, 12.0, 4.5, 0.0, Color::new(0.0, 0.0, 0.0, 0.25));
-        draw_rectangle(x - 4.0, dig_y - 12.0, 8.0, 12.0, PAL_GOLD_2);
-        draw_circle(x, dig_y - 22.0, 5.0, Color::new(0.92, 0.78, 0.62, 1.0));
-        // Digging implement / spade
-        draw_line(x + 2.0, dig_y - 10.0, x + 16.0, 244.0, 2.0, Color::new(0.6, 0.6, 0.7, 1.0));
+        let dig_y = y + dig_cycle * 2.5;
+        draw_hero_exile(vec2(x, dig_y), false, vec2(1.0, 0.4), 0.0, false, time);
+        // Digging implement / spade plunging into earth
+        draw_line(x + 4.0, dig_y - 16.0, x + 20.0, 246.0, 2.5, Color::new(0.55, 0.40, 0.25, 1.0));
+        draw_triangle(
+            vec2(x + 17.0, 242.0),
+            vec2(x + 25.0, 242.0),
+            vec2(x + 21.0, 250.0),
+            Color::new(0.75, 0.78, 0.85, 1.0),
+        );
     }
 
-    fn draw_sita_safe(&self, x: f32, y: f32) {
-        draw_ellipse(x, y + 2.0, 11.0, 4.0, 0.0, Color::new(0.0, 0.0, 0.0, 0.2));
-        draw_rectangle(x - 4.0, y - 16.0, 8.0, 16.0, Color::new(0.95, 0.55, 0.25, 1.0)); // Saffron ascetic sari
-        draw_circle(x, y - 24.0, 4.5, Color::new(0.95, 0.82, 0.68, 1.0));
-        draw_circle(x, y - 28.0, 3.5, Color::new(0.10, 0.08, 0.08, 1.0));
+    fn draw_sita_safe(&self, x: f32, y: f32, time: f32) {
+        draw_sita_hermit(vec2(x, y), time);
     }
 
     fn draw_arrow(&self, arrow: &ViradhaArrow) {
@@ -1174,74 +1207,69 @@ impl Level6Fight {
         } else {
             PAL_FIRE_1
         };
-        draw_line(tail.x, tail.y, arrow.pos.x, arrow.pos.y, 2.0, col);
-        draw_circle(arrow.pos.x, arrow.pos.y, 2.0, WHITE);
+        draw_line(tail.x, tail.y, arrow.pos.x, arrow.pos.y, 2.2, col);
+        draw_circle(arrow.pos.x, arrow.pos.y, 2.2, WHITE);
     }
 
     fn draw_level6_hud(&self, font: &Font, stats: &PlayerStats, _time: f32) {
-        // 1. Rama Prana & Tejas (Top-left)
-        let bar_x = 18.0;
-        let bar_y = 12.0;
-        let bar_w = 110.0;
+        // 1. Rama Prana & Tejas (Top-left, cleanly clear of center Boss bar & y=42 action banner)
+        let bar_x = 14.0;
+        let bar_y = 14.0;
+        let bar_w = 112.0;
         let bar_h = 8.0;
 
-        // Prana (HP)
+        draw_pixel_text(font, "PRANA", bar_x, bar_y - 3.0, 8, PAL_GOLD_1);
         draw_rectangle(bar_x, bar_y, bar_w, bar_h, Color::new(0.12, 0.08, 0.10, 0.9));
         let prana_w = (stats.prana as f32 / stats.max_prana as f32).clamp(0.0, 1.0) * (bar_w - 2.0);
         draw_rectangle(bar_x + 1.0, bar_y + 1.0, prana_w, bar_h - 2.0, Color::new(0.85, 0.25, 0.25, 1.0));
         draw_rectangle_lines(bar_x, bar_y, bar_w, bar_h, 1.0, PAL_GOLD_2);
-        draw_pixel_text(font, "PRANA", bar_x, bar_y - 2.0, 6, PAL_GOLD_1);
 
-        // Tejas (MP)
-        draw_rectangle(bar_x, bar_y + 14.0, bar_w, bar_h, Color::new(0.08, 0.10, 0.14, 0.9));
+        draw_pixel_text(font, "TEJAS", bar_x, bar_y + 18.0, 8, Color::new(0.45, 0.85, 1.0, 1.0));
+        draw_rectangle(bar_x, bar_y + 21.0, bar_w, bar_h, Color::new(0.08, 0.10, 0.14, 0.9));
         let tejas_w = (stats.tejas as f32 / stats.max_tejas as f32).clamp(0.0, 1.0) * (bar_w - 2.0);
-        draw_rectangle(bar_x + 1.0, bar_y + 15.0, tejas_w, bar_h - 2.0, Color::new(0.25, 0.65, 0.95, 1.0));
-        draw_rectangle_lines(bar_x, bar_y + 14.0, bar_w, bar_h, 1.0, PAL_GOLD_2);
-        draw_pixel_text(font, "TEJAS", bar_x, bar_y + 12.0, 6, Color::new(0.4, 0.8, 1.0, 1.0));
+        draw_rectangle(bar_x + 1.0, bar_y + 22.0, tejas_w, bar_h - 2.0, Color::new(0.25, 0.65, 0.95, 1.0));
+        draw_rectangle_lines(bar_x, bar_y + 21.0, bar_w, bar_h, 1.0, PAL_GOLD_2);
 
-        // 2. Boss Health / Objective Bar (Top-Center)
-        let boss_x = SCREEN_W * 0.5 - 120.0;
-        let boss_y = 12.0;
-        let boss_w = 240.0;
+        // 2. Boss Health / Objective Bar (Top-Center x=175..465, cleanly separated!)
+        let boss_x = 180.0;
+        let boss_y = 16.0;
+        let boss_w = 280.0;
 
         match self.phase {
             Level6Phase::Phase1Trident => {
-                draw_rectangle(boss_x, boss_y, boss_w, 10.0, Color::new(0.15, 0.08, 0.10, 0.9));
+                draw_pixel_text(font, "TRIDENT JOINT (AIM WEAK POINT!)", boss_x + 14.0, boss_y - 3.0, 8, PAL_GOLD_0);
+                draw_rectangle(boss_x, boss_y, boss_w, 10.0, Color::new(0.15, 0.08, 0.10, 0.92));
                 let pct = (self.trident_hp / self.max_trident_hp).clamp(0.0, 1.0);
                 draw_rectangle(boss_x + 1.0, boss_y + 1.0, (boss_w - 2.0) * pct, 8.0, PAL_FIRE_1);
                 draw_rectangle_lines(boss_x, boss_y, boss_w, 10.0, 1.0, PAL_GOLD_1);
-                draw_pixel_text(font, "IRON TRIDENT JOINT (AIM AT WEAK POINT!)", boss_x + 12.0, boss_y - 2.0, 6, PAL_GOLD_0);
             }
             Level6Phase::Phase2HandToHand => {
-                // Left Arm & Right Arm split bars
                 let half_w = boss_w * 0.48;
-                // Left Arm
-                draw_rectangle(boss_x, boss_y, half_w, 9.0, Color::new(0.15, 0.08, 0.10, 0.9));
+                let l_tag = if self.left_arm_broken { "L.ARM [BROKEN]" } else { "LEFT ARM JOINT" };
+                draw_pixel_text(font, l_tag, boss_x + 4.0, boss_y - 3.0, 8, PAL_GOLD_0);
+                draw_rectangle(boss_x, boss_y, half_w, 10.0, Color::new(0.15, 0.08, 0.10, 0.92));
                 let lp = (self.left_arm_hp / self.max_arm_hp).clamp(0.0, 1.0);
-                draw_rectangle(boss_x + 1.0, boss_y + 1.0, (half_w - 2.0) * lp, 7.0, if self.left_arm_broken { PAL_RED_1 } else { PAL_GOLD_1 });
-                draw_rectangle_lines(boss_x, boss_y, half_w, 9.0, 1.0, PAL_GOLD_2);
-                let l_tag = if self.left_arm_broken { "LEFT ARM [BROKEN]" } else { "LEFT ARM JOINT" };
-                draw_pixel_text(font, l_tag, boss_x + 4.0, boss_y - 2.0, 5, PAL_GOLD_0);
+                draw_rectangle(boss_x + 1.0, boss_y + 1.0, (half_w - 2.0) * lp, 8.0, if self.left_arm_broken { PAL_RED_1 } else { PAL_GOLD_1 });
+                draw_rectangle_lines(boss_x, boss_y, half_w, 10.0, 1.0, PAL_GOLD_2);
 
-                // Right Arm
                 let r_bx = boss_x + half_w + boss_w * 0.04;
-                draw_rectangle(r_bx, boss_y, half_w, 9.0, Color::new(0.15, 0.08, 0.10, 0.9));
+                let r_tag = if self.right_arm_broken { "R.ARM [BROKEN]" } else { "RIGHT ARM JOINT" };
+                draw_pixel_text(font, r_tag, r_bx + 4.0, boss_y - 3.0, 8, PAL_GOLD_0);
+                draw_rectangle(r_bx, boss_y, half_w, 10.0, Color::new(0.15, 0.08, 0.10, 0.92));
                 let rp = (self.right_arm_hp / self.max_arm_hp).clamp(0.0, 1.0);
-                draw_rectangle(r_bx + 1.0, boss_y + 1.0, (half_w - 2.0) * rp, 7.0, if self.right_arm_broken { PAL_RED_1 } else { PAL_GOLD_1 });
-                draw_rectangle_lines(r_bx, boss_y, half_w, 9.0, 1.0, PAL_GOLD_2);
-                let r_tag = if self.right_arm_broken { "RIGHT ARM [BROKEN]" } else { "RIGHT ARM JOINT" };
-                draw_pixel_text(font, r_tag, r_bx + 4.0, boss_y - 2.0, 5, PAL_GOLD_0);
+                draw_rectangle(r_bx + 1.0, boss_y + 1.0, (half_w - 2.0) * rp, 8.0, if self.right_arm_broken { PAL_RED_1 } else { PAL_GOLD_1 });
+                draw_rectangle_lines(r_bx, boss_y, half_w, 10.0, 1.0, PAL_GOLD_2);
             }
             Level6Phase::Phase3Excavation => {
-                draw_rectangle(boss_x, boss_y, boss_w, 10.0, Color::new(0.10, 0.15, 0.10, 0.9));
+                let text = format!("SACRED EARTH TRENCH: {:.0}%", self.trench_progress);
+                draw_pixel_text(font, &text, boss_x + 36.0, boss_y - 3.0, 8, PAL_GOLD_0);
+                draw_rectangle(boss_x, boss_y, boss_w, 10.0, Color::new(0.10, 0.15, 0.10, 0.92));
                 let tp = (self.trench_progress / 100.0).clamp(0.0, 1.0);
                 draw_rectangle(boss_x + 1.0, boss_y + 1.0, (boss_w - 2.0) * tp, 8.0, Color::new(0.35, 0.85, 0.45, 1.0));
                 draw_rectangle_lines(boss_x, boss_y, boss_w, 10.0, 1.0, PAL_GOLD_1);
-                let text = format!("SACRED EARTH TRENCH: {:.0}% (DEFEND PIT!)", self.trench_progress);
-                draw_pixel_text(font, &text, boss_x + 22.0, boss_y - 2.0, 6, PAL_GOLD_0);
             }
             Level6Phase::BurialAndAscension => {
-                draw_pixel_text(font, "★ GANDHARVA TUMBURU ASCENSION — CURSE LIBERATED ★", boss_x - 15.0, boss_y + 6.0, 7, PAL_GOLD_0);
+                draw_pixel_text(font, "★ GANDHARVA TUMBURU ASCENSION ★", boss_x + 14.0, boss_y + 8.0, 8, PAL_GOLD_0);
             }
             _ => {}
         }
@@ -1254,34 +1282,34 @@ impl Level6Fight {
 pub fn draw_victory_l6(font: &Font, time: f32) {
     draw_rectangle(0.0, 0.0, SCREEN_W, SCREEN_H, Color::new(0.06, 0.05, 0.10, 0.96));
 
-    let sway = (time * 5.0).sin() * 3.0;
-    draw_pixel_text(font, "ARANYA KANDA: THE LIBERATION OF VIRADHA!", 65.0, 48.0 + sway, 14, PAL_GOLD_0);
+    let sway = (time * 5.0).sin() * 2.5;
+    draw_pixel_text(font, "ARANYA KANDA: VIRADHA LIBERATED!", 64.0, 42.0 + sway, 16, PAL_GOLD_0);
 
     let sub = "DANDAKARANYA PRIMORDIAL FOREST TRIAL CONQUERED";
-    draw_pixel_text(font, sub, 120.0, 70.0, 7, PAL_TURMERIC_1);
+    draw_pixel_text(font, sub, 128.0, 62.0, 8, PAL_TURMERIC_1);
 
-    let rw_x = 45.0;
-    let rw_y = 88.0;
-    let rw_w = 550.0;
-    let rw_h = 192.0;
+    let rw_x = 34.0;
+    let rw_y = 78.0;
+    let rw_w = 572.0;
+    let rw_h = 208.0;
     draw_rectangle(rw_x, rw_y, rw_w, rw_h, Color::new(0.10, 0.09, 0.16, 0.95));
     draw_rectangle_lines(rw_x, rw_y, rw_w, rw_h, 1.5, PAL_GOLD_1);
 
-    draw_pixel_text(font, "CHAPTER 6 MILESTONES COMPLETED (DANDAKARANYA TRIAL):", rw_x + 16.0, rw_y + 20.0, 8, PAL_GOLD_0);
-    draw_pixel_text(font, "✓ Shattered Iron Trident : Severed weapon joint to disarm the towering giant.", rw_x + 16.0, rw_y + 40.0, 7, WHITE);
-    draw_pixel_text(font, "✓ Broken Demon Arms     : Bypassed Brahma's weapon immunity via joint grapple.", rw_x + 16.0, rw_y + 60.0, 7, WHITE);
-    draw_pixel_text(font, "✓ Sacred Earth Trench   : Lakshmana & Rama excavated the pit to bury Viradha.", rw_x + 16.0, rw_y + 80.0, 7, PAL_GOLD_1);
-    draw_pixel_text(font, "✓ Redemption of Tumburu : Celestial Gandharva liberated from Kubera's curse!", rw_x + 16.0, rw_y + 100.0, 7, Color::new(0.4, 0.9, 0.5, 1.0));
+    draw_pixel_text(font, "CHAPTER 6 MILESTONES (DANDAKARANYA):", rw_x + 16.0, rw_y + 22.0, 8, PAL_GOLD_0);
+    draw_pixel_text(font, "[+] Shattered Trident : Severed iron joint to disarm giant.", rw_x + 16.0, rw_y + 44.0, 8, WHITE);
+    draw_pixel_text(font, "[+] Broken Demon Arms : Bypassed Brahma's weapon immunity.", rw_x + 16.0, rw_y + 64.0, 8, WHITE);
+    draw_pixel_text(font, "[+] Sacred Earth Pit  : Buried Viradha alive with Lakshmana.", rw_x + 16.0, rw_y + 84.0, 8, PAL_GOLD_1);
+    draw_pixel_text(font, "[+] Tumburu Redeemed  : Liberated Gandharva from Kubera curse!", rw_x + 16.0, rw_y + 104.0, 8, Color::new(0.45, 0.92, 0.55, 1.0));
 
     // Next Major Battle Teaser
-    draw_line(rw_x + 16.0, rw_y + 118.0, rw_x + rw_w - 16.0, rw_y + 118.0, 1.0, PAL_GOLD_3);
-    draw_pixel_text(font, "★ NEXT: LEVEL 7 — PANCHAVATI & THE 14,000 RAKSHASA HOST ★", rw_x + 16.0, rw_y + 135.0, 8, PAL_FIRE_1);
-    draw_pixel_text(font, "At sacred Panchavati on the Godavari, demon generals Khara, Dushana,", rw_x + 16.0, rw_y + 152.0, 7, Color::new(0.9, 0.8, 0.8, 1.0));
-    draw_pixel_text(font, "and Trishiras march with 14,000 Rakshasas! Rama stands alone as Eka-Vira!", rw_x + 16.0, rw_y + 167.0, 7, Color::new(0.9, 0.8, 0.8, 1.0));
+    draw_line(rw_x + 16.0, rw_y + 122.0, rw_x + rw_w - 16.0, rw_y + 122.0, 1.0, PAL_GOLD_3);
+    draw_pixel_text(font, "★ NEXT: LEVEL 7 — PANCHAVATI & THE 14,000 RAKSHASA HOST ★", rw_x + 16.0, rw_y + 142.0, 8, PAL_FIRE_1);
+    draw_pixel_text(font, "At sacred Panchavati on the Godavari, generals Khara, Dushana,", rw_x + 16.0, rw_y + 162.0, 8, Color::new(0.92, 0.85, 0.85, 1.0));
+    draw_pixel_text(font, "and Trishiras march with 14,000 Rakshasas! Stand as Eka-Vira!", rw_x + 16.0, rw_y + 180.0, 8, Color::new(0.92, 0.85, 0.85, 1.0));
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        draw_pixel_text(font, "PRESS SPACE OR CLICK TO RETURN TO CHAPTER SELECT ▶", 90.0, 305.0, 9, PAL_GOLD_0);
+        draw_pixel_text(font, "PRESS [SPACE] OR CLICK TO FACE LEVEL 7: PANCHAVATI ▶", 88.0, 310.0, 8, PAL_GOLD_0);
     }
-    draw_pixel_text(font, "Press [R] to Replay Chapter 6 (Ambush of Viradha)", 150.0, 330.0, 8, Color::new(0.7, 0.7, 0.7, 1.0));
+    draw_pixel_text(font, "Press [R] to Replay Chapter 6 (Viradha Ambush)", 136.0, 334.0, 8, Color::new(0.75, 0.75, 0.80, 1.0));
 }

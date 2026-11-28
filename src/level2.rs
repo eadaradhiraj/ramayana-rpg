@@ -713,6 +713,7 @@ impl Level2Fight {
                 AstraProjectileType::Vayavya => Color::new(0.6, 0.95, 1.0, 0.7),
                 AstraProjectileType::Manava => Color::new(0.3, 0.7, 1.0, 0.9),
                 AstraProjectileType::Agneya => Color::new(1.0, 0.45, 0.1, 0.9),
+                AstraProjectileType::Gandharva => Color::new(0.75, 0.55, 0.95, 0.9),
             };
             self.particles.push(Particle {
                 pos: proj.pos,
