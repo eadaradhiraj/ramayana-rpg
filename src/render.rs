@@ -1266,8 +1266,8 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
     let title = "RAMAYANA: THE RETRO EPIC";
     draw_pixel_text(font, title, 128.0, 30.0, 16, PAL_GOLD_0);
 
-    let sub = "BALA, AYODHYA & ARANYA KANDAS — VEDIC RETRO RPG";
-    draw_pixel_text(font, sub, 124.0, 48.0, 8, PAL_TURMERIC_1);
+    let sub = "BALA TO KISHKINDHA KANDAS — VEDIC RETRO RPG";
+    draw_pixel_text(font, sub, 128.0, 48.0, 8, PAL_TURMERIC_1);
 
     // Decorative Bow & Arrow Divider
     draw_line(110.0, 57.0, 530.0, 57.0, 2.0, PAL_GOLD_2);
@@ -1342,10 +1342,17 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
             Color::new(0.30, 0.22, 0.08, 0.95),
             Color::new(0.16, 0.13, 0.07, 0.65),
         ),
+        (
+            "[9] KISHKINDHA | HANUMAN, 7 SAL TREES & VALI DUEL",
+            "Meet Sri Hanuman, pierce 7 Sal trees in 1 shot & crown Sugriva at Kishkindha!",
+            Color::new(0.98, 0.62, 0.22, 1.0),
+            Color::new(0.32, 0.18, 0.10, 0.95),
+            Color::new(0.17, 0.11, 0.07, 0.65),
+        ),
     ];
 
     let row_start_y = box_y + 6.0;
-    let row_h = 18.0;
+    let row_h = 17.0;
     let row_gap = 1.5;
 
     for (i, (label, _desc, col, hov_bg, norm_bg)) in rows.iter().enumerate() {
@@ -1360,14 +1367,14 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
         );
         if is_hov {
             draw_rectangle_lines(box_x + 10.0, ry, box_w - 20.0, row_h, 1.0, PAL_GOLD_0);
-            draw_pixel_text(font, "▶ PLAY", box_x + box_w - 64.0, ry + 13.0, 8, PAL_GOLD_0);
+            draw_pixel_text(font, "▶ PLAY", box_x + box_w - 64.0, ry + 12.0, 8, PAL_GOLD_0);
         }
-        draw_pixel_text(font, label, box_x + 18.0, ry + 13.0, 8, *col);
+        draw_pixel_text(font, label, box_x + 18.0, ry + 12.0, 8, *col);
     }
 
-    // Chapter Showcase Button (row 8 -> action 8)
-    let btn_y = row_start_y + 8.0 * (row_h + row_gap) + 2.0;
-    let btn_hov = hovered_action == Some(8);
+    // Chapter Showcase Button (row 9 -> action 9)
+    let btn_y = row_start_y + 9.0 * (row_h + row_gap) + 2.0;
+    let btn_hov = hovered_action == Some(9);
     draw_rectangle(
         box_x + 10.0,
         btn_y,
@@ -1404,7 +1411,7 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
         } else {
             (
                 "CHAPTER SHOWCASE:",
-                "Inspect animated dioramas, Astras, and objectives for all 8 chapters.",
+                "Inspect animated dioramas, Astras, and objectives for all 9 chapters.",
                 PAL_GOLD_0,
             )
         }
@@ -1423,7 +1430,7 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        let prompt = "▶ PRESS [1]-[8] TO PLAY, [L] SHOWCASE, OR [SPACE] ◀";
+        let prompt = "▶ PRESS [1]-[9] TO PLAY, [L] SHOWCASE, OR [SPACE] ◀";
         draw_pixel_text(font, prompt, 96.0, 338.0, 8, PAL_GOLD_1);
     }
 
@@ -1560,6 +1567,19 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
             ],
             "Jatayu Sky Duel",
         ),
+        (
+            8,
+            "[9] KISHKINDHA",
+            "Kishkindha • Hanuman & Vali",
+            Color::new(0.98, 0.62, 0.22, 1.0),
+            Color::new(1.0, 0.85, 0.55, 1.0),
+            vec![
+                "Flick Dundubhi's skeleton & pierce 7 Sal trees in 1 shot.",
+                "Duel invincible King Vali as Sugriva at Kishkindha Gate.",
+                "Wear Gajapushpi garland & loose Dharma-Bana to crown Sugriva!",
+            ],
+            "7 Sal Trees & Vali Duel",
+        ),
     ];
 
     let hovered_idx = get_level_select_card_at(virtual_mouse);
@@ -1576,10 +1596,10 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
     draw_rectangle_lines(list_x, list_y, list_w, list_h, 1.5, PAL_GOLD_3);
 
     for (idx, title_str, sub_str, title_col, _sub_col, _bullets, _key) in &chapters {
-        let ry = list_y + 6.0 + (*idx as f32) * 32.0;
+        let ry = list_y + 5.0 + (*idx as f32) * 28.5;
         let rx = list_x + 8.0;
         let rw = list_w - 16.0;
-        let rh = 29.0;
+        let rh = 26.5;
 
         let is_sel = active_idx == *idx;
         let is_hov = hovered_idx == Some(*idx);
@@ -1605,11 +1625,11 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
         // Side Kanda color bar
         draw_rectangle(rx + 2.0, ry + 2.0, 4.0, rh - 4.0, *title_col);
 
-        draw_pixel_text(font, title_str, rx + 10.0, ry + 13.0, 8, if is_sel { PAL_GOLD_0 } else { *title_col });
-        draw_pixel_text(font, sub_str, rx + 10.0, ry + 24.0, 8, Color::new(0.75, 0.76, 0.84, 1.0));
+        draw_pixel_text(font, title_str, rx + 10.0, ry + 11.5, 8, if is_sel { PAL_GOLD_0 } else { *title_col });
+        draw_pixel_text(font, sub_str, rx + 10.0, ry + 22.0, 8, Color::new(0.75, 0.76, 0.84, 1.0));
 
         if is_sel {
-            draw_pixel_text(font, "▶", rx + rw - 16.0, ry + 17.0, 8, PAL_GOLD_0);
+            draw_pixel_text(font, "▶", rx + rw - 16.0, ry + 15.5, 8, PAL_GOLD_0);
         }
     }
 
@@ -1740,7 +1760,7 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
             }
             draw_hero_exile(vec2(dx + 78.0, dy + 68.0), true, vec2(1.0, -0.1), 0.9, true, time);
         }
-        _ => {
+        7 => {
             // Level 8 Golden Deer & Jatayu Sky Duel diorama
             draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, 52.0, Color::new(0.16, 0.24, 0.42, 1.0));
             draw_rectangle(dx + 2.0, dy + 54.0, dw - 4.0, dh - 56.0, PAL_GRASS_3);
@@ -1762,6 +1782,29 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
             let vy = dy + 28.0;
             draw_rectangle(vx - 18.0, vy, 36.0, 10.0, PAL_GOLD_1);
             draw_circle(vx, vy - 8.0, 6.0, PAL_RED_1);
+        }
+        _ => {
+            // Level 9 Kishkindha Diorama: Rishyamuka Hills, 7 Sal Trees & Hanuman/Sugriva/Vali
+            draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, 48.0, Color::new(0.24, 0.34, 0.56, 1.0));
+            draw_triangle(vec2(dx + 120.0, dy + 56.0), vec2(dx + 220.0, dy + 56.0), vec2(dx + 170.0, dy + 14.0), Color::new(0.32, 0.25, 0.32, 1.0));
+            draw_rectangle(dx + 2.0, dy + 50.0, dw - 4.0, 12.0, Color::new(0.16, 0.46, 0.68, 1.0));
+            draw_rectangle(dx + 2.0, dy + 62.0, dw - 4.0, dh - 64.0, PAL_GRASS_2);
+            // Miniature 7 Sal Tree silhouettes glowing along arrow line
+            for s in 0..7 {
+                let sx = dx + 92.0 + s as f32 * 14.0;
+                let sy = dy + 68.0 - s as f32 * 1.5;
+                draw_rectangle(sx - 2.0, sy - 22.0, 4.0, 22.0, Color::new(0.30, 0.20, 0.14, 1.0));
+                draw_circle(sx, sy - 26.0, 6.0, PAL_GRASS_1);
+            }
+            // Golden Arrow Ray across the 7 trees
+            draw_line(dx + 72.0, dy + 54.0, dx + 195.0, dy + 44.0, 1.5, PAL_GOLD_0);
+            // Hanuman (left) & Sugriva vs Vali (right)
+            draw_circle(dx + 48.0, dy + 62.0, 5.0, PAL_GOLD_0);
+            draw_rectangle(dx + 44.0, dy + 66.0, 8.0, 10.0, PAL_SAFFRON_1);
+            let clash = (time * 6.0).sin() * 6.0;
+            draw_circle(dx + 225.0 + clash, dy + 62.0, 5.0, PAL_SAND_1);
+            draw_circle(dx + 258.0 - clash, dy + 60.0, 6.0, PAL_RED_1);
+            draw_circle_lines(dx + 258.0 - clash, dy + 64.0, 8.0, 1.2, PAL_GOLD_0);
         }
     }
 
@@ -1802,7 +1845,7 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
     draw_line(24.0, nav_y, SCREEN_W - 24.0, nav_y, 1.0, Color::new(0.35, 0.30, 0.42, 0.8));
     draw_pixel_text(
         font,
-        "[W/S/1-8/Mouse] Select Chapter   |   [ENTER / CLICK] Launch",
+        "[W/S/1-9/Mouse] Select Chapter   |   [ENTER / CLICK] Launch",
         68.0,
         336.0,
         8,
@@ -1823,19 +1866,19 @@ pub fn get_title_screen_action_at(mouse: Vec2) -> Option<usize> {
     let box_y = 62.0;
     let box_w = 584.0;
     let row_start_y = box_y + 6.0;
-    let row_h = 18.0;
+    let row_h = 17.0;
     let row_gap = 1.5;
 
     if mouse.x >= box_x + 10.0 && mouse.x <= box_x + box_w - 10.0 {
-        for i in 0..8 {
+        for i in 0..9 {
             let ry = row_start_y + i as f32 * (row_h + row_gap);
             if mouse.y >= ry && mouse.y < ry + row_h {
                 return Some(i);
             }
         }
-        let btn_y = row_start_y + 8.0 * (row_h + row_gap) + 2.0;
+        let btn_y = row_start_y + 9.0 * (row_h + row_gap) + 2.0;
         if mouse.y >= btn_y && mouse.y <= btn_y + 20.0 {
-            return Some(8); // Full Chapter Showcase
+            return Some(9); // Full Chapter Showcase
         }
     }
     None
@@ -1847,9 +1890,9 @@ pub fn get_level_select_card_at(mouse: Vec2) -> Option<usize> {
     let list_w = 272.0;
 
     if mouse.x >= list_x + 8.0 && mouse.x <= list_x + list_w - 8.0 {
-        for idx in 0..8 {
-            let ry = list_y + 6.0 + (idx as f32) * 32.0;
-            if mouse.y >= ry && mouse.y <= ry + 29.0 {
+        for idx in 0..9 {
+            let ry = list_y + 5.0 + (idx as f32) * 28.5;
+            if mouse.y >= ry && mouse.y <= ry + 26.5 {
                 return Some(idx);
             }
         }
