@@ -8,6 +8,7 @@ mod level4;
 mod level5;
 mod level6;
 mod level7;
+mod level8;
 mod render;
 mod types;
 
@@ -19,6 +20,7 @@ use level4::{draw_victory_l4, FightResultL4, Level4Fight};
 use level5::{draw_victory_l5, FightResultL5, Level5Fight};
 use level6::{draw_victory_l6, FightResultL6, Level6Fight};
 use level7::{draw_victory_l7, FightResultL7, Level7Fight};
+use level8::{draw_victory_l8, FightResultL8, Level8Fight};
 use render::*;
 use types::*;
 
@@ -62,6 +64,7 @@ async fn main() {
     let mut level6_fight = Level6Fight::new();
     let mut dummy_stats = PlayerStats::default();
     let mut level7_fight = Level7Fight::new(&mut dummy_stats);
+    let mut level8_fight = Level8Fight::new(&mut dummy_stats);
     let mut global_time: f32 = 0.0;
 
     loop {
@@ -174,6 +177,10 @@ async fn main() {
                     sounds.play(&sounds.conch, 0.9);
                     level7_fight = Level7Fight::new(&mut stats);
                     game_state = GameState::Playing(LevelId::L7Panchavati);
+                } else if is_key_pressed(KeyCode::Key8) {
+                    sounds.play(&sounds.bell, 0.8);
+                    level8_fight = Level8Fight::new(&mut stats);
+                    game_state = GameState::Playing(LevelId::L8MarichaJatayu);
                 } else if is_mouse_button_pressed(MouseButton::Left) {
                     sounds.play(&sounds.shoot, 0.7);
                     match get_title_screen_action_at(virtual_mouse) {
@@ -261,6 +268,11 @@ async fn main() {
                             level7_fight = Level7Fight::new(&mut stats);
                             game_state = GameState::Playing(LevelId::L7Panchavati);
                         }
+                        Some(7) => {
+                            sounds.play(&sounds.bell, 0.8);
+                            level8_fight = Level8Fight::new(&mut stats);
+                            game_state = GameState::Playing(LevelId::L8MarichaJatayu);
+                        }
                         _ => {
                             game_state = GameState::LevelSelect { selected: 0 };
                         }
@@ -281,14 +293,14 @@ async fn main() {
                     || is_key_pressed(KeyCode::Left)
                     || is_key_pressed(KeyCode::A)
                 {
-                    *selected = (*selected + 6) % 7;
+                    *selected = (*selected + 7) % 8;
                     sounds.play(&sounds.shoot, 0.3);
                 } else if is_key_pressed(KeyCode::Down)
                     || is_key_pressed(KeyCode::S)
                     || is_key_pressed(KeyCode::Right)
                     || is_key_pressed(KeyCode::D)
                 {
-                    *selected = (*selected + 1) % 7;
+                    *selected = (*selected + 1) % 8;
                     sounds.play(&sounds.shoot, 0.3);
                 }
 
@@ -307,6 +319,8 @@ async fn main() {
                     *selected = 5;
                 } else if is_key_pressed(KeyCode::Key7) {
                     *selected = 6;
+                } else if is_key_pressed(KeyCode::Key8) {
+                    *selected = 7;
                 }
 
                 // Click on left roster selects (or double-clicks to launch); click on Launch button launches immediately
@@ -411,10 +425,15 @@ async fn main() {
                             level6_fight = Level6Fight::new();
                             game_state = GameState::Playing(LevelId::L6Viradha);
                         }
-                        _ => {
+                        6 => {
                             sounds.play(&sounds.conch, 0.9);
                             level7_fight = Level7Fight::new(&mut stats);
                             game_state = GameState::Playing(LevelId::L7Panchavati);
+                        }
+                        _ => {
+                            sounds.play(&sounds.bell, 0.8);
+                            level8_fight = Level8Fight::new(&mut stats);
+                            game_state = GameState::Playing(LevelId::L8MarichaJatayu);
                         }
                     }
                 }
@@ -685,6 +704,23 @@ async fn main() {
                                 FightResultL7::Continue => {}
                             }
                         }
+                        LevelId::L8MarichaJatayu => {
+                            let interact = is_key_pressed(KeyCode::Space)
+                                || is_key_pressed(KeyCode::Enter)
+                                || is_mouse_button_pressed(MouseButton::Left);
+                            let fight_result = level8_fight.update(dt, &sounds, &mut stats, virtual_mouse, interact);
+                            level8_fight.draw(&font, global_time, &stats, virtual_mouse);
+
+                            match fight_result {
+                                FightResultL8::Victory => {
+                                    game_state = GameState::LevelComplete(LevelId::L8MarichaJatayu);
+                                }
+                                FightResultL8::Defeat => {
+                                    game_state = GameState::GameOver(LevelId::L8MarichaJatayu);
+                                }
+                                FightResultL8::Continue => {}
+                            }
+                        }
                         _ => {
                             draw_pixel_text(&font, "COMING SOON IN KISHKINDHA KANDA", 140.0, 180.0, 8, WHITE);
                         }
@@ -715,6 +751,9 @@ async fn main() {
                     }
                     LevelId::L7Panchavati => {
                         level7_fight.draw(&font, global_time, &stats, virtual_mouse);
+                    }
+                    LevelId::L8MarichaJatayu => {
+                        level8_fight.draw(&font, global_time, &stats, virtual_mouse);
                     }
                     _ => {}
                 }
@@ -805,6 +844,10 @@ async fn main() {
                                     level7_fight = Level7Fight::new(&mut stats);
                                     game_state = GameState::Playing(LevelId::L7Panchavati);
                                 }
+                                LevelId::L8MarichaJatayu => {
+                                    level8_fight = Level8Fight::new(&mut stats);
+                                    game_state = GameState::Playing(LevelId::L8MarichaJatayu);
+                                }
                                 _ => {}
                             }
                         }
@@ -817,7 +860,8 @@ async fn main() {
                                 LevelId::L4Ayodhya => 3,
                                 LevelId::L5Chitrakuta => 4,
                                 LevelId::L6Viradha => 5,
-                                _ => 6,
+                                LevelId::L7Panchavati => 6,
+                                _ => 7,
                             };
                             game_state = GameState::LevelSelect { selected: card_sel };
                         }
@@ -1056,12 +1100,29 @@ async fn main() {
                             || is_key_pressed(KeyCode::Enter)
                             || is_mouse_button_pressed(MouseButton::Left)
                         {
-                            sounds.play(&sounds.shoot, 0.6);
-                            game_state = GameState::LevelSelect { selected: 6 };
+                            sounds.play(&sounds.bell, 0.8);
+                            level8_fight = Level8Fight::new(&mut stats);
+                            game_state = GameState::Playing(LevelId::L8MarichaJatayu);
                         }
                         if is_key_pressed(KeyCode::R) {
                             level7_fight = Level7Fight::new(&mut stats);
                             game_state = GameState::Playing(LevelId::L7Panchavati);
+                        }
+                    }
+                    LevelId::L8MarichaJatayu => {
+                        draw_victory_l8(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::Space)
+                            || is_key_pressed(KeyCode::Enter)
+                            || is_mouse_button_pressed(MouseButton::Left)
+                        {
+                            sounds.play(&sounds.shoot, 0.6);
+                            game_state = GameState::LevelSelect { selected: 7 };
+                        }
+                        if is_key_pressed(KeyCode::R) {
+                            level8_fight = Level8Fight::new(&mut stats);
+                            game_state = GameState::Playing(LevelId::L8MarichaJatayu);
                         }
                     }
                     _ => {}
@@ -1131,6 +1192,15 @@ async fn main() {
                         if is_key_pressed(KeyCode::R) || is_mouse_button_pressed(MouseButton::Left) {
                             level7_fight = Level7Fight::new(&mut stats);
                             game_state = GameState::Playing(LevelId::L7Panchavati);
+                        }
+                    }
+                    LevelId::L8MarichaJatayu => {
+                        draw_game_over(&font, global_time);
+                        draw_reticle(virtual_mouse, false);
+
+                        if is_key_pressed(KeyCode::R) || is_mouse_button_pressed(MouseButton::Left) {
+                            level8_fight = Level8Fight::new(&mut stats);
+                            game_state = GameState::Playing(LevelId::L8MarichaJatayu);
                         }
                     }
                     _ => {}

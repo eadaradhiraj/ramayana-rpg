@@ -1276,9 +1276,9 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
 
     // Main Menu Panel
     let box_x = 28.0;
-    let box_y = 66.0;
+    let box_y = 62.0;
     let box_w = 584.0;
-    let box_h = 256.0;
+    let box_h = 262.0;
     draw_rectangle(box_x, box_y, box_w, box_h, Color::new(0.08, 0.07, 0.13, 0.95));
     draw_rectangle_lines(box_x, box_y, box_w, box_h, 2.0, PAL_GOLD_2);
     draw_rectangle_lines(box_x + 3.0, box_y + 3.0, box_w - 6.0, box_h - 6.0, 1.0, Color::new(0.45, 0.34, 0.16, 0.6));
@@ -1335,11 +1335,18 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
             Color::new(0.32, 0.15, 0.10, 0.95),
             Color::new(0.18, 0.10, 0.08, 0.65),
         ),
+        (
+            "[8] ARANYA  | GOLDEN DEER MARICHA & JATAYU SKY DUEL",
+            "Hunt the Maya Golden Deer, draw Lakshmana Rekha & battle Ravana as Jatayu!",
+            Color::new(1.0, 0.84, 0.22, 1.0),
+            Color::new(0.30, 0.22, 0.08, 0.95),
+            Color::new(0.16, 0.13, 0.07, 0.65),
+        ),
     ];
 
-    let row_start_y = box_y + 8.0;
-    let row_h = 20.0;
-    let row_gap = 2.0;
+    let row_start_y = box_y + 6.0;
+    let row_h = 18.0;
+    let row_gap = 1.5;
 
     for (i, (label, _desc, col, hov_bg, norm_bg)) in rows.iter().enumerate() {
         let ry = row_start_y + i as f32 * (row_h + row_gap);
@@ -1353,26 +1360,26 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
         );
         if is_hov {
             draw_rectangle_lines(box_x + 10.0, ry, box_w - 20.0, row_h, 1.0, PAL_GOLD_0);
-            draw_pixel_text(font, "▶ PLAY", box_x + box_w - 64.0, ry + 14.0, 8, PAL_GOLD_0);
+            draw_pixel_text(font, "▶ PLAY", box_x + box_w - 64.0, ry + 13.0, 8, PAL_GOLD_0);
         }
-        draw_pixel_text(font, label, box_x + 18.0, ry + 14.0, 8, *col);
+        draw_pixel_text(font, label, box_x + 18.0, ry + 13.0, 8, *col);
     }
 
-    // Chapter Showcase Button (row 7 -> action 7)
-    let btn_y = row_start_y + 7.0 * (row_h + row_gap) + 3.0;
-    let btn_hov = hovered_action == Some(7);
+    // Chapter Showcase Button (row 8 -> action 8)
+    let btn_y = row_start_y + 8.0 * (row_h + row_gap) + 2.0;
+    let btn_hov = hovered_action == Some(8);
     draw_rectangle(
         box_x + 10.0,
         btn_y,
         box_w - 20.0,
-        22.0,
+        20.0,
         if btn_hov { Color::new(0.25, 0.19, 0.36, 1.0) } else { Color::new(0.16, 0.13, 0.25, 1.0) },
     );
     draw_rectangle_lines(
         box_x + 10.0,
         btn_y,
         box_w - 20.0,
-        22.0,
+        20.0,
         1.2,
         if btn_hov { PAL_GOLD_0 } else { PAL_GOLD_2 },
     );
@@ -1380,14 +1387,14 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
         font,
         "▶ PRESS [L], [TAB] OR CLICK FOR CHAPTER SHOWCASE & DIORAMAS ◀",
         box_x + 42.0,
-        btn_y + 15.0,
+        btn_y + 14.0,
         8,
         PAL_GOLD_0,
     );
 
     // Dynamic Preview / Controls Box inside panel (crisp 8px text)
-    let info_y = btn_y + 27.0;
-    let info_h = box_y + box_h - info_y - 8.0;
+    let info_y = btn_y + 24.0;
+    let info_h = box_y + box_h - info_y - 6.0;
     draw_rectangle(box_x + 10.0, info_y, box_w - 20.0, info_h, Color::new(0.05, 0.05, 0.09, 0.9));
     draw_rectangle_lines(box_x + 10.0, info_y, box_w - 20.0, info_h, 1.0, Color::new(0.32, 0.26, 0.40, 0.8));
 
@@ -1397,7 +1404,7 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
         } else {
             (
                 "CHAPTER SHOWCASE:",
-                "Inspect animated dioramas, Astras, and objectives for all 7 chapters.",
+                "Inspect animated dioramas, Astras, and objectives for all 8 chapters.",
                 PAL_GOLD_0,
             )
         }
@@ -1408,15 +1415,15 @@ pub fn draw_title_screen(font: &Font, time: f32, virtual_mouse: Vec2) {
             Color::new(0.82, 0.90, 0.82, 1.0),
         )
     };
-    draw_pixel_text(font, info_title, box_x + 18.0, info_y + 14.0, 8, info_col);
+    draw_pixel_text(font, info_title, box_x + 18.0, info_y + 13.0, 8, info_col);
     let wrapped_info = wrap_pixel_text(font, info_body, 8, box_w - 40.0);
     for (idx, line) in wrapped_info.iter().take(2).enumerate() {
-        draw_pixel_text(font, line, box_x + 18.0, info_y + 27.0 + idx as f32 * 12.0, 8, WHITE);
+        draw_pixel_text(font, line, box_x + 18.0, info_y + 26.0 + idx as f32 * 11.5, 8, WHITE);
     }
 
     let blink = (time * 4.0).sin() > 0.0;
     if blink {
-        let prompt = "▶ PRESS [1]-[7] TO PLAY, [L] SHOWCASE, OR [SPACE] ◀";
+        let prompt = "▶ PRESS [1]-[8] TO PLAY, [L] SHOWCASE, OR [SPACE] ◀";
         draw_pixel_text(font, prompt, 96.0, 338.0, 8, PAL_GOLD_1);
     }
 
@@ -1540,26 +1547,39 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
             ],
             "Gandharvastra Eka-Vira",
         ),
+        (
+            7,
+            "[8] GOLDEN DEER",
+            "Aranya • Maricha & Jatayu",
+            Color::new(1.0, 0.84, 0.22, 1.0),
+            Color::new(1.0, 0.92, 0.55, 1.0),
+            vec![
+                "Pursue Maricha's illusionary Golden Deer through clearings.",
+                "Inscribe the blazing Lakshmana Rekha around Sita's hut.",
+                "Soar as Jatayu to battle 10-headed Ravana's aerial chariot!",
+            ],
+            "Jatayu Sky Duel",
+        ),
     ];
 
     let hovered_idx = get_level_select_card_at(virtual_mouse);
     let active_idx = selected.min(chapters.len() - 1);
 
     // ------------------------------------------------------------------------
-    // LEFT PANE: CHAPTER ROSTER LIST (x: 16..288, y: 44..310)
+    // LEFT PANE: CHAPTER ROSTER LIST (x: 16..288, y: 44..312)
     // ------------------------------------------------------------------------
     let list_x = 16.0;
     let list_y = 44.0;
     let list_w = 272.0;
-    let list_h = 266.0;
+    let list_h = 268.0;
     draw_rectangle(list_x, list_y, list_w, list_h, Color::new(0.08, 0.07, 0.12, 0.96));
     draw_rectangle_lines(list_x, list_y, list_w, list_h, 1.5, PAL_GOLD_3);
 
     for (idx, title_str, sub_str, title_col, _sub_col, _bullets, _key) in &chapters {
-        let ry = list_y + 8.0 + (*idx as f32) * 36.0;
+        let ry = list_y + 6.0 + (*idx as f32) * 32.0;
         let rx = list_x + 8.0;
         let rw = list_w - 16.0;
-        let rh = 32.0;
+        let rh = 29.0;
 
         let is_sel = active_idx == *idx;
         let is_hov = hovered_idx == Some(*idx);
@@ -1585,11 +1605,11 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
         // Side Kanda color bar
         draw_rectangle(rx + 2.0, ry + 2.0, 4.0, rh - 4.0, *title_col);
 
-        draw_pixel_text(font, title_str, rx + 10.0, ry + 14.0, 8, if is_sel { PAL_GOLD_0 } else { *title_col });
-        draw_pixel_text(font, sub_str, rx + 10.0, ry + 26.0, 8, Color::new(0.75, 0.76, 0.84, 1.0));
+        draw_pixel_text(font, title_str, rx + 10.0, ry + 13.0, 8, if is_sel { PAL_GOLD_0 } else { *title_col });
+        draw_pixel_text(font, sub_str, rx + 10.0, ry + 24.0, 8, Color::new(0.75, 0.76, 0.84, 1.0));
 
         if is_sel {
-            draw_pixel_text(font, "▶", rx + rw - 16.0, ry + 18.0, 8, PAL_GOLD_0);
+            draw_pixel_text(font, "▶", rx + rw - 16.0, ry + 17.0, 8, PAL_GOLD_0);
         }
     }
 
@@ -1599,7 +1619,7 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
     let pan_x = 298.0;
     let pan_y = 44.0;
     let pan_w = 326.0;
-    let pan_h = 266.0;
+    let pan_h = 268.0;
     draw_rectangle(pan_x, pan_y, pan_w, pan_h, Color::new(0.09, 0.08, 0.14, 0.98));
     draw_rectangle_lines(pan_x, pan_y, pan_w, pan_h, 2.0, PAL_GOLD_1);
 
@@ -1699,20 +1719,18 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
             draw_line(vx - 18.0, vy - 24.0, vx - 18.0, vy + 26.0, 2.5, Color::new(0.75, 0.78, 0.85, 1.0));
             draw_hero_exile(vec2(dx + 88.0, dy + dh - 18.0), true, vec2(1.0, -0.2), 0.7, true, time);
         }
-        _ => {
+        6 => {
             // Level 7 Panchavati diorama: Sacred Godavari river, crimson sky, swarm & 3-headed Trishiras
             draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, 44.0, Color::new(0.28, 0.08, 0.10, 1.0));
             draw_rectangle(dx + 2.0, dy + 46.0, dw - 4.0, 26.0, Color::new(0.20, 0.34, 0.16, 1.0));
             draw_rectangle(dx + 2.0, dy + 72.0, dw - 4.0, 18.0, Color::new(0.14, 0.40, 0.62, 1.0));
             draw_ancient_forest_tree(dx + 32.0, dy + 68.0, 56.0, 12.0, 0, time);
-            // Swarming Rakshasa vanguard
             for k in 0..5 {
                 let rx = dx + 145.0 + k as f32 * 26.0 + (time * 10.0 + k as f32).sin() * 2.0;
                 let ry = dy + 54.0 + (k % 2) as f32 * 6.0;
                 draw_rectangle(rx - 4.0, ry - 8.0, 8.0, 12.0, PAL_RED_2);
                 draw_circle(rx, ry - 11.0, 3.5, PAL_RED_1);
             }
-            // Three-headed Trishiras silhouette on right
             let tx = dx + 258.0;
             let ty = dy + 50.0;
             draw_rectangle(tx - 12.0, ty - 10.0, 24.0, 22.0, PAL_RED_3);
@@ -1721,6 +1739,29 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
                 draw_triangle(vec2(tx + hdx - 3.0, ty - 19.0), vec2(tx + hdx + 3.0, ty - 19.0), vec2(tx + hdx, ty - 25.0), PAL_GOLD_1);
             }
             draw_hero_exile(vec2(dx + 78.0, dy + 68.0), true, vec2(1.0, -0.1), 0.9, true, time);
+        }
+        _ => {
+            // Level 8 Golden Deer & Jatayu Sky Duel diorama
+            draw_rectangle(dx + 2.0, dy + 2.0, dw - 4.0, 52.0, Color::new(0.16, 0.24, 0.42, 1.0));
+            draw_rectangle(dx + 2.0, dy + 54.0, dw - 4.0, dh - 56.0, PAL_GRASS_3);
+            // Bounding Golden Deer on sunlit glade
+            let gx = dx + 68.0 + (time * 3.0).sin() * 14.0;
+            let gy = dy + 68.0 - (time * 6.0).sin().abs() * 6.0;
+            draw_rectangle(gx - 8.0, gy - 6.0, 14.0, 8.0, PAL_GOLD_1);
+            draw_circle(gx + 6.0, gy - 10.0, 3.5, PAL_GOLD_0);
+            draw_circle(gx - 2.0, gy - 2.0, 1.2, WHITE);
+            // Swooping Eagle Jatayu vs Ravana Pushpaka Vimana in sky!
+            let jx = dx + 160.0 + (time * 2.5).sin() * 10.0;
+            let jy = dy + 30.0 + (time * 4.0).cos() * 4.0;
+            let flap = (time * 12.0).sin() * 8.0;
+            draw_triangle(vec2(jx, jy), vec2(jx - 22.0, jy - 10.0 + flap), vec2(jx - 6.0, jy + 6.0), PAL_SAND_3);
+            draw_triangle(vec2(jx, jy), vec2(jx + 16.0, jy - 8.0 + flap), vec2(jx + 6.0, jy + 6.0), PAL_SAND_3);
+            draw_circle(jx + 6.0, jy - 2.0, 4.0, PAL_GOLD_0);
+            // Golden Pushpaka Vimana on right
+            let vx = dx + 248.0;
+            let vy = dy + 28.0;
+            draw_rectangle(vx - 18.0, vy, 36.0, 10.0, PAL_GOLD_1);
+            draw_circle(vx, vy - 8.0, 6.0, PAL_RED_1);
         }
     }
 
@@ -1761,7 +1802,7 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
     draw_line(24.0, nav_y, SCREEN_W - 24.0, nav_y, 1.0, Color::new(0.35, 0.30, 0.42, 0.8));
     draw_pixel_text(
         font,
-        "[W/S/1-7/Mouse] Select Chapter   |   [ENTER / CLICK] Launch",
+        "[W/S/1-8/Mouse] Select Chapter   |   [ENTER / CLICK] Launch",
         68.0,
         336.0,
         8,
@@ -1779,22 +1820,22 @@ pub fn draw_level_select(font: &Font, selected: usize, time: f32, virtual_mouse:
 
 pub fn get_title_screen_action_at(mouse: Vec2) -> Option<usize> {
     let box_x = 28.0;
-    let box_y = 66.0;
+    let box_y = 62.0;
     let box_w = 584.0;
-    let row_start_y = box_y + 8.0;
-    let row_h = 20.0;
-    let row_gap = 2.0;
+    let row_start_y = box_y + 6.0;
+    let row_h = 18.0;
+    let row_gap = 1.5;
 
     if mouse.x >= box_x + 10.0 && mouse.x <= box_x + box_w - 10.0 {
-        for i in 0..7 {
+        for i in 0..8 {
             let ry = row_start_y + i as f32 * (row_h + row_gap);
             if mouse.y >= ry && mouse.y < ry + row_h {
                 return Some(i);
             }
         }
-        let btn_y = row_start_y + 7.0 * (row_h + row_gap) + 3.0;
-        if mouse.y >= btn_y && mouse.y <= btn_y + 22.0 {
-            return Some(7); // Full Chapter Showcase
+        let btn_y = row_start_y + 8.0 * (row_h + row_gap) + 2.0;
+        if mouse.y >= btn_y && mouse.y <= btn_y + 20.0 {
+            return Some(8); // Full Chapter Showcase
         }
     }
     None
@@ -1806,9 +1847,9 @@ pub fn get_level_select_card_at(mouse: Vec2) -> Option<usize> {
     let list_w = 272.0;
 
     if mouse.x >= list_x + 8.0 && mouse.x <= list_x + list_w - 8.0 {
-        for idx in 0..7 {
-            let ry = list_y + 8.0 + (idx as f32) * 36.0;
-            if mouse.y >= ry && mouse.y <= ry + 32.0 {
+        for idx in 0..8 {
+            let ry = list_y + 6.0 + (idx as f32) * 32.0;
+            if mouse.y >= ry && mouse.y <= ry + 29.0 {
                 return Some(idx);
             }
         }
@@ -1818,7 +1859,7 @@ pub fn get_level_select_card_at(mouse: Vec2) -> Option<usize> {
 
 pub fn is_level_select_launch_hovered(mouse: Vec2) -> bool {
     let lbtn_x = 310.0;
-    let lbtn_y = 278.0;
+    let lbtn_y = 280.0;
     let lbtn_w = 302.0;
     let lbtn_h = 24.0;
     mouse.x >= lbtn_x && mouse.x <= lbtn_x + lbtn_w && mouse.y >= lbtn_y && mouse.y <= lbtn_y + lbtn_h
